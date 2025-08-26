@@ -668,6 +668,10 @@ body {
         align-items: stretch;
     }
 
+    .view-toggle {
+        display: none;
+    }
+
     .tee-times-grid {
         grid-template-columns: 1fr;
         gap: 15px;

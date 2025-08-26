@@ -349,12 +349,12 @@ function goToPage(page) {
 
 // 골프장 상세보기
 function viewCourse(courseId) {
-    // 상세 페이지로 이동 (현재는 index.html로 이동)
-    window.location.href = `index.html?course=${courseId}`;
+    // 상세 페이지로 이동
+    window.location.href = `detail.html?course=${courseId}`;
 }
 
 // 티타임 예약
 function bookTeeTime(courseId) {
-    // 예약 페이지로 이동 (현재는 index.html로 이동)
-    window.location.href = `index.html?course=${courseId}&booking=true`;
+    // 예약 페이지로 이동
+    window.location.href = `detail.html?course=${courseId}&booking=true`;
 }
