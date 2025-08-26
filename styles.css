@@ -5,17 +5,27 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    overflow-x: hidden;
+    width: 100%;
+    min-width: 320px;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 버튼 스타일 */
@@ -76,6 +86,8 @@ body {
     padding: 15px 20px;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .logo-text {
@@ -198,6 +210,8 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     align-items: end;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-group {
@@ -323,6 +337,8 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 티타임 카드 */
@@ -569,10 +585,13 @@ body {
     .header-container {
         flex-direction: column;
         gap: 15px;
+        padding: 15px;
     }
 
     .nav-list {
         gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .course-header .container {
@@ -592,6 +611,7 @@ body {
 
     .filters-container {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .sort-container {
@@ -602,10 +622,12 @@ body {
 
     .tee-times-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .card-footer {
         flex-direction: column;
+        gap: 10px;
     }
 
     .pagination {
@@ -622,6 +644,8 @@ body {
 @media (max-width: 480px) {
     .container {
         padding: 0 15px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .course-title {
@@ -630,10 +654,36 @@ body {
 
     .filters-container {
         gap: 15px;
+        grid-template-columns: 1fr;
     }
 
     .tee-time-card {
-        margin: 0 10px;
+        margin: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .tee-times-grid {
+        gap: 15px;
+        padding: 0 10px;
+    }
+
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 15px;
+    }
+
+    .time-range,
+    .price-range {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-input,
+    .filter-select {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -1015,11 +1065,15 @@ body {
         flex-direction: column;
         border-radius: 15px;
         padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .search-input {
         margin: 10px 0;
         text-align: center;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .search-btn {
@@ -1030,6 +1084,8 @@ body {
 
     .filter-toggles {
         gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .filter-toggle {
@@ -1040,10 +1096,18 @@ body {
     .courses-grid {
         grid-template-columns: 1fr;
         gap: 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .course-card-actions {
         flex-direction: column;
+        gap: 10px;
+    }
+
+    .course-card {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -1076,4 +1140,18 @@ body {
         flex-direction: column;
         gap: 10px;
     }
+
+    .search-box {
+        padding: 10px;
+    }
+
+    .filter-toggles {
+        gap: 8px;
+    }
+
+    .filter-toggle {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
 }
+
