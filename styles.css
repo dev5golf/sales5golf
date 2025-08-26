@@ -207,10 +207,12 @@ body {
 
 .filters-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
     align-items: end;
     width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 
@@ -218,6 +220,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .filter-label {
@@ -233,6 +236,8 @@ body {
     border-radius: 6px;
     font-size: 14px;
     transition: border-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-input:focus,
@@ -247,6 +252,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
 }
 
 .time-range span,
@@ -259,6 +265,9 @@ body {
     padding: 12px 24px;
     font-size: 16px;
     font-weight: 600;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
 }
 
 /* 정렬 섹션 */
@@ -581,6 +590,22 @@ body {
 }
 
 /* 반응형 디자인 */
+@media (min-width: 1200px) {
+    .filters-container {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1200px;
+        gap: 30px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .filters-container {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 900px;
+        gap: 25px;
+    }
+}
+
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -1154,4 +1179,3 @@ body {
         font-size: 12px;
     }
 }
-
