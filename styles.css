@@ -270,6 +270,21 @@ body {
     margin: 0 auto;
 }
 
+/* 검색 버튼 섹션 */
+.search-button-section {
+    background-color: white;
+    padding: 20px 0;
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.search-button-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* 정렬 섹션 */
 .sort-section {
     background-color: white;
@@ -596,6 +611,10 @@ body {
         max-width: 1200px;
         gap: 30px;
     }
+
+    .search-button-container {
+        max-width: 1200px;
+    }
 }
 
 @media (min-width: 768px) and (max-width: 1199px) {
@@ -603,6 +622,10 @@ body {
         grid-template-columns: repeat(3, 1fr);
         max-width: 900px;
         gap: 25px;
+    }
+
+    .search-button-container {
+        max-width: 900px;
     }
 }
 
