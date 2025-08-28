@@ -1,2 +1,6 @@
 # 특정 파일 무시
 request.txt
+node_modules
+.next
+out
+*.log
