@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    output: 'export',
+    // output: 'export', // 개발 환경에서는 주석 처리
     images: {
         unoptimized: true,
         remotePatterns: [

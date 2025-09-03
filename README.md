@@ -1,136 +1,163 @@
-# 5MGOLF Tee Times 페이지
+# 5MGOLF - 골프 티타임 관리 시스템
 
-Winter Park Pines Golf Club의 티타임 예약 페이지를 HTML, CSS, JavaScript로 구현한 프로젝트입니다.
+Next.js와 Firebase를 사용한 골프 티타임 관리 및 예약 시스템입니다.
 
 ## 🏌️ 프로젝트 개요
 
-이 프로젝트는 5MGOLF 웹사이트의 티타임 검색 및 예약 페이지를 클론한 것입니다. 실제 5MGOLF 페이지와 동일한 디자인과 기능을 제공합니다.
+이 프로젝트는 골프장 관리자와 사용자를 위한 티타임 관리 시스템입니다. 관리자는 티타임을 등록하고 관리할 수 있으며, 사용자는 등록된 티타임을 조회할 수 있습니다.
 
 ## ✨ 주요 기능
 
-- **반응형 디자인**: 모바일, 태블릿, 데스크톱 모든 기기에서 최적화
-- **필터링 시스템**: 날짜, 시간, 플레이어 수, 홀 수, 가격 범위 등 다양한 필터 옵션
-- **뷰 토글**: 그룹핑 뷰와 리스트 뷰 간 전환
-- **실시간 검색**: 필터 변경 시 즉시 결과 업데이트
-- **예약 시스템**: 티타임 예약 및 상세 정보 확인
-- **페이지네이션**: 여러 페이지의 결과 탐색
-- **접근성**: 키보드 네비게이션 및 스크린 리더 지원
+### 관리자 기능
+- **사용자 관리**: 사용자 생성, 수정, 삭제
+- **골프장 관리**: 골프장 정보 관리
+- **티타임 관리**: 캘린더 기반 티타임 등록/수정/삭제
+- **지역 관리**: 국가, 도/시, 지역 정보 관리
+- **권한 관리**: 수퍼관리자, 골프장 관리자, 일반 사용자
+
+### 사용자 기능
+- **티타임 조회**: 등록된 티타임 목록 확인
+- **골프장 정보**: 골프장 상세 정보 조회
 
 ## 🛠️ 기술 스택
 
-- **HTML5**: 시맨틱 마크업과 접근성 고려
-- **CSS3**: Flexbox, Grid, CSS 변수, 반응형 디자인
-- **JavaScript (ES6+)**: 모듈화된 코드, 이벤트 처리, DOM 조작
-- **Font Awesome**: 아이콘 라이브러리
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Backend**: Firebase (Firestore, Authentication)
+- **Styling**: CSS3, Font Awesome
+- **Deployment**: Static Export
 
-## 📁 파일 구조
+## 📁 프로젝트 구조
 
 ```
-├── index.html          # 메인 HTML 파일
-├── styles.css          # CSS 스타일시트
-├── script.js           # JavaScript 기능
-└── README.md           # 프로젝트 설명서
+├── app/                          # Next.js App Router
+│   ├── (admin)/                  # 관리자 페이지
+│   │   └── admin/               # 관리자 대시보드
+│   │       ├── (dashboard)/     # 대시보드 컴포넌트
+│   │       ├── courses/         # 골프장 관리
+│   │       ├── users/           # 사용자 관리
+│   │       ├── tee-times/       # 티타임 관리
+│   │       └── countries/       # 지역 관리
+│   └── (user)/                  # 사용자 페이지
+│       ├── list/               # 티타임 목록
+│       └── detail/             # 골프장 상세
+├── contexts/                    # React Context
+├── lib/                        # Firebase 설정
+├── types/                      # TypeScript 타입 정의
+└── scripts/                    # 유틸리티 스크립트
 ```
 
 ## 🚀 시작하기
 
-1. 프로젝트를 다운로드하거나 클론합니다
-2. `index.html` 파일을 웹 브라우저에서 엽니다
-3. 또는 로컬 서버를 실행합니다:
-   ```bash
-   # Python 3
-   python -m http.server 8000
-   
-   # Node.js
-   npx serve .
-   
-   # PHP
-   php -S localhost:8000
-   ```
+### 1. 의존성 설치
+```bash
+npm install
+```
 
-## 🎯 주요 컴포넌트
+### 2. Firebase 설정
+1. Firebase 프로젝트 생성
+2. Firestore Database 설정
+3. Authentication 설정
+4. `.env.local` 파일에 Firebase 환경 변수 설정:
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-### 헤더
-- 로고 및 네비게이션 메뉴
-- 사용자 인증 버튼 (Sign In, Join)
+### 3. 개발 서버 실행
+```bash
+npm run dev
+```
 
-### 골프장 정보
-- 골프장 이름 및 위치
-- 평점 및 리뷰 수
-- 저장 및 공유 버튼
+### 4. 빌드 및 배포
+```bash
+# 개발 서버 배포 (팀 내부 테스트용)
+npm run deploy:dev
 
-### 필터 섹션
-- 날짜 선택
-- 시간 범위 설정
-- 플레이어 수 선택
-- 홀 수 선택
-- 가격 범위 설정
-- Hot Deals Only 옵션
+# 스테이징 서버 배포 (최종 테스트용)
+npm run deploy:staging
 
-### 정렬 및 뷰
-- 결과 수 표시
-- 정렬 기준 선택
-- 뷰 모드 전환 (그룹핑/리스트)
+# 프로덕션 서버 배포 (실서버)
+npm run deploy:prod
+```
 
-### 티타임 카드
-- 시간 및 날짜 정보
-- 가격 정보 (할인율 포함)
-- 골프장 세부 정보
-- 예약 및 상세 정보 버튼
+## 🔧 스크립트
 
-### 페이지네이션
-- 이전/다음 페이지 이동
-- 페이지 번호 직접 선택
+### 개발 스크립트
+- `npm run dev`: 개발 서버 실행
+- `npm run build`: 프로덕션 빌드
+- `npm run start`: 빌드된 앱 실행
 
-## 🎨 디자인 특징
+### 배포 스크립트
+- `npm run deploy:dev`: 개발 서버 배포
+- `npm run deploy:staging`: 스테이징 서버 배포
+- `npm run deploy:prod`: 프로덕션 서버 배포
 
-- **모던한 UI**: 깔끔하고 직관적인 인터페이스
-- **컬러 팔레트**: 골프 테마에 맞는 녹색 계열 색상
-- **그림자 효과**: 카드와 버튼에 적절한 깊이감
-- **호버 애니메이션**: 사용자 상호작용 향상
-- **타이포그래피**: 가독성 높은 폰트 선택
+### 유틸리티 스크립트
+- `npm run create-user`: 사용자 생성 스크립트
+- `npm run create-course`: 골프장 생성 스크립트
+- `npm run create-locations`: 지역 데이터 생성 스크립트
+
+## 👥 사용자 역할
+
+### 수퍼관리자 (super_admin)
+- 모든 기능 접근 가능
+- 모든 골프장 관리 가능
+- 사용자 및 골프장 생성/수정/삭제
+
+### 골프장 관리자 (course_admin)
+- 할당된 골프장의 티타임만 관리 가능
+- 사용자 조회 가능
+
+### 일반 사용자 (user)
+- 티타임 조회만 가능
+
+## 🎨 주요 컴포넌트
+
+### 캘린더 컴포넌트
+- 월별 티타임 표시
+- 지나간 날짜 제한
+- 티타임 등록/수정/삭제
+
+### 티타임 모달
+- 티타임 등록/수정 폼
+- 기존 티타임 목록 표시
+- 지나간 날짜 제한
+
+### 관리자 대시보드
+- 사용자 관리
+- 골프장 관리
+- 티타임 관리
+- 지역 관리
+
+## 🔒 보안 기능
+
+- Firebase Authentication 기반 인증
+- 역할 기반 접근 제어
+- 지나간 날짜 수정 제한
+- 입력 데이터 검증
 
 ## 📱 반응형 디자인
 
-- **모바일**: 480px 이하 최적화
-- **태블릿**: 768px 이하 최적화
-- **데스크톱**: 1200px 이상 최적화
-
-## 🔧 커스터마이징
-
-### 색상 변경
-CSS 변수를 수정하여 테마 색상을 변경할 수 있습니다:
-
-```css
-:root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-}
-```
-
-### 레이아웃 조정
-Grid 시스템을 수정하여 카드 레이아웃을 조정할 수 있습니다:
-
-```css
-.tee-times-grid {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-}
-```
+- 모바일, 태블릿, 데스크톱 지원
+- CSS Grid 및 Flexbox 활용
+- 터치 친화적 인터페이스
 
 ## 🚧 향후 개선 사항
 
-- [ ] 실제 API 연동
-- [ ] 사용자 인증 시스템
+- [ ] 실시간 티타임 예약 시스템
 - [ ] 결제 시스템 통합
+- [ ] 이메일 알림 기능
 - [ ] 다국어 지원
-- [ ] 다크 모드
 - [ ] PWA 지원
+- [ ] 모바일 앱 개발
 
 ## 📄 라이선스
 
-이 프로젝트는 교육 목적으로 제작되었습니다. 5MGOLF는 해당 회사의 상표입니다.
+이 프로젝트는 교육 목적으로 제작되었습니다.
 
 ## 🤝 기여하기
 
@@ -139,7 +166,3 @@ Grid 시스템을 수정하여 카드 레이아웃을 조정할 수 있습니다
 ## 📞 문의
 
 프로젝트에 대한 문의사항이 있으시면 이슈를 통해 연락해 주세요.
-
----
-
-**참고**: 이 프로젝트는 5MGOLF 웹사이트의 디자인과 기능을 참고하여 제작되었으며, 실제 서비스와는 무관합니다.

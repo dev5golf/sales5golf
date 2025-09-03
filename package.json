@@ -4,10 +4,18 @@
     "version": "0.1.0",
     "scripts": {
         "dev": "next dev -p 3000",
-        "build": "next build && next export",
-        "start": "serve out -l 3000"
+        "build": "next build",
+        "start": "serve out -l 3000",
+        "deploy:dev": "npm run build && firebase hosting:channel:deploy dev --config firebase.dev.json",
+        "deploy:staging": "npm run build && firebase hosting:channel:deploy staging --config firebase.staging.json",
+        "deploy:prod": "npm run build && firebase deploy --only hosting",
+        "create-user": "node scripts/create-user.js",
+        "create-course": "node scripts/create-course.js",
+        "create-locations": "node scripts/create-locations.js"
     },
     "dependencies": {
+        "dotenv": "^17.2.1",
+        "firebase": "^12.2.1",
         "next": "14.2.5",
         "react": "18.3.1",
         "react-dom": "18.3.1"
