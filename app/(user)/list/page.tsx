@@ -6,13 +6,6 @@ import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { Course } from '../../../types';
 import {
-    getRandomType,
-    getRandomRating,
-    getRandomReviews,
-    getOriginalPrice,
-    getDiscount,
-    getRandomImage,
-    getRandomFeatures,
     getTypeLabel
 } from '../../../lib/utils';
 
@@ -63,7 +56,7 @@ export default function ListPage() {
                         createdAt: new Date(),
                         updatedAt: new Date(),
                         createdBy: null,
-                        type: 'public',
+                        type: 'public' as const,
                         rating: 4.5,
                         reviews: 120,
                         originalPrice: '250,000원',
@@ -87,14 +80,14 @@ export default function ListPage() {
                     const data = doc.data() as Course;
                     return {
                         ...data,
-                        // 임시 데이터 추가 (실제 데이터가 없는 경우)
-                        type: getRandomType(),
-                        rating: getRandomRating(),
-                        reviews: getRandomReviews(),
-                        originalPrice: getOriginalPrice(data.price),
-                        discount: getDiscount(data.price),
-                        image: getRandomImage(),
-                        features: getRandomFeatures()
+                        // 기본 UI 데이터 추가
+                        type: 'public' as const,
+                        rating: 4.5,
+                        reviews: 120,
+                        originalPrice: data.price ? `${Math.floor(data.price * 1.3).toLocaleString()}원` : '',
+                        discount: data.price ? '30% 할인' : '',
+                        image: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        features: ['18홀', '파 72', '골프카트', '프로샵']
                     };
                 })
                 .filter(course => course.isActive) // 활성 골프장만 필터링
@@ -130,7 +123,7 @@ export default function ListPage() {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     createdBy: null,
-                    type: 'public',
+                    type: 'public' as const,
                     rating: 4.5,
                     reviews: 120,
                     originalPrice: '250,000원',

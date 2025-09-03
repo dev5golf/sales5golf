@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { User } from '../../../../types';
+import UserModal from '../components/UserModal';
 import '../../admin.css';
 
 export default function UsersPage() {
@@ -20,6 +21,11 @@ export default function UsersPage() {
     const [totalUsers, setTotalUsers] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const usersPerPage = 10;
+
+    // 모달 상태
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
     if (!authLoading && currentUser?.role !== 'super_admin') {
@@ -89,6 +95,21 @@ export default function UsersPage() {
         // 검색어는 클라이언트 사이드 필터링으로 처리됨
     };
 
+    const handleDeleteUser = async (userId: string, userName: string) => {
+        if (!confirm(`"${userName}" 회원을 삭제하시겠습니까?\n\n주의: 이 작업은 되돌릴 수 없습니다.`)) {
+            return;
+        }
+
+        try {
+            await deleteDoc(doc(db, 'users', userId));
+            alert('회원이 성공적으로 삭제되었습니다.');
+            fetchUsers(); // 목록 새로고침
+        } catch (error) {
+            console.error('회원 삭제 실패:', error);
+            alert('회원 삭제에 실패했습니다. 다시 시도해주세요.');
+        }
+    };
+
     // 검색어 변경 시 페이지 리셋 (서버 요청 없이)
     useEffect(() => {
         setCurrentPage(1);
@@ -142,10 +163,10 @@ export default function UsersPage() {
             <div className="dashboard-header">
                 <h1>회원 관리</h1>
                 <div className="page-actions">
-                    <Link href="/admin/users/create" className="btn btn-primary">
+                    <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
                         <i className="fas fa-plus"></i>
                         회원 등록
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -227,18 +248,23 @@ export default function UsersPage() {
                                 </td>
                                 <td>
                                     <div className="action-buttons">
-                                        <Link
-                                            href={`/admin/users/${user.id}/edit`}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setShowEditModal(true);
+                                            }}
                                             className="btn btn-sm btn-outline"
+                                            title="수정"
                                         >
                                             <i className="fas fa-edit"></i>
-                                        </Link>
-                                        <Link
-                                            href={`/admin/users/${user.id}`}
-                                            className="btn btn-sm btn-outline"
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteUser(user.id, user.name)}
+                                            className="btn btn-sm btn-danger"
+                                            title="삭제"
                                         >
-                                            <i className="fas fa-eye"></i>
-                                        </Link>
+                                            <i className="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -282,6 +308,36 @@ export default function UsersPage() {
                     <i className="fas fa-chevron-right"></i>
                 </button>
             </div>
+
+            {/* 사용자 생성 모달 */}
+            <UserModal
+                isOpen={showCreateModal}
+                onClose={() => {
+                    setShowCreateModal(false);
+                    setSelectedUser(null);
+                }}
+                user={null}
+                onSave={() => {
+                    fetchUsers();
+                    setShowCreateModal(false);
+                    setSelectedUser(null);
+                }}
+            />
+
+            {/* 사용자 수정 모달 */}
+            <UserModal
+                isOpen={showEditModal}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedUser(null);
+                }}
+                user={selectedUser}
+                onSave={() => {
+                    fetchUsers();
+                    setShowEditModal(false);
+                    setSelectedUser(null);
+                }}
+            />
         </div>
     );
 }

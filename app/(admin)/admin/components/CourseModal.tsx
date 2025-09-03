@@ -1,0 +1,421 @@
+"use client";
+import { useState, useEffect } from 'react';
+import { Course, Country, Province, City } from '../../../../types';
+import { db } from '../../../../lib/firebase';
+import { doc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
+import Modal from './Modal';
+
+interface CourseModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    course?: Course | null;
+    onSave: () => void;
+}
+
+export default function CourseModal({ isOpen, onClose, course, onSave }: CourseModalProps) {
+    const [formData, setFormData] = useState({
+        name: '',
+        address: '',
+        phone: '',
+        email: '',
+        website: '',
+        description: '',
+        countryId: '',
+        countryName: '',
+        provinceId: '',
+        provinceName: '',
+        cityId: '',
+        cityName: '',
+
+        facilities: [] as string[],
+        images: [] as string[],
+        price: 0,
+        adminIds: [] as string[],
+        isActive: true,
+        createdBy: null
+    });
+
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [provinces, setProvinces] = useState<Province[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchCountries();
+            if (course) {
+                setFormData({
+                    name: course.name || '',
+                    address: course.address || '',
+                    phone: course.phone || '',
+                    email: course.email || '',
+                    website: course.website || '',
+                    description: course.description || '',
+                    countryId: (course as any).countryId || (course as any).countryCode || '',
+                    countryName: course.countryName || '',
+                    provinceId: (course as any).provinceId || (course as any).provinceCode || '',
+                    provinceName: course.provinceName || '',
+                    cityId: (course as any).cityId || (course as any).cityCode || '',
+                    cityName: course.cityName || '',
+
+                    facilities: course.facilities || [],
+                    images: course.images || [],
+                    price: course.price || 0,
+                    adminIds: course.adminIds || [],
+                    isActive: course.isActive !== undefined ? course.isActive : true,
+                    createdBy: course.createdBy || null
+                });
+                if ((course as any).countryId || (course as any).countryCode) {
+                    fetchProvinces((course as any).countryId || (course as any).countryCode);
+                }
+                if ((course as any).provinceId || (course as any).provinceCode) {
+                    fetchCities((course as any).provinceId || (course as any).provinceCode);
+                }
+            } else {
+                setFormData({
+                    name: '',
+                    address: '',
+                    phone: '',
+                    email: '',
+                    website: '',
+                    description: '',
+                    countryId: '',
+                    countryName: '',
+                    provinceId: '',
+                    provinceName: '',
+                    cityId: '',
+                    cityName: '',
+
+                    facilities: [],
+                    images: [],
+                    price: 0,
+                    adminIds: [],
+                    isActive: true,
+                    createdBy: null
+                });
+            }
+        }
+    }, [isOpen, course]);
+
+    const fetchCountries = async () => {
+        try {
+            const countriesRef = collection(db, 'countries');
+            const snapshot = await getDocs(countriesRef);
+            const countriesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as Country[];
+            setCountries(countriesData);
+        } catch (error) {
+            console.error('국가 데이터 가져오기 실패:', error);
+        }
+    };
+
+    const fetchProvinces = async (countryId: string) => {
+        try {
+            const provincesRef = collection(db, 'provinces');
+            const snapshot = await getDocs(provincesRef);
+            const allProvinces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const provincesData = allProvinces
+                .filter(province => ((province as any).countryId || (province as any).countryCode) === countryId) as Province[];
+            setProvinces(provincesData);
+        } catch (error) {
+            console.error('지역 데이터 가져오기 실패:', error);
+        }
+    };
+
+    const fetchCities = async (provinceId: string) => {
+        try {
+            const citiesRef = collection(db, 'cities');
+            const snapshot = await getDocs(citiesRef);
+            const allCities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const citiesData = allCities
+                .filter(city => ((city as any).provinceId || (city as any).provinceCode) === provinceId) as City[];
+            setCities(citiesData);
+        } catch (error) {
+            console.error('도시 데이터 가져오기 실패:', error);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (course) {
+                // 수정
+                const courseRef = doc(db, 'courses', course.id);
+                await updateDoc(courseRef, {
+                    ...formData,
+                    updatedAt: new Date()
+                });
+            } else {
+                // 생성 - 순차적 ID 생성
+                const coursesRef = collection(db, 'courses');
+                const snapshot = await getDocs(coursesRef);
+                const existingIds = snapshot.docs.map(doc => doc.id);
+
+                // 골프장 ID 찾기 (G_0001, G_0002, ...)
+                let courseId = 'G_0001';
+                let counter = 1;
+                while (existingIds.includes(courseId)) {
+                    counter++;
+                    courseId = `G_${counter.toString().padStart(4, '0')}`;
+                }
+
+                const courseRef = doc(db, 'courses', courseId);
+                await setDoc(courseRef, {
+                    ...formData,
+                    id: courseId,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+            }
+            onSave();
+            onClose();
+        } catch (error) {
+            console.error('골프장 저장 실패:', error);
+            alert('저장에 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+
+        if (name === 'countryId') {
+            const selectedCountry = countries.find(country => country.id === value);
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                countryName: selectedCountry?.name || '',
+                provinceId: '',
+                provinceName: '',
+                cityId: '',
+                cityName: ''
+            }));
+            if (value) {
+                fetchProvinces(value);
+            } else {
+                setProvinces([]);
+                setCities([]);
+            }
+        } else if (name === 'provinceId') {
+            const selectedProvince = provinces.find(province => province.id === value);
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                provinceName: selectedProvince?.name || '',
+                cityId: '',
+                cityName: ''
+            }));
+            if (value) {
+                fetchCities(value);
+            } else {
+                setCities([]);
+            }
+        } else if (name === 'cityId') {
+            const selectedCity = cities.find(city => city.id === value);
+            setFormData(prev => ({
+                ...prev,
+                [name]: value,
+                cityName: selectedCity?.name || ''
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={course ? '골프장 수정' : '골프장 등록'}
+            size="lg"
+        >
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        골프장명 *
+                    </label>
+                    <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        주소 *
+                    </label>
+                    <input
+                        type="text"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            전화번호
+                        </label>
+                        <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            이메일
+                        </label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        웹사이트
+                    </label>
+                    <input
+                        type="url"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            국가 *
+                        </label>
+                        <select
+                            name="countryId"
+                            value={formData.countryId}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">선택하세요</option>
+                            {countries.map(country => (
+                                <option key={country.id} value={country.id}>
+                                    {country.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            지역
+                        </label>
+                        <select
+                            name="provinceId"
+                            value={formData.provinceId}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">선택하세요</option>
+                            {provinces.map(province => (
+                                <option key={province.id} value={province.id}>
+                                    {province.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            도시
+                        </label>
+                        <select
+                            name="cityId"
+                            value={formData.cityId}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">선택하세요</option>
+                            {cities.map(city => (
+                                <option key={city.id} value={city.id}>
+                                    {city.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            상태
+                        </label>
+                        <select
+                            name="isActive"
+                            value={formData.isActive ? 'true' : 'false'}
+                            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === 'true' }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="true">활성</option>
+                            <option value="false">비활성</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        설명
+                    </label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                    >
+                        취소
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                        {loading ? '저장 중...' : '저장'}
+                    </button>
+                </div>
+            </form>
+        </Modal>
+    );
+}

@@ -6,6 +6,7 @@ import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { Course, Country, Province } from '../../../../types';
+import CourseModal from '../components/CourseModal';
 import '../../admin.css';
 
 export default function CoursesPage() {
@@ -18,13 +19,18 @@ export default function CoursesPage() {
     const [provinceFilter, setProvinceFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [countries, setCountries] = useState<Country[]>([]);
+    const [provinces, setProvinces] = useState<Province[]>([]);
+
+    // 모달 상태
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
     if (!authLoading && currentUser?.role !== 'super_admin') {
         router.push('/admin/tee-times');
         return null;
     }
-    const [provinces, setProvinces] = useState<Province[]>([]);
 
     useEffect(() => {
         fetchCourses();
@@ -37,6 +43,8 @@ export default function CoursesPage() {
         } else {
             setProvinces([]);
         }
+        // 국가 필터가 변경되면 지방 필터 초기화
+        setProvinceFilter('all');
     }, [countryFilter]);
 
     const fetchCourses = async () => {
@@ -80,12 +88,21 @@ export default function CoursesPage() {
 
     const fetchProvinces = async (countryCode: string) => {
         try {
-            const q = query(collection(db, 'provinces'), where('countryCode', '==', countryCode));
-            const snapshot = await getDocs(q);
-            const provinceData = snapshot.docs.map(doc => ({
+            console.log('fetchProvinces 호출됨, countryCode:', countryCode);
+            const snapshot = await getDocs(collection(db, 'provinces'));
+            const allProvinces = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as Province[];
+
+            console.log('모든 지방 데이터:', allProvinces);
+
+            // 클라이언트 사이드에서 필터링 (countryId 또는 countryCode로)
+            const provinceData = allProvinces.filter(province =>
+                (province as any).countryId === countryCode || (province as any).countryCode === countryCode
+            );
+
+            console.log('필터링된 지방 데이터:', provinceData);
             setProvinces(provinceData);
         } catch (error) {
             console.error('지방 목록 가져오기 실패:', error);
@@ -106,13 +123,21 @@ export default function CoursesPage() {
         }
 
         // 국가 필터
-        if (countryFilter !== 'all' && course.countryCode !== countryFilter) {
-            return false;
+        if (countryFilter !== 'all') {
+            const courseCountryId = (course as any).countryId || (course as any).countryCode;
+            console.log('국가 필터 체크:', { courseCountryId, countryFilter, match: courseCountryId === countryFilter });
+            if (courseCountryId !== countryFilter) {
+                return false;
+            }
         }
 
         // 지방 필터
-        if (provinceFilter !== 'all' && course.provinceCode !== provinceFilter) {
-            return false;
+        if (provinceFilter !== 'all') {
+            const courseProvinceId = (course as any).provinceId || (course as any).provinceCode;
+            console.log('지방 필터 체크:', { courseProvinceId, provinceFilter, match: courseProvinceId === provinceFilter });
+            if (courseProvinceId !== provinceFilter) {
+                return false;
+            }
         }
 
         // 상태 필터
@@ -132,6 +157,28 @@ export default function CoursesPage() {
         return date.toLocaleDateString('ko-KR');
     };
 
+    // 모달 핸들러 함수들
+    const handleCreateCourse = () => {
+        setSelectedCourse(null);
+        setShowCreateModal(true);
+    };
+
+    const handleEditCourse = (course: Course) => {
+        setSelectedCourse(course);
+        setShowEditModal(true);
+    };
+
+    const handleCloseModals = () => {
+        setShowCreateModal(false);
+        setShowEditModal(false);
+        setSelectedCourse(null);
+    };
+
+    const handleCourseSaved = () => {
+        fetchCourses(); // 목록 새로고침
+        handleCloseModals();
+    };
+
     if (loading) {
         return (
             <div className="admin-loading">
@@ -146,10 +193,10 @@ export default function CoursesPage() {
             <div className="dashboard-header">
                 <h1>골프장 관리</h1>
                 <div className="page-actions">
-                    <Link href="/admin/courses/create" className="btn btn-primary">
+                    <button onClick={handleCreateCourse} className="btn btn-primary">
                         <i className="fas fa-plus"></i>
                         골프장 등록
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -181,7 +228,7 @@ export default function CoursesPage() {
                     >
                         <option value="all">모든 국가</option>
                         {countries.map(country => (
-                            <option key={country.id} value={country.code}>
+                            <option key={country.id} value={country.id}>
                                 {country.name}
                             </option>
                         ))}
@@ -195,7 +242,7 @@ export default function CoursesPage() {
                     >
                         <option value="all">모든 지방</option>
                         {provinces.map(province => (
-                            <option key={province.id} value={province.code}>
+                            <option key={province.id} value={province.id}>
                                 {province.name}
                             </option>
                         ))}
@@ -239,7 +286,7 @@ export default function CoursesPage() {
                                 <td>
                                     <div className="location-info">
                                         <span className="location-text">
-                                            {course.countryName} > {course.provinceName} > {course.cityName}
+                                            {course.countryName} &gt; {course.provinceName} &gt; {course.cityName}
                                         </span>
                                     </div>
                                 </td>
@@ -254,18 +301,13 @@ export default function CoursesPage() {
                                 <td>{formatDate(course.createdAt)}</td>
                                 <td>
                                     <div className="action-buttons">
-                                        <Link
-                                            href={`/admin/courses/${course.id}/edit`}
+                                        <button
+                                            onClick={() => handleEditCourse(course)}
                                             className="btn btn-sm btn-outline"
+                                            title="수정"
                                         >
                                             <i className="fas fa-edit"></i>
-                                        </Link>
-                                        <Link
-                                            href={`/admin/courses/${course.id}`}
-                                            className="btn btn-sm btn-outline"
-                                        >
-                                            <i className="fas fa-eye"></i>
-                                        </Link>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -280,6 +322,22 @@ export default function CoursesPage() {
                     </div>
                 )}
             </div>
+
+            {/* 골프장 생성 모달 */}
+            <CourseModal
+                isOpen={showCreateModal}
+                onClose={handleCloseModals}
+                course={null}
+                onSave={handleCourseSaved}
+            />
+
+            {/* 골프장 수정 모달 */}
+            <CourseModal
+                isOpen={showEditModal}
+                onClose={handleCloseModals}
+                course={selectedCourse}
+                onSave={handleCourseSaved}
+            />
         </div>
     );
 }

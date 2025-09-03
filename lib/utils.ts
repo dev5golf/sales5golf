@@ -66,68 +66,7 @@ export const getAvailabilityClass = (slots: number): string => {
     return 'availability-few';
 };
 
-/**
- * 랜덤 골프장 타입 생성
- */
-export const getRandomType = (): 'public' | 'private' | 'resort' => {
-    const types = ['public', 'private', 'resort'] as const;
-    return types[Math.floor(Math.random() * types.length)];
-};
 
-/**
- * 랜덤 평점 생성 (3.5 ~ 5.0)
- */
-export const getRandomRating = (): number => {
-    return Math.round((Math.random() * 1.5 + 3.5) * 10) / 10;
-};
-
-/**
- * 랜덤 리뷰 수 생성 (50 ~ 250)
- */
-export const getRandomReviews = (): number => {
-    return Math.floor(Math.random() * 200) + 50;
-};
-
-/**
- * 원가 계산 (20-50% 할인)
- */
-export const getOriginalPrice = (price: number): string => {
-    if (!price) return '';
-    const originalPrice = Math.floor(price * (1.2 + Math.random() * 0.3));
-    return `${originalPrice.toLocaleString()}원`;
-};
-
-/**
- * 할인율 계산 (20-50%)
- */
-export const getDiscount = (price: number): string => {
-    if (!price) return '';
-    const discountPercent = Math.floor(20 + Math.random() * 30);
-    return `${discountPercent}% 할인`;
-};
-
-/**
- * 랜덤 골프장 이미지 URL
- */
-export const getRandomImage = (): string => {
-    const images = [
-        'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-        'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-        'https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
-    ];
-    return images[Math.floor(Math.random() * images.length)];
-};
-
-/**
- * 랜덤 골프장 특징 생성
- */
-export const getRandomFeatures = (): string[] => {
-    const allFeatures = ['18홀', '파 72', '골프카트', '프로샵', '레스토랑', '클럽하우스', '스파', '골프박물관'];
-    const numFeatures = Math.floor(Math.random() * 4) + 3; // 3-6개
-    return allFeatures.sort(() => 0.5 - Math.random()).slice(0, numFeatures);
-};
 
 /**
  * 지나간 날짜인지 확인

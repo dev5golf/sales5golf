@@ -2,14 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import '../../admin.css';
 
 interface Country {
     id: string;
     name: string;
-    code: string;
+    isActive: boolean;
+    createdAt: any;
 }
 
 interface Province {
@@ -19,6 +20,7 @@ interface Province {
     countryCode: string;
     countryName: string;
     isActive: boolean;
+    createdAt: any;
 }
 
 interface City {
@@ -29,6 +31,7 @@ interface City {
     provinceCode: string;
     provinceName: string;
     isActive: boolean;
+    createdAt: any;
 }
 
 type TabType = 'countries' | 'provinces' | 'cities';
@@ -117,8 +120,8 @@ export default function RegionsPage() {
             const provincesWithCountryNames = await Promise.all(
                 provinceData.map(async (province) => {
                     try {
-                        const countryDoc = await getDocs(query(collection(db, 'countries'), where('code', '==', province.countryCode)));
-                        const countryName = countryDoc.docs[0]?.data()?.name || '알 수 없음';
+                        const countryDoc = await getDoc(doc(db, 'countries', (province as any).countryId || (province as any).countryCode));
+                        const countryName = countryDoc.data()?.name || '알 수 없음';
                         return { ...province, countryName };
                     } catch (error) {
                         return { ...province, countryName: '알 수 없음' };
@@ -145,10 +148,18 @@ export default function RegionsPage() {
             const citiesWithProvinceNames = await Promise.all(
                 cityData.map(async (city) => {
                     try {
-                        const provinceDoc = await getDocs(query(collection(db, 'provinces'), where('code', '==', city.provinceCode)));
-                        const provinceName = provinceDoc.docs[0]?.data()?.name || '알 수 없음';
+                        // provinceId 또는 provinceCode로 지방 찾기 (하위 호환성)
+                        const provinceId = (city as any).provinceId || (city as any).provinceCode;
+                        if (!provinceId) {
+                            return { ...city, provinceName: '알 수 없음' };
+                        }
+
+                        // doc.id로 직접 지방 문서 가져오기
+                        const provinceDoc = await getDoc(doc(db, 'provinces', provinceId));
+                        const provinceName = provinceDoc.exists() ? provinceDoc.data()?.name || '알 수 없음' : '알 수 없음';
                         return { ...city, provinceName };
                     } catch (error) {
+                        console.error('지방명 조회 실패:', error);
                         return { ...city, provinceName: '알 수 없음' };
                     }
                 })
@@ -164,24 +175,31 @@ export default function RegionsPage() {
     const getLastProvinceCodeByCountry = async (countryCode: string) => {
         try {
             setIsGeneratingCode(true);
+            console.log('getLastProvinceCodeByCountry 호출됨, countryCode:', countryCode);
             const provincesRef = collection(db, 'provinces');
-            const q = query(provincesRef, orderBy('code', 'desc'));
-            const snapshot = await getDocs(q);
+            const snapshot = await getDocs(provincesRef);
 
             let lastCode = '000';
 
             for (const doc of snapshot.docs) {
                 const data = doc.data();
-                if (data.countryCode === countryCode) {
-                    const provinceCode = data.code;
+                console.log('지방 데이터 확인:', { docId: doc.id, data });
+                if ((data as any).countryId === countryCode || (data as any).countryCode === countryCode) {
+                    const provinceCode = doc.id; // doc.id 사용 (예: KR_001)
+                    console.log('매칭된 지방 코드:', provinceCode);
                     const match = provinceCode.match(/(\d{3})$/);
                     if (match) {
-                        lastCode = match[1];
+                        const currentCode = match[1];
+                        // 더 큰 번호를 찾기 위해 비교
+                        if (parseInt(currentCode) > parseInt(lastCode)) {
+                            lastCode = currentCode;
+                            console.log('더 큰 코드 발견:', lastCode);
+                        }
                     }
-                    break;
                 }
             }
 
+            console.log('최종 반환 코드:', lastCode);
             return lastCode;
         } catch (error) {
             console.error('provinces 데이터 조회 실패:', error);
@@ -194,24 +212,31 @@ export default function RegionsPage() {
     const getLastCityCodeByProvince = async (provinceCode: string) => {
         try {
             setIsGeneratingCode(true);
+            console.log('getLastCityCodeByProvince 호출됨, provinceCode:', provinceCode);
             const citiesRef = collection(db, 'cities');
-            const q = query(citiesRef, orderBy('code', 'desc'));
-            const snapshot = await getDocs(q);
+            const snapshot = await getDocs(citiesRef);
 
             let lastCode = '000';
 
             for (const doc of snapshot.docs) {
                 const data = doc.data();
-                if (data.provinceCode === provinceCode) {
-                    const cityCode = data.code;
+                console.log('도시 데이터 확인:', { docId: doc.id, data });
+                if ((data as any).provinceId === provinceCode || (data as any).provinceCode === provinceCode) {
+                    const cityCode = doc.id; // doc.id 사용 (예: KR_001_001)
+                    console.log('매칭된 도시 코드:', cityCode);
                     const match = cityCode.match(/(\d{3})$/);
                     if (match) {
-                        lastCode = match[1];
+                        const currentCode = match[1];
+                        // 더 큰 번호를 찾기 위해 비교
+                        if (parseInt(currentCode) > parseInt(lastCode)) {
+                            lastCode = currentCode;
+                            console.log('더 큰 도시 코드 발견:', lastCode);
+                        }
                     }
-                    break;
                 }
             }
 
+            console.log('최종 반환 도시 코드:', lastCode);
             return lastCode;
         } catch (error) {
             console.error('cities 데이터 조회 실패:', error);
@@ -236,11 +261,11 @@ export default function RegionsPage() {
 
     // 시도 선택 시 구군 코드 자동 생성
     const handleProvinceChangeForCity = async (provinceCode: string) => {
-        const selectedProvince = provinces.find(p => p.code === provinceCode);
+        const selectedProvince = provinces.find(p => p.id === provinceCode);
         setNewCity(prev => ({
             ...prev,
             provinceCode,
-            countryCode: selectedProvince?.countryCode || '',
+            countryCode: (selectedProvince as any)?.countryId || (selectedProvince as any)?.countryCode || '',
             code: ''
         }));
 
@@ -263,11 +288,10 @@ export default function RegionsPage() {
         }
 
         try {
-            const countryId = `country_${newCountry.code}`;
+            const countryId = newCountry.code.trim().toUpperCase();
             const countryData = {
                 id: countryId,
                 name: newCountry.name.trim(),
-                code: newCountry.code.trim(),
                 isActive: newCountry.isActive,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
@@ -297,14 +321,13 @@ export default function RegionsPage() {
         }
 
         try {
-            const selectedCountry = countries.find(c => c.code === newProvince.countryCode);
-            const provinceId = `province_${newProvince.code}`;
+            const selectedCountry = countries.find(c => c.id === newProvince.countryCode);
+            const provinceId = newProvince.code.trim(); // 이미 KR_001 형태로 생성됨
 
             const provinceData = {
                 id: provinceId,
                 name: newProvince.name.trim(),
-                code: newProvince.code.trim(),
-                countryCode: newProvince.countryCode,
+                countryId: newProvince.countryCode,
                 countryName: selectedCountry?.name || '',
                 isActive: newProvince.isActive,
                 createdAt: serverTimestamp(),
@@ -335,15 +358,14 @@ export default function RegionsPage() {
         }
 
         try {
-            const selectedProvince = provinces.find(p => p.code === newCity.provinceCode);
-            const cityId = `city_${newCity.code}`;
+            const selectedProvince = provinces.find(p => p.id === newCity.provinceCode);
+            const cityId = newCity.code.trim(); // 이미 KR_001_001 형태로 생성됨
 
             const cityData = {
                 id: cityId,
                 name: newCity.name.trim(),
-                code: newCity.code.trim(),
-                countryCode: newCity.countryCode,
-                provinceCode: newCity.provinceCode,
+                countryId: newCity.countryCode,
+                provinceId: newCity.provinceCode,
                 provinceName: selectedProvince?.name || '',
                 isActive: newCity.isActive,
                 createdAt: serverTimestamp(),
@@ -376,7 +398,7 @@ export default function RegionsPage() {
     // 편집 함수들
     const handleEditCountry = (country: Country) => {
         setEditingItem({ type: 'country', id: country.id, data: country });
-        setEditCountry({ name: country.name, code: country.code, isActive: country.isActive });
+        setEditCountry({ name: country.name, code: country.id, isActive: country.isActive });
         setShowAddForm(false);
     };
 
@@ -384,8 +406,8 @@ export default function RegionsPage() {
         setEditingItem({ type: 'province', id: province.id, data: province });
         setEditProvince({
             name: province.name,
-            code: province.code,
-            countryCode: province.countryCode,
+            code: province.id,
+            countryCode: (province as any).countryId || (province as any).countryCode,
             isActive: province.isActive
         });
         setShowAddForm(false);
@@ -395,9 +417,9 @@ export default function RegionsPage() {
         setEditingItem({ type: 'city', id: city.id, data: city });
         setEditCity({
             name: city.name,
-            code: city.code,
-            countryCode: city.countryCode || '',
-            provinceCode: city.provinceCode,
+            code: city.id,
+            countryCode: (city as any).countryId || (city as any).countryCode || '',
+            provinceCode: (city as any).provinceId || (city as any).provinceCode,
             isActive: city.isActive
         });
         setShowAddForm(false);
@@ -414,8 +436,8 @@ export default function RegionsPage() {
 
         try {
             const countryData = {
+                id: editingItem!.id,
                 name: editCountry.name.trim(),
-                code: editCountry.code.trim(),
                 isActive: editCountry.isActive,
                 updatedAt: serverTimestamp()
             };
@@ -441,11 +463,11 @@ export default function RegionsPage() {
         }
 
         try {
-            const selectedCountry = countries.find(c => c.code === editProvince.countryCode);
+            const selectedCountry = countries.find(c => c.id === editProvince.countryCode);
             const provinceData = {
+                id: editingItem!.id,
                 name: editProvince.name.trim(),
-                code: editProvince.code.trim(),
-                countryCode: editProvince.countryCode,
+                countryId: editProvince.countryCode,
                 countryName: selectedCountry?.name || '',
                 isActive: editProvince.isActive,
                 updatedAt: serverTimestamp()
@@ -472,12 +494,12 @@ export default function RegionsPage() {
         }
 
         try {
-            const selectedProvince = provinces.find(p => p.code === editCity.provinceCode);
+            const selectedProvince = provinces.find(p => p.id === editCity.provinceCode);
             const cityData = {
+                id: editingItem!.id,
                 name: editCity.name.trim(),
-                code: editCity.code.trim(),
-                countryCode: editCity.countryCode,
-                provinceCode: editCity.provinceCode,
+                countryId: editCity.countryCode,
+                provinceId: editCity.provinceCode,
                 provinceName: selectedProvince?.name || '',
                 isActive: editCity.isActive,
                 updatedAt: serverTimestamp()
@@ -550,7 +572,7 @@ export default function RegionsPage() {
     const filteredCountries = countries.filter(country => {
         // 검색어 필터
         if (searchTerm && !country.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !country.code.toLowerCase().includes(searchTerm.toLowerCase())) {
+            !country.id.toLowerCase().includes(searchTerm.toLowerCase())) {
             return false;
         }
 
@@ -568,13 +590,13 @@ export default function RegionsPage() {
     const filteredProvinces = provinces.filter(province => {
         // 검색어 필터
         if (searchTerm && !province.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !province.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !province.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
             !province.countryName.toLowerCase().includes(searchTerm.toLowerCase())) {
             return false;
         }
 
         // 국가 필터
-        if (countryFilter !== 'all' && province.countryCode !== countryFilter) {
+        if (countryFilter !== 'all' && ((province as any).countryId || (province as any).countryCode) !== countryFilter) {
             return false;
         }
 
@@ -592,18 +614,18 @@ export default function RegionsPage() {
     const filteredCities = cities.filter(city => {
         // 검색어 필터
         if (searchTerm && !city.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !city.code.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !city.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
             !city.provinceName.toLowerCase().includes(searchTerm.toLowerCase())) {
             return false;
         }
 
         // 국가 필터
-        if (countryFilter !== 'all' && city.countryCode !== countryFilter) {
+        if (countryFilter !== 'all' && ((city as any).countryId || (city as any).countryCode) !== countryFilter) {
             return false;
         }
 
         // 시도 필터
-        if (provinceFilter !== 'all' && city.provinceCode !== provinceFilter) {
+        if (provinceFilter !== 'all' && ((city as any).provinceId || (city as any).provinceCode) !== provinceFilter) {
             return false;
         }
 
@@ -662,6 +684,13 @@ export default function RegionsPage() {
                         setShowAddForm(false);
                         setEditingItem(null);
                         setErrors({});
+                        // 폼 상태 초기화
+                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
                 >
                     <i className="fas fa-globe"></i>
@@ -678,6 +707,13 @@ export default function RegionsPage() {
                         setShowAddForm(false);
                         setEditingItem(null);
                         setErrors({});
+                        // 폼 상태 초기화
+                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
                 >
                     <i className="fas fa-map-marked-alt"></i>
@@ -694,6 +730,13 @@ export default function RegionsPage() {
                         setShowAddForm(false);
                         setEditingItem(null);
                         setErrors({});
+                        // 폼 상태 초기화
+                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
+                        setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
                 >
                     <i className="fas fa-city"></i>
@@ -731,7 +774,7 @@ export default function RegionsPage() {
                         >
                             <option value="all">모든 국가</option>
                             {countries.map(country => (
-                                <option key={country.id} value={country.code}>
+                                <option key={country.id} value={country.id}>
                                     {country.name}
                                 </option>
                             ))}
@@ -746,7 +789,7 @@ export default function RegionsPage() {
                         >
                             <option value="all">모든 국가</option>
                             {countries.map(country => (
-                                <option key={country.id} value={country.code}>
+                                <option key={country.id} value={country.id}>
                                     {country.name}
                                 </option>
                             ))}
@@ -761,7 +804,7 @@ export default function RegionsPage() {
                         >
                             <option value="all">모든 지방</option>
                             {provinces.map(province => (
-                                <option key={province.id} value={province.code}>
+                                <option key={province.id} value={province.id}>
                                     {province.name}
                                 </option>
                             ))}
@@ -805,27 +848,30 @@ export default function RegionsPage() {
 
                         {activeTab === 'countries' && (
                             <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="countryName">국가명 *</label>
-                                    <input
-                                        type="text"
-                                        id="countryName"
-                                        value={newCountry.name}
-                                        onChange={(e) => setNewCountry(prev => ({ ...prev, name: e.target.value }))}
-                                        placeholder="예: 대한민국"
-                                    />
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="countryName">국가명 *</label>
+                                        <input
+                                            type="text"
+                                            id="countryName"
+                                            value={newCountry.name}
+                                            onChange={(e) => setNewCountry(prev => ({ ...prev, name: e.target.value }))}
+                                            placeholder="예: 대한민국"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="countryCode">국가코드 *</label>
+                                        <input
+                                            type="text"
+                                            id="countryCode"
+                                            value={newCountry.code}
+                                            onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                            placeholder="예: KR"
+                                            maxLength={3}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="countryCode">국가코드 *</label>
-                                    <input
-                                        type="text"
-                                        id="countryCode"
-                                        value={newCountry.code}
-                                        onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                        placeholder="예: KR"
-                                        maxLength={2}
-                                    />
-                                </div>
+
                             </div>
                         )}
 
@@ -841,7 +887,7 @@ export default function RegionsPage() {
                                         >
                                             <option value="">국가를 선택하세요</option>
                                             {countries.map(country => (
-                                                <option key={country.id} value={country.code}>
+                                                <option key={country.id} value={country.id}>
                                                     {country.name}
                                                 </option>
                                             ))}
@@ -908,7 +954,7 @@ export default function RegionsPage() {
                                         >
                                             <option value="">지방을 선택하세요</option>
                                             {provinces.map(province => (
-                                                <option key={province.id} value={province.code}>
+                                                <option key={province.id} value={province.id}>
                                                     {province.name} ({province.countryName})
                                                 </option>
                                             ))}
@@ -1001,27 +1047,30 @@ export default function RegionsPage() {
 
                         {editingItem.type === 'country' && (
                             <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="editCountryName">국가명 *</label>
-                                    <input
-                                        type="text"
-                                        id="editCountryName"
-                                        value={editCountry.name}
-                                        onChange={(e) => setEditCountry(prev => ({ ...prev, name: e.target.value }))}
-                                        placeholder="예: 대한민국"
-                                    />
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="editCountryName">국가명 *</label>
+                                        <input
+                                            type="text"
+                                            id="editCountryName"
+                                            value={editCountry.name}
+                                            onChange={(e) => setEditCountry(prev => ({ ...prev, name: e.target.value }))}
+                                            placeholder="예: 대한민국"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="editCountryCode">국가코드 *</label>
+                                        <input
+                                            type="text"
+                                            id="editCountryCode"
+                                            value={editCountry.code}
+                                            onChange={(e) => setEditCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                            placeholder="예: KR"
+                                            maxLength={3}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="editCountryCode">국가코드 *</label>
-                                    <input
-                                        type="text"
-                                        id="editCountryCode"
-                                        value={editCountry.code}
-                                        onChange={(e) => setEditCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                        placeholder="예: KR"
-                                        maxLength={2}
-                                    />
-                                </div>
+
                             </div>
                         )}
 
@@ -1037,7 +1086,7 @@ export default function RegionsPage() {
                                         >
                                             <option value="">국가를 선택하세요</option>
                                             {countries.map(country => (
-                                                <option key={country.id} value={country.code}>
+                                                <option key={country.id} value={country.id}>
                                                     {country.name}
                                                 </option>
                                             ))}
@@ -1096,7 +1145,7 @@ export default function RegionsPage() {
                                         >
                                             <option value="">지방을 선택하세요</option>
                                             {provinces.map(province => (
-                                                <option key={province.id} value={province.code}>
+                                                <option key={province.id} value={province.id}>
                                                     {province.name} ({province.countryName})
                                                 </option>
                                             ))}
@@ -1173,7 +1222,7 @@ export default function RegionsPage() {
                             {filteredCountries.map((country) => (
                                 <tr key={country.id}>
                                     <td>{country.name}</td>
-                                    <td><span className="font-mono">{country.code}</span></td>
+                                    <td><span className="font-mono">{country.id}</span></td>
                                     <td>
                                         <span className={`status-badge ${country.isActive ? 'active' : 'inactive'}`}>
                                             {country.isActive ? '활성' : '비활성'}
@@ -1218,7 +1267,7 @@ export default function RegionsPage() {
                             {filteredProvinces.map((province) => (
                                 <tr key={province.id}>
                                     <td>{province.name}</td>
-                                    <td><span className="font-mono">{province.code}</span></td>
+                                    <td><span className="font-mono">{province.id}</span></td>
                                     <td>{province.countryName}</td>
                                     <td>
                                         <span className={`status-badge ${province.isActive ? 'active' : 'inactive'}`}>
@@ -1264,7 +1313,7 @@ export default function RegionsPage() {
                             {filteredCities.map((city) => (
                                 <tr key={city.id}>
                                     <td>{city.name}</td>
-                                    <td><span className="font-mono">{city.code}</span></td>
+                                    <td><span className="font-mono">{city.id}</span></td>
                                     <td>{city.provinceName}</td>
                                     <td>
                                         <span className={`status-badge ${city.isActive ? 'active' : 'inactive'}`}>

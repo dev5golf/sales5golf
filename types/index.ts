@@ -18,9 +18,9 @@ export interface Course {
     id: string;
     name: string;
     address: string;
-    countryCode: string;
-    provinceCode: string;
-    cityCode: string;
+    countryId: string;
+    provinceId: string;
+    cityId: string;
     countryName: string;
     provinceName: string;
     cityName: string;
@@ -53,7 +53,6 @@ export interface User {
 
 export interface Country {
     id: string;
-    code: string;
     name: string;
     isActive: boolean;
     createdAt: any;
@@ -63,9 +62,8 @@ export interface Country {
 
 export interface Province {
     id: string;
-    code: string;
     name: string;
-    countryCode: string;
+    countryId: string;
     countryName: string;
     isActive: boolean;
     createdAt: any;
@@ -75,11 +73,10 @@ export interface Province {
 
 export interface City {
     id: string;
-    code: string;
     name: string;
-    countryCode: string;
+    countryId: string;
     countryName: string;
-    provinceCode: string;
+    provinceId: string;
     provinceName: string;
     isActive: boolean;
     createdAt: any;
@@ -89,13 +86,12 @@ export interface City {
 
 export interface Region {
     id: string;
-    code: string;
     name: string;
-    countryCode: string;
+    countryId: string;
     countryName: string;
-    provinceCode: string;
+    provinceId: string;
     provinceName: string;
-    cityCode: string;
+    cityId: string;
     cityName: string;
     isActive: boolean;
     createdAt: any;
@@ -140,9 +136,9 @@ export interface TeeTimeFormData {
 export interface CourseFormData {
     name: string;
     address: string;
-    countryCode: string;
-    provinceCode: string;
-    cityCode: string;
+    countryId: string;
+    provinceId: string;
+    cityId: string;
     phone: string;
     description: string;
     price: string;
