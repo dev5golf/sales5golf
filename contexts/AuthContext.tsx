@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         // Firebase가 초기화되지 않았으면 로딩 완료
         if (!auth) {
+            console.warn('Firebase Auth가 초기화되지 않았습니다.');
             setLoading(false);
             return;
         }

@@ -9,19 +9,19 @@
     "rewrites": [
       {
         "source": "/admin",
-        "destination": "/admin/index.html"
+        "destination": "/admin.html"
       },
       {
         "source": "/admin/**",
-        "destination": "/admin/index.html"
+        "destination": "/admin.html"
       },
       {
         "source": "/list",
-        "destination": "/list/index.html"
+        "destination": "/list.html"
       },
       {
         "source": "/detail",
-        "destination": "/detail/index.html"
+        "destination": "/detail.html"
       },
       {
         "source": "**",
