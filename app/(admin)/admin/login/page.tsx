@@ -130,11 +130,6 @@ export default function AdminLoginPage() {
                     사이트로 돌아가기
                 </Link>
             </div>
-
-            <div className="demo-credentials">
-                <p><strong>관리자 계정으로 로그인하세요</strong></p>
-                <p>파이어베이스 인증을 사용합니다</p>
-            </div>
         </div>
     );
 }
