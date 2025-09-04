@@ -8,6 +8,22 @@
     ],
     "rewrites": [
       {
+        "source": "/admin",
+        "destination": "/admin/index.html"
+      },
+      {
+        "source": "/admin/**",
+        "destination": "/admin/index.html"
+      },
+      {
+        "source": "/list",
+        "destination": "/list/index.html"
+      },
+      {
+        "source": "/detail",
+        "destination": "/detail/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
