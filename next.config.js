@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    // output: 'export', // 동적 라우트 문제로 임시 비활성화
+    output: 'export', // Firebase Hosting을 위한 정적 빌드
     images: {
         unoptimized: true,
         remotePatterns: [

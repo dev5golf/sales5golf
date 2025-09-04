@@ -1,0 +1,37 @@
+{
+    "hosting": {
+        "public": "out",
+        "ignore": [
+            "firebase.json",
+            "firebase.dev.json",
+            "firebase.prod.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "/admin",
+                "destination": "/admin.html"
+            },
+            {
+                "source": "/list",
+                "destination": "/list.html"
+            },
+            {
+                "source": "/detail",
+                "destination": "/detail.html"
+            }
+        ],
+        "headers": [
+            {
+                "source": "**/*.@(js|css)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "max-age=7200"
+                    }
+                ]
+            }
+        ]
+    }
+}

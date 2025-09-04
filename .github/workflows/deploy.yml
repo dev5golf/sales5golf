@@ -1,0 +1,53 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting (Dev)
+        if: github.ref == 'refs/heads/develop'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+          channelId: 'dev'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_DEV }}'
+
+      - name: Deploy to Firebase Hosting (Staging)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
+          channelId: 'staging'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_STAGING }}'
+
+      - name: Deploy to Firebase Hosting (Production)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_PROD }}'

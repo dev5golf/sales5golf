@@ -25,9 +25,12 @@ export interface Course {
     provinceName: string;
     cityName: string;
     phone: string;
+    email?: string;
+    website?: string;
     description: string;
     price: number;
     images: string[];
+    facilities?: string[];
     adminIds: string[];
     isActive: boolean;
     createdAt: any;
@@ -140,9 +143,12 @@ export interface CourseFormData {
     provinceId: string;
     cityId: string;
     phone: string;
+    email: string;
+    website: string;
     description: string;
     price: string;
     images: string[];
+    facilities: string[];
     adminIds: string[];
     isActive: boolean;
 }

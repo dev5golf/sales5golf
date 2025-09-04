@@ -5,10 +5,17 @@
     "scripts": {
         "dev": "next dev -p 3000",
         "build": "next build",
+        "build:dev": "next build",
+        "build:prod": "next build",
         "start": "serve out -l 3000",
-        "deploy:dev": "npm run build && firebase hosting:channel:deploy dev --config firebase.dev.json",
-        "deploy:staging": "npm run build && firebase hosting:channel:deploy staging --config firebase.staging.json",
-        "deploy:prod": "npm run build && firebase deploy --only hosting",
+        "deploy:dev": "npm run build:dev && firebase hosting:channel:deploy dev --config firebase.dev.json",
+        "deploy:staging": "npm run build:dev && firebase hosting:channel:deploy staging --config firebase.staging.json",
+        "deploy:prod": "npm run build:prod && firebase deploy --only hosting",
+        "deploy:prod:channel": "npm run build:prod && firebase hosting:channel:deploy prod --config firebase.json",
+        "prebuild": "npm run clean",
+        "clean": "rimraf out .next",
+        "build:analyze": "ANALYZE=true npm run build",
+        "build:watch": "next build --watch",
         "create-user": "node scripts/create-user.js",
         "create-course": "node scripts/create-course.js",
         "create-locations": "node scripts/create-locations.js"
@@ -27,6 +34,7 @@
         "@types/react": "19.1.11",
         "autoprefixer": "^10.4.21",
         "postcss": "^8.5.6",
+        "rimraf": "^5.0.10",
         "serve": "14.2.1",
         "tailwindcss": "^3.4.0",
         "typescript": "5.9.2"
