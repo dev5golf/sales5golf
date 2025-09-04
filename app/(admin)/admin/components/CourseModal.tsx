@@ -372,6 +372,25 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                            가격 (원) *
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            required
+                            min="0"
+                            step="1000"
+                            placeholder="예: 150000"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             상태
                         </label>
                         <select
@@ -383,6 +402,39 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                             <option value="true">활성</option>
                             <option value="false">비활성</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            시설
+                        </label>
+                        <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                                {['주차장', '레스토랑', '프로샵', '연습장', '락커룸', '샤워시설', '휴게실'].map(facility => (
+                                    <label key={facility} className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.facilities.includes(facility)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        facilities: [...prev.facilities, facility]
+                                                    }));
+                                                } else {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        facilities: prev.facilities.filter(f => f !== facility)
+                                                    }));
+                                                }
+                                            }}
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm text-gray-700">{facility}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
