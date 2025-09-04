@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -42,6 +42,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_${{ github.event.inputs.environment }}}'
+          firebaseServiceAccount: '${{ secrets[format('FIREBASE_SERVICE_ACCOUNT_{0}', github.event.inputs.environment)] }}'
           channelId: '${{ github.event.inputs.environment }}'
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID_${{ github.event.inputs.environment }}}'
+          projectId: '${{ secrets[format('FIREBASE_PROJECT_ID_{0}', github.event.inputs.environment)] }}'
