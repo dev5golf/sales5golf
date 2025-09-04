@@ -19,19 +19,11 @@ let auth;
 let db;
 
 try {
-    console.log('Firebase 설정:', {
-        apiKey: firebaseConfig.apiKey,
-        authDomain: firebaseConfig.authDomain,
-        projectId: firebaseConfig.projectId
-    });
-    
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    
-    console.log('Firebase 초기화 성공');
 } catch (error) {
-    console.error('Firebase 초기화 실패:', error);
+    console.warn('Firebase 초기화 실패. 더미 설정을 사용합니다:', error);
     // 더미 객체 생성
     app = null;
     auth = null;
