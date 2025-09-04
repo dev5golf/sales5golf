@@ -31,6 +31,8 @@ jobs:
 
       - name: Deploy to Firebase Hosting (Dev)
         if: github.ref == 'refs/heads/develop'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: firebase-service-account.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}' > firebase-service-account.json
           firebase use ${{ secrets.FIREBASE_PROJECT_ID_DEV }}
@@ -38,6 +40,8 @@ jobs:
 
       - name: Deploy to Firebase Hosting (Staging)
         if: github.ref == 'refs/heads/main' && github.event_name == 'pull_request'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: firebase-service-account.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}' > firebase-service-account.json
           firebase use ${{ secrets.FIREBASE_PROJECT_ID_STAGING }}
@@ -45,6 +49,8 @@ jobs:
 
       - name: Deploy to Firebase Hosting (Production)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: firebase-service-account.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}' > firebase-service-account.json
           firebase use ${{ secrets.FIREBASE_PROJECT_ID_PROD }}
