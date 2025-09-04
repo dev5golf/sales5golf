@@ -38,10 +38,29 @@ jobs:
             npm run build:dev
           fi
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting (Dev)
+        if: github.event.inputs.environment == 'dev'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets[format('FIREBASE_SERVICE_ACCOUNT_{0}', github.event.inputs.environment)] }}'
-          channelId: '${{ github.event.inputs.environment }}'
-          projectId: '${{ secrets[format('FIREBASE_PROJECT_ID_{0}', github.event.inputs.environment)] }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+          channelId: 'dev'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_DEV }}'
+
+      - name: Deploy to Firebase Hosting (Staging)
+        if: github.event.inputs.environment == 'staging'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
+          channelId: 'staging'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_STAGING }}'
+
+      - name: Deploy to Firebase Hosting (Prod)
+        if: github.event.inputs.environment == 'prod'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+          channelId: 'prod'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID_PROD }}'
