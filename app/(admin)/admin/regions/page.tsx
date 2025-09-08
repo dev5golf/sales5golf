@@ -640,11 +640,6 @@ export default function RegionsPage() {
         return true;
     });
 
-    const formatDate = (timestamp: any) => {
-        if (!timestamp) return '-';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString('ko-KR');
-    };
 
     if (loading) {
         return (
@@ -1214,7 +1209,6 @@ export default function RegionsPage() {
                                 <th>국가명</th>
                                 <th>국가코드</th>
                                 <th>상태</th>
-                                <th>등록일</th>
                                 <th>액션</th>
                             </tr>
                         </thead>
@@ -1228,7 +1222,6 @@ export default function RegionsPage() {
                                             {country.isActive ? '활성' : '비활성'}
                                         </span>
                                     </td>
-                                    <td>{formatDate(country.createdAt)}</td>
                                     <td>
                                         <div className="action-buttons">
                                             <button
@@ -1259,7 +1252,6 @@ export default function RegionsPage() {
                                 <th>지방코드</th>
                                 <th>국가</th>
                                 <th>상태</th>
-                                <th>등록일</th>
                                 <th>액션</th>
                             </tr>
                         </thead>
@@ -1274,7 +1266,6 @@ export default function RegionsPage() {
                                             {province.isActive ? '활성' : '비활성'}
                                         </span>
                                     </td>
-                                    <td>{formatDate(province.createdAt)}</td>
                                     <td>
                                         <div className="action-buttons">
                                             <button
@@ -1305,7 +1296,6 @@ export default function RegionsPage() {
                                 <th>도시코드</th>
                                 <th>지방</th>
                                 <th>상태</th>
-                                <th>등록일</th>
                                 <th>액션</th>
                             </tr>
                         </thead>
@@ -1320,7 +1310,6 @@ export default function RegionsPage() {
                                             {city.isActive ? '활성' : '비활성'}
                                         </span>
                                     </td>
-                                    <td>{formatDate(city.createdAt)}</td>
                                     <td>
                                         <div className="action-buttons">
                                             <button
