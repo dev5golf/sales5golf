@@ -129,6 +129,7 @@ export default function UsersPage() {
         switch (role) {
             case 'super_admin': return '통합 관리자';
             case 'course_admin': return '골프장 관리자';
+            case 'site_admin': return '사이트 관리자';
             case 'user': return '일반 회원';
             default: return role;
         }
@@ -138,6 +139,7 @@ export default function UsersPage() {
         switch (role) {
             case 'super_admin': return 'role-badge super-admin';
             case 'course_admin': return 'role-badge course-admin';
+            case 'site_admin': return 'role-badge site-admin';
             case 'user': return 'role-badge user';
             default: return 'role-badge';
         }
@@ -196,6 +198,7 @@ export default function UsersPage() {
                         <option value="all">모든 역할</option>
                         <option value="user">일반 회원</option>
                         <option value="course_admin">골프장 관리자</option>
+                        <option value="site_admin">사이트 관리자</option>
                         {isSuperAdmin && <option value="super_admin">통합 관리자</option>}
                     </select>
 

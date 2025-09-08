@@ -20,6 +20,7 @@ interface AuthContextType {
     isAdmin: boolean;
     isSuperAdmin: boolean;
     isCourseAdmin: boolean;
+    isSiteAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -94,9 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await signOut(auth);
     };
 
-    const isAdmin = user?.role === 'course_admin' || user?.role === 'super_admin';
+    const isAdmin = user?.role === 'course_admin' || user?.role === 'super_admin' || user?.role === 'site_admin';
     const isSuperAdmin = user?.role === 'super_admin';
     const isCourseAdmin = user?.role === 'course_admin';
+    const isSiteAdmin = user?.role === 'site_admin';
 
     const value = {
         firebaseUser,
@@ -106,7 +108,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         isAdmin,
         isSuperAdmin,
-        isCourseAdmin
+        isCourseAdmin,
+        isSiteAdmin
     };
 
     return (

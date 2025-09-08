@@ -1,6 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useLanguage } from '../../contexts/SimpleLanguageContext';
+import SimpleLanguageSwitcher from '../../components/SimpleLanguageSwitcher';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
+    const { t } = useLanguage();
+
     return (
         <>
             <header className="header">
@@ -10,13 +16,14 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                     </div>
                     <nav className="nav">
                         <ul className="nav-list">
-                            <li><Link href="/" className="nav-link">Home</Link></li>
-                            <li><Link href="/list" className="nav-link">Courses</Link></li>
+                            <li><Link href="/" className="nav-link">{t('nav.home')}</Link></li>
+                            <li><Link href="/list" className="nav-link">{t('nav.courses')}</Link></li>
                         </ul>
                     </nav>
                     <div className="user-actions">
-                        <button className="btn btn-secondary">Sign In</button>
-                        <button className="btn btn-primary">Join</button>
+                        <SimpleLanguageSwitcher />
+                        <button className="btn btn-secondary">{t('btn.signin')}</button>
+                        <button className="btn btn-primary">{t('btn.join')}</button>
                     </div>
                 </div>
             </header>

@@ -41,8 +41,8 @@ export default function RegionsPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>('countries');
 
-    // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
-    if (!authLoading && currentUser?.role !== 'super_admin') {
+    // 권한 검사 - 수퍼관리자와 사이트 관리자만 접근 가능
+    if (!authLoading && currentUser?.role !== 'super_admin' && currentUser?.role !== 'site_admin') {
         router.push('/admin/tee-times');
         return null;
     }

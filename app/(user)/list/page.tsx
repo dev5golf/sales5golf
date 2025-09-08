@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLanguage } from '../../../contexts/SimpleLanguageContext';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { Course } from '../../../types';
@@ -21,6 +22,7 @@ type UserCourse = Course & {
 };
 
 export default function ListPage() {
+    const { t } = useLanguage();
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState<'all' | 'public' | 'private' | 'resort'>('all');
     const [page, setPage] = useState(1);
@@ -166,20 +168,20 @@ export default function ListPage() {
     return (
         <main className="main">
             <section className="page-header">
-                <div className="container"><div className="page-header-content"><h1 className="page-title">골프장 목록</h1><p className="page-subtitle">전국의 최고 골프장을 찾아보세요</p></div></div>
+                <div className="container"><div className="page-header-content"><h1 className="page-title">{t('courses.title')}</h1><p className="page-subtitle">{t('courses.subtitle')}</p></div></div>
             </section>
             <section className="search-section">
                 <div className="container">
                     <div className="search-container">
                         <div className="search-box">
                             <i className="fas fa-search search-icon" />
-                            <input value={search} onChange={e => setSearch(e.target.value)} type="text" className="search-input" placeholder="골프장 이름, 지역, 도시로 검색..." />
-                            <button className="btn btn-primary search-btn" onClick={() => setPage(1)}>검색</button>
+                            <input value={search} onChange={e => setSearch(e.target.value)} type="text" className="search-input" placeholder={t('search.placeholder')} />
+                            <button className="btn btn-primary search-btn" onClick={() => setPage(1)}>{t('common.search')}</button>
                         </div>
                         <div className="filter-toggles">
                             {(['all', 'public', 'private', 'resort'] as const).map(f => (
                                 <button key={f} className={`filter-toggle ${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-                                    {f === 'all' ? '전체' : f === 'public' ? '공공' : f === 'private' ? '사설' : '리조트'}
+                                    {f === 'all' ? t('filter.all') : f === 'public' ? t('filter.public') : f === 'private' ? t('filter.private') : t('filter.resort')}
                                 </button>
                             ))}
                         </div>
@@ -192,7 +194,7 @@ export default function ListPage() {
                         {loading && (
                             <div className="loading-container">
                                 <div className="loading-spinner"></div>
-                                <p>골프장 목록을 불러오는 중...</p>
+                                <p>{t('common.loading')}</p>
                             </div>
                         )}
                         {!loading && coursesToShow.length === 0 && (

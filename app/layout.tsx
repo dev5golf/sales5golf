@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from '../contexts/AuthContext';
+import { LanguageProvider } from '../contexts/SimpleLanguageContext';
 
 export const metadata: Metadata = {
     title: '5MGOLF - 땡처리 기반 실시간 부킹 현황',
@@ -14,9 +15,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
             </head>
             <body>
-                <AuthProvider>
-                    {children}
-                </AuthProvider>
+                <LanguageProvider>
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
+                </LanguageProvider>
             </body>
         </html>
     );

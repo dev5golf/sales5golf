@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import './admin.css';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { user, loading, logout, isAdmin } = useAuth();
+    const { user, loading, logout, isAdmin, isSiteAdmin } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -16,8 +16,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             router.push('/admin/login');
         }
 
-        // 골프장 관리자가 대시보드에 접근했을 때 티타임 관리로 리다이렉트
-        if (!loading && user?.role === 'course_admin' && pathname === '/admin') {
+        // 골프장 관리자와 사이트 관리자가 대시보드에 접근했을 때 티타임 관리로 리다이렉트
+        if (!loading && (user?.role === 'course_admin' || user?.role === 'site_admin') && pathname === '/admin') {
             router.push('/admin/tee-times');
         }
     }, [loading, pathname, isAdmin, router, user]);
@@ -57,7 +57,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="admin-user-info">
                         <span className="admin-user-name">{user?.name}</span>
                         <span className="admin-user-role">
-                            {user?.role === 'super_admin' ? '통합 관리자' : '골프장 관리자'}
+                            {user?.role === 'super_admin' ? '통합 관리자' :
+                                user?.role === 'site_admin' ? '사이트 관리자' : '골프장 관리자'}
                         </span>
                     </div>
                 </div>
@@ -95,6 +96,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </Link>
                             </li>
                         )}
+                        {/* 사이트 관리자는 지역 관리만 접근 가능 */}
+                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
+                            <li>
+                                <Link
+                                    href="/admin/regions"
+                                    className={`admin-nav-link ${pathname.startsWith('/admin/regions') ? 'active' : ''}`}
+                                >
+                                    <i className="fas fa-map"></i>
+                                    지역 관리
+                                </Link>
+                            </li>
+                        )}
+
+                        {/* 통합 관리자만 접근 가능한 메뉴들 */}
                         {user?.role === 'super_admin' && (
                             <>
                                 <li>
@@ -108,11 +123,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </li>
                                 <li>
                                     <Link
-                                        href="/admin/regions"
-                                        className={`admin-nav-link ${pathname.startsWith('/admin/regions') ? 'active' : ''}`}
+                                        href="/admin/translations"
+                                        className={`admin-nav-link ${pathname.startsWith('/admin/translations') ? 'active' : ''}`}
                                     >
-                                        <i className="fas fa-map"></i>
-                                        지역 관리
+                                        <i className="fas fa-language"></i>
+                                        번역 관리
                                     </Link>
                                 </li>
                             </>

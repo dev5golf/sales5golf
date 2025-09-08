@@ -17,7 +17,7 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
         name: '',
         email: '',
         phone: '',
-        role: 'user' as 'user' | 'course_admin' | 'super_admin',
+        role: 'user' as 'user' | 'course_admin' | 'super_admin' | 'site_admin',
         isActive: true,
         courseId: '',
         password: ''
@@ -230,6 +230,7 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
                     >
                         <option value="user">일반 사용자</option>
                         <option value="course_admin">골프장 관리자</option>
+                        <option value="site_admin">사이트 관리자</option>
                         <option value="super_admin">통합 관리자</option>
                     </select>
                 </div>

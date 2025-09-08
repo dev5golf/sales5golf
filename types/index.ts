@@ -44,7 +44,7 @@ export interface User {
     name: string;
     phone?: string;
     profileImage?: string;
-    role: 'user' | 'course_admin' | 'super_admin';
+    role: 'user' | 'course_admin' | 'super_admin' | 'site_admin';
     courseId?: string;
     courseName?: string;
     createdAt: any;
@@ -157,7 +157,7 @@ export interface UserFormData {
     email: string;
     name: string;
     phone?: string;
-    role: 'user' | 'course_admin' | 'super_admin';
+    role: 'user' | 'course_admin' | 'super_admin' | 'site_admin';
     courseId?: string;
     isActive: boolean;
 }

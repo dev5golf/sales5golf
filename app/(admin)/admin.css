@@ -999,6 +999,11 @@
     color: #7b1fa2;
 }
 
+.role-badge.site-admin {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
 .role-badge.user {
     background: #e8f5e8;
     color: #388e3c;

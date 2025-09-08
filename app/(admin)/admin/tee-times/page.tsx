@@ -26,8 +26,8 @@ export default function TeeTimeManagement() {
             setLoading(true);
             let coursesQuery;
 
-            if (user?.role === 'super_admin') {
-                // 수퍼관리자는 모든 골프장 조회
+            if (user?.role === 'super_admin' || user?.role === 'site_admin') {
+                // 수퍼관리자와 사이트 관리자는 모든 골프장 조회
                 coursesQuery = query(collection(db, 'courses'), where('isActive', '==', true));
             } else {
                 // 골프장 관리자는 본인 골프장만 조회
@@ -314,8 +314,8 @@ export default function TeeTimeManagement() {
                 <h1>티타임 관리</h1>
             </div>
 
-            {/* 골프장 선택 필터 - 수퍼관리자만 표시 */}
-            {user?.role === 'super_admin' && (
+            {/* 골프장 선택 필터 - 수퍼관리자와 사이트 관리자만 표시 */}
+            {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
                 <div className="course-filter-section">
                     <div className="filter-header">
                         <h3>골프장 선택</h3>
@@ -371,7 +371,7 @@ export default function TeeTimeManagement() {
                 </div>
             )}
 
-            {!selectedCourseId && user?.role === 'super_admin' && (
+            {!selectedCourseId && (user?.role === 'super_admin' || user?.role === 'site_admin') && (
                 <div className="no-selection-container">
                     <i className="fas fa-calendar-alt"></i>
                     <h3>골프장을 선택해주세요</h3>
