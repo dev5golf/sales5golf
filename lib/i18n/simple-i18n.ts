@@ -223,11 +223,11 @@ class SimpleI18n {
         return this.currentLanguage;
     }
 
-    public getAvailableLanguages() {
+    public getAvailableLanguages(): { code: Language; name: string; flag: string }[] {
         return [
-            { code: 'ko', name: '한국어', flag: '🇰🇷' },
-            { code: 'en', name: 'English', flag: '🇺🇸' },
-            { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' }
+            { code: 'ko' as Language, name: '한국어', flag: '🇰🇷' },
+            { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
+            { code: 'vi' as Language, name: 'Tiếng Việt', flag: '🇻🇳' }
         ];
     }
 
