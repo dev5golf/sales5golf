@@ -132,6 +132,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </li>
                             </>
                         )}
+
+                        {/* 통합 관리자와 사이트 관리자만 접근 가능한 메뉴들 */}
+                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
+                            <li>
+                                <Link
+                                    href="/admin/admin-tools"
+                                    className={`admin-nav-link ${pathname.startsWith('/admin/admin-tools') ? 'active' : ''}`}
+                                >
+                                    <i className="fas fa-tools"></i>
+                                    관리자 도구
+                                </Link>
+                            </li>
+                        )}
                     </ul>
                 </nav>
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import '../../admin.css';
 
@@ -290,7 +290,6 @@ export default function RegionsPage() {
         try {
             const countryId = newCountry.code.trim().toUpperCase();
             const countryData = {
-                id: countryId,
                 name: newCountry.name.trim(),
                 isActive: newCountry.isActive,
                 createdAt: serverTimestamp(),
@@ -325,7 +324,6 @@ export default function RegionsPage() {
             const provinceId = newProvince.code.trim(); // 이미 KR_001 형태로 생성됨
 
             const provinceData = {
-                id: provinceId,
                 name: newProvince.name.trim(),
                 countryId: newProvince.countryCode,
                 countryName: selectedCountry?.name || '',
@@ -362,7 +360,6 @@ export default function RegionsPage() {
             const cityId = newCity.code.trim(); // 이미 KR_001_001 형태로 생성됨
 
             const cityData = {
-                id: cityId,
                 name: newCity.name.trim(),
                 countryId: newCity.countryCode,
                 provinceId: newCity.provinceCode,
@@ -436,7 +433,6 @@ export default function RegionsPage() {
 
         try {
             const countryData = {
-                id: editingItem!.id,
                 name: editCountry.name.trim(),
                 isActive: editCountry.isActive,
                 updatedAt: serverTimestamp()
@@ -465,7 +461,6 @@ export default function RegionsPage() {
         try {
             const selectedCountry = countries.find(c => c.id === editProvince.countryCode);
             const provinceData = {
-                id: editingItem!.id,
                 name: editProvince.name.trim(),
                 countryId: editProvince.countryCode,
                 countryName: selectedCountry?.name || '',
@@ -496,7 +491,6 @@ export default function RegionsPage() {
         try {
             const selectedProvince = provinces.find(p => p.id === editCity.provinceCode);
             const cityData = {
-                id: editingItem!.id,
                 name: editCity.name.trim(),
                 countryId: editCity.countryCode,
                 provinceId: editCity.provinceCode,
@@ -524,9 +518,45 @@ export default function RegionsPage() {
         }
 
         try {
+            // 1. 해당 국가의 모든 지방 조회
+            const provincesQuery = query(
+                collection(db, 'provinces'),
+                where('countryId', '==', countryId)
+            );
+            const provincesSnapshot = await getDocs(provincesQuery);
+
+            // 2. 각 지방의 모든 도시 조회 및 삭제
+            const cityDeletePromises: Promise<void>[] = [];
+            for (const provinceDoc of provincesSnapshot.docs) {
+                const citiesQuery = query(
+                    collection(db, 'cities'),
+                    where('provinceId', '==', provinceDoc.id)
+                );
+                const citiesSnapshot = await getDocs(citiesQuery);
+
+                citiesSnapshot.docs.forEach(cityDoc => {
+                    cityDeletePromises.push(deleteDoc(cityDoc.ref));
+                });
+            }
+
+            // 3. 모든 도시 삭제 실행
+            await Promise.all(cityDeletePromises);
+
+            // 4. 모든 지방 삭제
+            const provinceDeletePromises = provincesSnapshot.docs.map(provinceDoc =>
+                deleteDoc(provinceDoc.ref)
+            );
+            await Promise.all(provinceDeletePromises);
+
+            // 5. 마지막으로 국가 삭제
             await deleteDoc(doc(db, 'countries', countryId));
+
+            // 6. 데이터 새로고침
             await fetchCountries();
-            alert('국가가 성공적으로 삭제되었습니다.');
+            await fetchProvinces();
+            await fetchCities();
+
+            alert('국가와 관련된 모든 지방, 도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
             console.error('국가 삭제 실패:', error);
             alert('국가 삭제에 실패했습니다.');
@@ -539,9 +569,27 @@ export default function RegionsPage() {
         }
 
         try {
+            // 1. 해당 지방의 모든 도시 조회 및 삭제
+            const citiesQuery = query(
+                collection(db, 'cities'),
+                where('provinceId', '==', provinceId)
+            );
+            const citiesSnapshot = await getDocs(citiesQuery);
+
+            // 2. 모든 도시 삭제
+            const cityDeletePromises = citiesSnapshot.docs.map(cityDoc =>
+                deleteDoc(cityDoc.ref)
+            );
+            await Promise.all(cityDeletePromises);
+
+            // 3. 지방 삭제
             await deleteDoc(doc(db, 'provinces', provinceId));
+
+            // 4. 데이터 새로고침
             await fetchProvinces();
-            alert('지방이 성공적으로 삭제되었습니다.');
+            await fetchCities();
+
+            alert('지방과 관련된 모든 도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
             console.error('지방 삭제 실패:', error);
             alert('지방 삭제에 실패했습니다.');

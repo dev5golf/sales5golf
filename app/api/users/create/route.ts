@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
 
         // 2. Firestore에 추가 정보 저장
         await db.collection('users').doc(userRecord.uid).set({
-            id: userRecord.uid,
             name: name,
             email: email,
             phone: phone || '',
