@@ -102,3 +102,6 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Development notes (private)
+DEVELOPMENT_NOTES.md
