@@ -31,6 +31,7 @@ export interface Course {
     price: number;
     images: string[];
     facilities?: string[];
+    inclusions?: string[];
     adminIds: string[];
     isActive: boolean;
     createdAt: any;

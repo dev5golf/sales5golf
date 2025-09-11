@@ -1,11 +1,502 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import GolfCourseAutocomplete from '../components/GolfCourseAutocomplete';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../../../lib/firebase';
+import { Course } from '../../../../types';
 
 export default function AdminTools() {
     const { user, loading } = useAuth();
     const router = useRouter();
+
+    // 견적서 정보 상태 관리
+    const [quotationData, setQuotationData] = useState({
+        customerName: '',
+        destination: '',
+        travelPeriod: '',
+        numberOfPeople: ''
+    });
+
+    // 여행기간 상태 관리
+    const [travelDates, setTravelDates] = useState({
+        startDate: '',
+        endDate: ''
+    });
+
+    // 골프 일정 상태 관리
+    const [golfSchedules, setGolfSchedules] = useState([]);
+
+    // 포함사항 옵션
+    const inclusionOptions = ['그린피', '캐디피', '카트비'];
+
+    // 골프장 데이터 상태
+    const [courses, setCourses] = useState<Course[]>([]);
+
+    // 골프장 데이터 가져오기
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const coursesRef = collection(db, 'courses');
+                const snapshot = await getDocs(coursesRef);
+                const coursesData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as Course[];
+                setCourses(coursesData);
+            } catch (error) {
+                console.error('골프장 데이터 가져오기 실패:', error);
+            }
+        };
+
+        fetchCourses();
+    }, []);
+
+    // 숙박 일정 상태 관리
+    const [accommodationSchedules, setAccommodationSchedules] = useState([]);
+
+    // 픽업 일정 상태 관리
+    const [pickupSchedules, setPickupSchedules] = useState([]);
+
+    // 추가선택사항 상태 관리
+    const [additionalOptions, setAdditionalOptions] = useState('');
+
+    // 결제 정보 상태 관리
+    const [paymentInfo, setPaymentInfo] = useState({
+        downPayment: '',
+        balance: '',
+        total: ''
+    });
+
+    // 입력값 변경 핸들러
+    const handleInputChange = (field: string, value: string) => {
+        setQuotationData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+
+        // 인원 수가 변경되면 모든 일정의 1인당 가격 재계산
+        if (field === 'numberOfPeople') {
+            const numberOfPeople = parseInt(value) || 1;
+
+            // 골프 일정 재계산
+            setGolfSchedules(prev =>
+                prev.map(schedule => {
+                    const totalAmount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+                    const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                    return {
+                        ...schedule,
+                        perPerson: perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : ''
+                    };
+                })
+            );
+
+            // 숙박 일정 재계산
+            setAccommodationSchedules(prev =>
+                prev.map(schedule => {
+                    const totalAmount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+                    const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                    return {
+                        ...schedule,
+                        perPerson: perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : ''
+                    };
+                })
+            );
+
+            // 픽업 일정 재계산
+            setPickupSchedules(prev =>
+                prev.map(schedule => {
+                    const totalAmount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+                    const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                    return {
+                        ...schedule,
+                        perPerson: perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : ''
+                    };
+                })
+            );
+        }
+    };
+
+    // 여행기간 변경 핸들러
+    const handleTravelDateChange = (field: string, value: string) => {
+        setTravelDates(prev => {
+            const newDates = {
+                ...prev,
+                [field]: value
+            };
+
+            // 시작일자와 끝일자가 모두 있으면 여행기간 업데이트
+            if (newDates.startDate && newDates.endDate) {
+                const startDate = new Date(newDates.startDate);
+                const endDate = new Date(newDates.endDate);
+
+                const startFormatted = startDate.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\./g, '.').replace(/\s/g, '');
+
+                const endFormatted = endDate.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\./g, '.').replace(/\s/g, '');
+
+                setQuotationData(prev => ({
+                    ...prev,
+                    travelPeriod: `${startFormatted} - ${endFormatted}`
+                }));
+            }
+
+            return newDates;
+        });
+    };
+
+    // 결제 정보 변경 핸들러
+    const handlePaymentChange = (field: string, value: string) => {
+        setPaymentInfo(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    // 골프 총합계 계산
+    const calculateGolfTotal = () => {
+        const total = golfSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        return total > 0 ? `₩${total.toLocaleString()}` : '';
+    };
+
+    // 골프 1인당 총합계 계산
+    const calculateGolfPerPersonTotal = () => {
+        const total = golfSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+        const perPersonAmount = numberOfPeople > 0 ? Math.floor(total / numberOfPeople) : 0;
+        return perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+    };
+
+    // 숙박 총합계 계산
+    const calculateAccommodationTotal = () => {
+        const total = accommodationSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        return total > 0 ? `₩${total.toLocaleString()}` : '';
+    };
+
+    // 숙박 1인당 총합계 계산
+    const calculateAccommodationPerPersonTotal = () => {
+        const total = accommodationSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+        const perPersonAmount = numberOfPeople > 0 ? Math.floor(total / numberOfPeople) : 0;
+        return perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+    };
+
+    // 픽업 총합계 계산
+    const calculatePickupTotal = () => {
+        const total = pickupSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        return total > 0 ? `₩${total.toLocaleString()}` : '';
+    };
+
+    // 픽업 1인당 총합계 계산
+    const calculatePickupPerPersonTotal = () => {
+        const total = pickupSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+        const perPersonAmount = numberOfPeople > 0 ? Math.floor(total / numberOfPeople) : 0;
+        return perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+    };
+
+    // 전체 사전결제 총비용 계산
+    const calculateTotalPrepayment = () => {
+        const golfTotal = golfSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+
+        const accommodationTotal = accommodationSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+
+        const pickupTotal = pickupSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+
+        const totalAmount = golfTotal + accommodationTotal + pickupTotal;
+        return totalAmount > 0 ? `₩${totalAmount.toLocaleString()}` : '₩0';
+    };
+
+    // 잔금 계산 (합계 - 계약금)
+    const calculateBalance = () => {
+        const totalAmount = golfSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0) + accommodationSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0) + pickupSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+
+        const downPaymentAmount = parseFloat(paymentInfo.downPayment.replace(/[^\d]/g, '')) || 0;
+        const balanceAmount = totalAmount - downPaymentAmount;
+
+        return balanceAmount > 0 ? `₩${balanceAmount.toLocaleString()}` : '₩0';
+    };
+
+    // 잔금 마감일 계산 (여행 시작일의 한 달 전)
+    const calculateBalanceDueDate = () => {
+        if (!travelDates.startDate) {
+            return '';
+        }
+
+        const startDate = new Date(travelDates.startDate);
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(dueDate.getMonth() - 1);
+
+        return dueDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).replace(/\./g, '.').replace(/\s/g, '');
+    };
+
+    // 1인당 요금 계산 (사전결제 총비용 / 인원)
+    const calculatePricePerPerson = () => {
+        const totalAmount = golfSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0) + accommodationSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0) + pickupSchedules.reduce((sum, schedule) => {
+            const amount = parseFloat(schedule.total.replace(/[^\d]/g, '')) || 0;
+            return sum + amount;
+        }, 0);
+
+        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+        const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+
+        return perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '₩0';
+    };
+
+    // 포함사항 동적 생성
+    const generateInclusions = () => {
+        const inclusions = [];
+
+        // 골프 회수
+        if (golfSchedules.length > 0) {
+            inclusions.push(`골프 ${golfSchedules.length}회`);
+        }
+
+        // 숙박 박수 (모든 숙박의 박수 합산)
+        const totalNights = accommodationSchedules.reduce((sum, schedule) => {
+            const nights = parseInt(schedule.nights) || 0;
+            return sum + nights;
+        }, 0);
+
+        if (totalNights > 0) {
+            inclusions.push(`숙박 ${totalNights}박`);
+        }
+
+        // 픽업 행선지 카운트
+        const destinationCounts: { [key: string]: number } = {};
+        pickupSchedules.forEach(schedule => {
+            if (schedule.destination) {
+                destinationCounts[schedule.destination] = (destinationCounts[schedule.destination] || 0) + 1;
+            }
+        });
+
+        // 픽업 행선지들을 포함사항에 추가
+        const pickupInclusions = Object.entries(destinationCounts).map(([destination, count]) => {
+            return `${destination} ${count}회`;
+        });
+
+        if (pickupInclusions.length > 0) {
+            inclusions.push(pickupInclusions.join(", "));
+        }
+
+        return inclusions.join(" / ");
+    };
+
+    // 골프 일정 추가
+    const addGolfSchedule = () => {
+        const newId = golfSchedules.length === 0 ? 1 : Math.max(...golfSchedules.map(schedule => schedule.id)) + 1;
+        const newSchedule = {
+            id: newId,
+            date: '',
+            courseName: '',
+            holes: '',
+            inclusions: [],
+            teeOff: '',
+            total: '',
+            perPerson: ''
+        };
+        setGolfSchedules(prev => [...prev, newSchedule]);
+    };
+
+    // 골프 일정 삭제
+    const removeGolfSchedule = (id: number) => {
+        setGolfSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 골프 일정 필드 변경
+    const handleGolfScheduleChange = (id: number, field: string, value: string) => {
+        setGolfSchedules(prev =>
+            prev.map(schedule => {
+                if (schedule.id === id) {
+                    const updatedSchedule = { ...schedule, [field]: value };
+
+                    // 골프장명이 변경되면 해당 골프장의 포함사항 자동 설정
+                    if (field === 'courseName') {
+                        const selectedCourse = courses.find(course => course.name === value);
+                        if (selectedCourse && selectedCourse.inclusions) {
+                            updatedSchedule.inclusions = selectedCourse.inclusions;
+                        } else {
+                            updatedSchedule.inclusions = [];
+                        }
+                    }
+
+                    // 합계가 변경되면 1인당 가격 자동 계산
+                    if (field === 'total') {
+                        const totalAmount = parseFloat(value.replace(/[^\d]/g, '')) || 0;
+                        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+                        const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                        updatedSchedule.perPerson = perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+                    }
+
+                    return updatedSchedule;
+                }
+                return schedule;
+            })
+        );
+    };
+
+    // 골프 일정 포함사항 체크박스 변경
+    const handleGolfInclusionChange = (id: number, inclusion: string, checked: boolean) => {
+        setGolfSchedules(prev =>
+            prev.map(schedule => {
+                if (schedule.id === id) {
+                    const currentInclusions = schedule.inclusions || [];
+                    let newInclusions;
+
+                    if (checked) {
+                        newInclusions = [...currentInclusions, inclusion];
+                    } else {
+                        newInclusions = currentInclusions.filter(item => item !== inclusion);
+                    }
+
+                    return { ...schedule, inclusions: newInclusions };
+                }
+                return schedule;
+            })
+        );
+    };
+
+    // 숙박 일정 추가
+    const addAccommodationSchedule = () => {
+        const newId = accommodationSchedules.length === 0 ? 1 : Math.max(...accommodationSchedules.map(schedule => schedule.id)) + 1;
+        const newSchedule = {
+            id: newId,
+            date: '',
+            hotelName: '',
+            nights: '',
+            rooms: '',
+            roomType: '',
+            meals: '',
+            total: '',
+            perPerson: ''
+        };
+        setAccommodationSchedules(prev => [...prev, newSchedule]);
+    };
+
+    // 숙박 일정 삭제
+    const removeAccommodationSchedule = (id: number) => {
+        setAccommodationSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 숙박 일정 필드 변경
+    const handleAccommodationScheduleChange = (id: number, field: string, value: string) => {
+        setAccommodationSchedules(prev =>
+            prev.map(schedule => {
+                if (schedule.id === id) {
+                    const updatedSchedule = { ...schedule, [field]: value };
+
+                    // 합계가 변경되면 1인당 가격 자동 계산
+                    if (field === 'total') {
+                        const totalAmount = parseFloat(value.replace(/[^\d]/g, '')) || 0;
+                        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+                        const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                        updatedSchedule.perPerson = perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+                    }
+
+                    return updatedSchedule;
+                }
+                return schedule;
+            })
+        );
+    };
+
+    // 픽업 일정 추가
+    const addPickupSchedule = () => {
+        const newId = pickupSchedules.length === 0 ? 1 : Math.max(...pickupSchedules.map(schedule => schedule.id)) + 1;
+        const newSchedule = {
+            id: newId,
+            date: '',
+            destination: '',
+            people: '',
+            vehicles: '',
+            vehicleType: '',
+            region: '',
+            total: '',
+            perPerson: ''
+        };
+        setPickupSchedules(prev => [...prev, newSchedule]);
+    };
+
+    // 픽업 일정 삭제
+    const removePickupSchedule = (id: number) => {
+        setPickupSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 픽업 일정 필드 변경
+    const handlePickupScheduleChange = (id: number, field: string, value: string) => {
+        setPickupSchedules(prev =>
+            prev.map(schedule => {
+                if (schedule.id === id) {
+                    const updatedSchedule = { ...schedule, [field]: value };
+
+                    // 합계가 변경되면 1인당 가격 자동 계산
+                    if (field === 'total') {
+                        const totalAmount = parseFloat(value.replace(/[^\d]/g, '')) || 0;
+                        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
+                        const perPersonAmount = numberOfPeople > 0 ? Math.floor(totalAmount / numberOfPeople) : 0;
+                        updatedSchedule.perPerson = perPersonAmount > 0 ? `₩${perPersonAmount.toLocaleString()}` : '';
+                    }
+
+                    return updatedSchedule;
+                }
+                return schedule;
+            })
+        );
+    };
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
     if (!loading && user?.role !== 'super_admin' && user?.role !== 'site_admin') {
@@ -17,7 +508,7 @@ export default function AdminTools() {
         <div className="admin-tools">
             <div className="admin-tools-header">
                 <h1>관리자 도구</h1>
-                <p>시스템 관리 및 유지보수를 위한 도구들입니다.</p>
+                <p>편의 기능</p>
             </div>
 
             <div className="quotation-container">
@@ -34,41 +525,83 @@ export default function AdminTools() {
                 <div className="quotation-info">
                     <div className="info-row">
                         <div className="info-item">
-                            <span className="label">고객명:</span>
-                            <span className="value">손성영 님</span>
+                            <span className="label">고객명: </span>
+                            <input
+                                type="text"
+                                value={quotationData.customerName}
+                                onChange={(e) => handleInputChange('customerName', e.target.value)}
+                                placeholder="손성영"
+                                className="quotation-input"
+                            />
+                            <span>님</span>
                         </div>
                         <div className="info-item">
-                            <span className="label">여행지:</span>
-                            <span className="value">태국/치앙마이</span>
-                        </div>
-                    </div>
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">여행기간:</span>
-                            <span className="value">2026.01.07 - 01.12</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="label">인원:</span>
-                            <span className="value">9명</span>
-                        </div>
-                    </div>
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">포함사항:</span>
-                            <span className="value">왕복항공료/그린피/캐디피/카트비/숙박(조식)/골프장, 공항송영차량</span>
+                            <span className="label">여행지: </span>
+                            <input
+                                type="text"
+                                value={quotationData.destination}
+                                onChange={(e) => handleInputChange('destination', e.target.value)}
+                                placeholder="태국/치앙마이"
+                                className="quotation-input"
+                            />
                         </div>
                     </div>
                     <div className="info-row">
                         <div className="info-item">
-                            <span className="label">1인당 요금(KRW):</span>
-                            <span className="value amount">₩1,485,556</span>
+                            <span className="label">여행기간: </span>
+                            <div className="date-inputs">
+                                <input
+                                    type="date"
+                                    value={travelDates.startDate}
+                                    onChange={(e) => handleTravelDateChange('startDate', e.target.value)}
+                                    className="quotation-input date-picker"
+                                />
+                                <span className="date-separator">~</span>
+                                <input
+                                    type="date"
+                                    value={travelDates.endDate}
+                                    onChange={(e) => handleTravelDateChange('endDate', e.target.value)}
+                                    className="quotation-input date-picker"
+                                />
+                            </div>
+                        </div>
+                        <div className="info-item">
+                            <span className="label">인원: </span>
+                            <input
+                                type="text"
+                                value={quotationData.numberOfPeople}
+                                onChange={(e) => handleInputChange('numberOfPeople', e.target.value)}
+                                placeholder="9"
+                                className="quotation-input"
+                            />
+                            <span>명</span>
+                        </div>
+                    </div>
+                    <div className="info-row">
+                        <div className="info-item">
+                            <span className="label">포함사항: </span>
+                            <span className="value">{generateInclusions()}</span>
+                        </div>
+                    </div>
+                    <div className="info-row">
+                        <div className="info-item">
+                            <span className="label">1인당 요금: </span>
+                            <span className="value amount">{calculatePricePerPerson()} (KRW)</span>
                         </div>
                     </div>
                 </div>
 
                 {/* 골프 일정 */}
                 <div className="quotation-section">
-                    <h3>골프 (사전결제)</h3>
+                    <div className="section-header">
+                        <h3>골프 (사전결제)</h3>
+                        <button
+                            onClick={addGolfSchedule}
+                            className="btn btn-primary btn-sm"
+                        >
+                            + 추가
+                        </button>
+                    </div>
                     <div className="table-container">
                         <table className="quotation-table">
                             <thead>
@@ -80,59 +613,90 @@ export default function AdminTools() {
                                     <th>TEE-OFF</th>
                                     <th>합계</th>
                                     <th>사전결제(1인)</th>
+                                    <th>삭제</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1/8</td>
-                                    <td>노스힐 골프 클럽 치앙마이</td>
-                                    <td>18</td>
-                                    <td>그린피/캐디피/카트비</td>
-                                    <td>오전</td>
-                                    <td>₩1,036,000</td>
-                                    <td>₩115,111</td>
-                                </tr>
-                                <tr>
-                                    <td>1/9</td>
-                                    <td>가산 파노라마 골프 클럽</td>
-                                    <td>18</td>
-                                    <td>그린피/캐디피/카트비</td>
-                                    <td>오전</td>
-                                    <td>₩1,181,000</td>
-                                    <td>₩131,222</td>
-                                </tr>
-                                <tr>
-                                    <td>1/10</td>
-                                    <td>치앙마이 하이랜드 골프 앤 스파 리조트</td>
-                                    <td>18</td>
-                                    <td>그린피/캐디피/카트비</td>
-                                    <td>오전</td>
-                                    <td>₩1,678,000</td>
-                                    <td>₩186,444</td>
-                                </tr>
-                                <tr>
-                                    <td>1/11</td>
-                                    <td>알파인 골프 리조트 치앙마이</td>
-                                    <td>18</td>
-                                    <td>그린피/캐디피/카트비</td>
-                                    <td>오전</td>
-                                    <td>₩2,030,000</td>
-                                    <td>₩225,556</td>
-                                </tr>
-                                <tr>
-                                    <td>1/12</td>
-                                    <td>메조 골프 클럽</td>
-                                    <td>18</td>
-                                    <td>그린피/캐디피/카트비</td>
-                                    <td>오전</td>
-                                    <td>₩1,222,000</td>
-                                    <td>₩135,778</td>
-                                </tr>
+                                {golfSchedules.map((schedule) => (
+                                    <tr key={schedule.id}>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.date}
+                                                onChange={(e) => handleGolfScheduleChange(schedule.id, 'date', e.target.value)}
+                                                placeholder="1/8"
+                                                className="quotation-input date-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <GolfCourseAutocomplete
+                                                value={schedule.courseName}
+                                                onChange={(value) => handleGolfScheduleChange(schedule.id, 'courseName', value)}
+                                                placeholder="노스힐 골프 클럽 치앙마이"
+                                                className=""
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.holes}
+                                                onChange={(e) => handleGolfScheduleChange(schedule.id, 'holes', e.target.value)}
+                                                placeholder="18"
+                                                className="quotation-input holes-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <div className="inclusion-checkboxes">
+                                                {inclusionOptions.map((option) => (
+                                                    <label key={option} className="inclusion-checkbox">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={schedule.inclusions?.includes(option) || false}
+                                                            onChange={(e) => handleGolfInclusionChange(schedule.id, option, e.target.checked)}
+                                                            className="inclusion-input"
+                                                        />
+                                                        <span className="inclusion-label">{option}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.teeOff}
+                                                onChange={(e) => handleGolfScheduleChange(schedule.id, 'teeOff', e.target.value)}
+                                                placeholder="오전"
+                                                className="quotation-input teeoff-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.total}
+                                                onChange={(e) => handleGolfScheduleChange(schedule.id, 'total', e.target.value)}
+                                                placeholder="₩1,036,000"
+                                                className="quotation-input total-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <span className="value">{schedule.perPerson}</span>
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() => removeGolfSchedule(schedule.id)}
+                                                className="btn btn-danger btn-sm"
+                                            >
+                                                삭제
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                             <tfoot>
                                 <tr className="total-row">
                                     <td colSpan={5}>총 합계(KRW)</td>
-                                    <td>₩7,147,000</td>
+                                    <td>{calculateGolfTotal()}</td>
+                                    <td>{calculateGolfPerPersonTotal()}</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -142,7 +706,15 @@ export default function AdminTools() {
 
                 {/* 숙박 일정 */}
                 <div className="quotation-section">
-                    <h3>숙박 (사전결제) 실시간 최저가 기준</h3>
+                    <div className="section-header">
+                        <h3>숙박 (사전결제) 실시간 최저가 기준</h3>
+                        <button
+                            onClick={addAccommodationSchedule}
+                            className="btn btn-primary btn-sm"
+                        >
+                            + 추가
+                        </button>
+                    </div>
                     <div className="table-container">
                         <table className="quotation-table">
                             <thead>
@@ -155,24 +727,94 @@ export default function AdminTools() {
                                     <th>식사포함여부</th>
                                     <th>합계</th>
                                     <th>사전결제(1인)</th>
+                                    <th>삭제</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>2026.1.7-1.11</td>
-                                    <td>트래블로지 님만</td>
-                                    <td>4</td>
-                                    <td>9</td>
-                                    <td>슈페리어룸</td>
-                                    <td>조식</td>
-                                    <td>₩4,629,000</td>
-                                    <td>₩514,333</td>
-                                </tr>
+                                {accommodationSchedules.map((schedule) => (
+                                    <tr key={schedule.id}>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.date}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'date', e.target.value)}
+                                                placeholder="2026.1.7-1.11"
+                                                className="quotation-input date-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.hotelName}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'hotelName', e.target.value)}
+                                                placeholder="트래블로지 님만"
+                                                className="quotation-input hotel-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.nights}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'nights', e.target.value)}
+                                                placeholder="4"
+                                                className="quotation-input holes-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.rooms}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'rooms', e.target.value)}
+                                                placeholder="9"
+                                                className="quotation-input holes-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.roomType}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'roomType', e.target.value)}
+                                                placeholder="슈페리어룸"
+                                                className="quotation-input roomtype-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.meals}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'meals', e.target.value)}
+                                                placeholder="조식"
+                                                className="quotation-input teeoff-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.total}
+                                                onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'total', e.target.value)}
+                                                placeholder="₩4,629,000"
+                                                className="quotation-input total-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <span className="value">{schedule.perPerson}</span>
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() => removeAccommodationSchedule(schedule.id)}
+                                                className="btn btn-danger btn-sm"
+                                            >
+                                                삭제
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                             <tfoot>
                                 <tr className="total-row">
                                     <td colSpan={6}>총 합계(KRW)</td>
-                                    <td>₩4,629,000</td>
+                                    <td>{calculateAccommodationTotal()}</td>
+                                    <td>{calculateAccommodationPerPersonTotal()}</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -182,7 +824,15 @@ export default function AdminTools() {
 
                 {/* 픽업 일정 */}
                 <div className="quotation-section">
-                    <h3>픽업 (사전결제)</h3>
+                    <div className="section-header">
+                        <h3>픽업 (사전결제)</h3>
+                        <button
+                            onClick={addPickupSchedule}
+                            className="btn btn-primary btn-sm"
+                        >
+                            + 추가
+                        </button>
+                    </div>
                     <div className="pickup-info">
                         <div className="pickup-subsection">
                             <h4>픽업 항공 정보</h4>
@@ -206,79 +856,102 @@ export default function AdminTools() {
                                     <th>지역</th>
                                     <th>합계</th>
                                     <th>사전결제(1인)</th>
+                                    <th>삭제</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1/7</td>
-                                    <td>공항 &gt; 호텔</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1/8</td>
-                                    <td>일일렌탈 12시간</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1/9</td>
-                                    <td>일일렌탈 12시간</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1/10</td>
-                                    <td>일일렌탈 12시간</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1/11</td>
-                                    <td>일일렌탈 12시간</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>1/12</td>
-                                    <td>일일렌탈 12시간</td>
-                                    <td>9</td>
-                                    <td>2</td>
-                                    <td>밴</td>
-                                    <td>치앙마이</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
+                                {pickupSchedules.map((schedule) => (
+                                    <tr key={schedule.id}>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.date}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'date', e.target.value)}
+                                                placeholder="1/7"
+                                                className="quotation-input pickup-date-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <select
+                                                value={schedule.destination}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'destination', e.target.value)}
+                                                className="quotation-input"
+                                            >
+                                                <option value="">선택하세요</option>
+                                                <option value="공항 > 호텔">공항 &gt; 호텔</option>
+                                                <option value="호텔 > 골프장 > 호텔">호텔 &gt; 골프장 &gt; 호텔</option>
+                                                <option value="일일렌탈 10시간">일일렌탈 10시간</option>
+                                                <option value="일일렌탈 12시간">일일렌탈 12시간</option>
+                                                <option value="호텔 > 공항">호텔 &gt; 공항</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.people}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'people', e.target.value)}
+                                                placeholder="9"
+                                                className="quotation-input holes-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.vehicles}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'vehicles', e.target.value)}
+                                                placeholder="2"
+                                                className="quotation-input holes-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <select
+                                                value={schedule.vehicleType}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'vehicleType', e.target.value)}
+                                                className="quotation-input vehicletype-input"
+                                            >
+                                                <option value="">선택하세요</option>
+                                                <option value="SUV">SUV</option>
+                                                <option value="승용차">승용차</option>
+                                                <option value="밴">밴</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.region}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'region', e.target.value)}
+                                                placeholder="치앙마이"
+                                                className="quotation-input region-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                value={schedule.total}
+                                                onChange={(e) => handlePickupScheduleChange(schedule.id, 'total', e.target.value)}
+                                                placeholder="₩1,594,000"
+                                                className="quotation-input total-input"
+                                            />
+                                        </td>
+                                        <td>
+                                            <span className="value">{schedule.perPerson}</span>
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() => removePickupSchedule(schedule.id)}
+                                                className="btn btn-danger btn-sm"
+                                            >
+                                                삭제
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                             <tfoot>
                                 <tr className="total-row">
-                                    <td colSpan={6}>합계</td>
-                                    <td>₩1,594,000</td>
-                                    <td>₩177,111</td>
-                                </tr>
-                                <tr className="total-row">
                                     <td colSpan={6}>총 합계(KRW)</td>
-                                    <td>₩1,594,000</td>
+                                    <td>{calculatePickupTotal()}</td>
+                                    <td>{calculatePickupPerPersonTotal()}</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -286,45 +959,6 @@ export default function AdminTools() {
                     </div>
                 </div>
 
-                {/* 항공 일정 */}
-                <div className="quotation-section">
-                    <h3>항공 (사전결제 수수료포함)</h3>
-                    <div className="table-container">
-                        <table className="quotation-table">
-                            <thead>
-                                <tr>
-                                    <th>날짜</th>
-                                    <th>출발지</th>
-                                    <th>항공편명</th>
-                                    <th>항공 일정</th>
-                                    <th>인원</th>
-                                    <th>1인요금</th>
-                                    <th>총 합</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1/7</td>
-                                    <td>인천</td>
-                                    <td>LJ0009</td>
-                                    <td>17:10 - 20:45</td>
-                                    <td>2</td>
-                                    <td>₩1,065,100</td>
-                                    <td>₩2,150,200</td>
-                                </tr>
-                                <tr>
-                                    <td>1/11</td>
-                                    <td>치앙마이</td>
-                                    <td>LJ0010</td>
-                                    <td>21:45 - 05:05(+1일)</td>
-                                    <td>2</td>
-                                    <td>₩1,065,100</td>
-                                    <td>₩2,150,200</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
                 {/* 안내사항 */}
                 <div className="quotation-section">
@@ -338,11 +972,17 @@ export default function AdminTools() {
                     </ul>
                 </div>
 
-                {/* 불포함사항 */}
+                {/* 추가선택사항 */}
                 <div className="quotation-section">
-                    <h3>불포함사항</h3>
-                    <div className="exclusions">
-                        <p>없음</p>
+                    <h3>추가선택사항</h3>
+                    <div className="additional-options">
+                        <textarea
+                            value={additionalOptions}
+                            onChange={(e) => setAdditionalOptions(e.target.value)}
+                            placeholder="추가 선택사항을 입력하세요..."
+                            className="quotation-textarea"
+                            rows={4}
+                        />
                     </div>
                 </div>
 
@@ -351,7 +991,36 @@ export default function AdminTools() {
                 <div className="payment-section">
                     <div className="payment-total">
                         <div className="total-label">사전결제 총비용(KRW)</div>
-                        <div className="total-amount">₩13,370,000</div>
+                        <div className="total-amount">{calculateTotalPrepayment()}</div>
+                    </div>
+
+                    <div className="payment-breakdown">
+                        <div className="payment-item">
+                            <div className="payment-label">계약금</div>
+                            <div className="payment-amount">
+                                <input
+                                    type="text"
+                                    value={paymentInfo.downPayment}
+                                    onChange={(e) => handlePaymentChange('downPayment', e.target.value)}
+                                    placeholder="₩0"
+                                    className="quotation-input amount"
+                                />
+                            </div>
+                        </div>
+                        <div className="payment-item">
+                            <div className="payment-label">
+                                잔금 {calculateBalanceDueDate() && `(${calculateBalanceDueDate()}까지)`}
+                            </div>
+                            <div className="payment-amount">
+                                <span className="payment-value">{calculateBalance()}</span>
+                            </div>
+                        </div>
+                        <div className="payment-item total">
+                            <div className="payment-label">합계</div>
+                            <div className="payment-amount">
+                                <span className="payment-value">{calculateTotalPrepayment()}</span>
+                            </div>
+                        </div>
                     </div>
                     <div className="payment-info">
                         <div className="bank-info">

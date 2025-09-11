@@ -28,6 +28,7 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
         cityName: '',
 
         facilities: [] as string[],
+        inclusions: [] as string[],
         images: [] as string[],
         price: 0,
         adminIds: [] as string[],
@@ -59,6 +60,7 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     cityName: course.cityName || '',
 
                     facilities: course.facilities || [],
+                    inclusions: course.inclusions || [],
                     images: course.images || [],
                     price: course.price || 0,
                     adminIds: course.adminIds || [],
@@ -87,6 +89,7 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     cityName: '',
 
                     facilities: [],
+                    inclusions: [],
                     images: [],
                     price: 0,
                     adminIds: [],
@@ -435,6 +438,42 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                                 ))}
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        포함사항
+                    </label>
+                    <div className="space-y-2">
+                        <div className="flex flex-wrap gap-4">
+                            {['그린피', '캐디피', '카트비'].map(inclusion => (
+                                <label key={inclusion} className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.inclusions.includes(inclusion)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    inclusions: [...prev.inclusions, inclusion]
+                                                }));
+                                            } else {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    inclusions: prev.inclusions.filter(i => i !== inclusion)
+                                                }));
+                                            }
+                                        }}
+                                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                    />
+                                    <span className="text-sm text-gray-700 font-medium">{inclusion}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            선택한 항목들이 골프장 이용료에 포함됩니다.
+                        </p>
                     </div>
                 </div>
 

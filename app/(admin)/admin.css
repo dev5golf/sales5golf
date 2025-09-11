@@ -943,7 +943,7 @@
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 2rem;
 }
 
@@ -1159,8 +1159,9 @@
 
 .info-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.25rem;
+    align-items: center;
 }
 
 .info-item label {
@@ -2294,7 +2295,7 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 2rem;
 }
 
@@ -2350,13 +2351,14 @@
 .info-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    flex-direction: row;
 }
 
 .info-item .label {
     font-weight: 600;
     color: #2c3e50;
-    min-width: 120px;
+    margin-right: 0.5rem;
 }
 
 .info-item .value {
@@ -2366,6 +2368,179 @@
 .info-item .value.amount {
     font-weight: 700;
     font-size: 1.2rem;
+    color: #e74c3c;
+}
+
+.quotation-input {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.95rem;
+    color: #495057;
+    background: white;
+    min-width: 150px;
+}
+
+.quotation-input.date-input {
+    min-width: 120px;
+    width: 120px;
+}
+
+.quotation-input.holes-input {
+    min-width: 40px;
+    width: 40px;
+}
+
+.quotation-input.teeoff-input {
+    min-width: 50px;
+    width: 50px;
+}
+
+.quotation-input.total-input {
+    min-width: 100px;
+    width: 100px;
+}
+
+.quotation-input.hotel-input {
+    min-width: 100px;
+    width: 100px;
+}
+
+.quotation-input.roomtype-input {
+    min-width: 80px;
+    width: 80px;
+}
+
+.quotation-input.pickup-date-input {
+    min-width: 50px;
+    width: 50px;
+}
+
+.quotation-input.region-input {
+    min-width: 100px;
+    width: 100px;
+}
+
+.quotation-input.vehicletype-input {
+    min-width: 120px;
+    width: 120px;
+}
+
+.quotation-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background-color: #fff;
+    resize: vertical;
+}
+
+.quotation-textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.payment-breakdown {
+    display: flex;
+    gap: 0;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.payment-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    position: relative;
+}
+
+.payment-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, #e9ecef, transparent);
+}
+
+.payment-item.total {
+    background: rgba(255, 255, 255, 0.95);
+    color: #2c3e50;
+}
+
+.payment-item.total .payment-label {
+    color: #6c757d;
+}
+
+.payment-item.total .payment-value {
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.payment-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.payment-amount {
+    width: 100%;
+}
+
+.payment-amount .quotation-input {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.payment-amount .quotation-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.payment-value {
+    display: block;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #2c3e50;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.quotation-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.quotation-input.amount {
+    font-weight: 700;
     color: #e74c3c;
 }
 
@@ -2387,6 +2562,43 @@
     border-bottom: 1px solid #dee2e6;
 }
 
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    width: fit-content;
+    background: none !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+}
+
+.section-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
 .pickup-info {
     display: flex;
     gap: 2rem;
@@ -2405,6 +2617,7 @@
 
 .table-container {
     overflow-x: auto;
+    overflow-y: visible;
     margin-top: 1rem;
 }
 
@@ -3035,6 +3248,24 @@
     word-wrap: break-word;
 }
 
+/* Date picker styles */
+.date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-picker {
+    min-width: 140px;
+    width: 140px;
+}
+
+.date-separator {
+    font-weight: 600;
+    color: #6c757d;
+    margin: 0 0.25rem;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .db-tool-actions {
@@ -3045,4 +3276,107 @@
         width: 100%;
         justify-content: center;
     }
+}
+
+/* 골프장 자동완성 스타일 */
+.golf-course-autocomplete {
+    position: relative;
+    width: 100%;
+}
+
+.golf-course-autocomplete .quotation-input {
+    width: 100%;
+}
+
+.golf-course-autocomplete .dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    margin-top: 0.25rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    max-height: 15rem;
+    overflow-y: auto;
+}
+
+.golf-course-autocomplete .dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.golf-course-autocomplete .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.golf-course-autocomplete .dropdown-item:hover {
+    background-color: #f9fafb;
+}
+
+.golf-course-autocomplete .dropdown-item .course-name {
+    font-weight: 500;
+    color: #111827;
+}
+
+.golf-course-autocomplete .dropdown-item .course-address {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.golf-course-autocomplete .dropdown-item .no-results {
+    padding: 0.5rem 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.golf-course-autocomplete .dropdown-item .loading {
+    padding: 0.5rem 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* 포함사항 체크박스 스타일 */
+.inclusion-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 120px;
+}
+
+.inclusion-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.inclusion-checkbox:hover {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.inclusion-input {
+    width: 14px;
+    height: 14px;
+    accent-color: #10b981;
+    cursor: pointer;
+}
+
+.inclusion-label {
+    color: #374151;
+    font-weight: 500;
+    user-select: none;
 }
