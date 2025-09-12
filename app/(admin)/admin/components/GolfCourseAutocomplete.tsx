@@ -8,6 +8,7 @@ import { Course } from '../../../../types';
 interface GolfCourseAutocompleteProps {
     value: string;
     onChange: (value: string) => void;
+    onSelect?: (course: Course) => void;
     placeholder?: string;
     className?: string;
 }
@@ -23,6 +24,7 @@ interface DropdownState {
 export default function GolfCourseAutocomplete({
     value,
     onChange,
+    onSelect,
     placeholder = "골프장명을 입력하세요",
     className = ""
 }: GolfCourseAutocompleteProps) {
@@ -162,6 +164,11 @@ export default function GolfCourseAutocomplete({
 
         // 값 업데이트
         onChange(course.name);
+
+        // onSelect 콜백 호출
+        if (onSelect) {
+            onSelect(course);
+        }
 
         // 포커스 제거
         inputRef.current?.blur();
@@ -306,7 +313,7 @@ export default function GolfCourseAutocomplete({
                 onBlur={handleInputBlur}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className={`quotation-input ${className}`}
+                className={`w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${className}`}
                 autoComplete="off"
                 disabled={loading}
             />

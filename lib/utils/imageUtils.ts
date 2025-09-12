@@ -1,0 +1,473 @@
+import { toPng } from 'html-to-image';
+
+/**
+ * DOM 요소를 정제하여 이미지 생성에 최적화된 상태로 변환
+ */
+export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null => {
+    if (!element) return null;
+
+    // DOM 복제
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+
+    // 스크롤바 제거 및 레이아웃 최적화
+    clonedElement.style.overflow = 'visible';
+    clonedElement.style.overflowX = 'visible';
+    clonedElement.style.overflowY = 'visible';
+    clonedElement.classList.add('overflow-visible');
+
+    // 모든 자식 요소의 스크롤바도 제거
+    const allElements = clonedElement.querySelectorAll('*');
+    allElements.forEach(el => {
+        const element = el as HTMLElement;
+        element.style.overflow = 'visible';
+        element.style.overflowX = 'visible';
+        element.style.overflowY = 'visible';
+    });
+
+    // 입력 필드를 텍스트로 변환
+    convertInputsToText(clonedElement);
+
+    // 추가/삭제 버튼 제거
+    removeActionButtons(clonedElement);
+
+    // 테이블 액션 컬럼의 버튼만 제거 (컬럼은 유지)
+    removeActionColumns(clonedElement);
+
+    // 체크박스 처리
+    processCheckboxes(clonedElement);
+
+    // 총합계 행 텍스트 가운데 정렬 처리
+    processTotalSumRows(clonedElement);
+
+    // 사전결제(1인) 셀 텍스트 가운데 정렬 처리
+    processPrepaymentCells(clonedElement);
+
+    // 테이블 정렬을 위한 스타일 조정
+    optimizeTableLayout(clonedElement);
+
+    return clonedElement;
+};
+
+/**
+ * 입력 필드를 텍스트로 변환
+ */
+const convertInputsToText = (element: HTMLElement): void => {
+    const inputs = element.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        const htmlInput = input as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+        let displayValue = '';
+
+        if (input.tagName === 'SELECT') {
+            const selectElement = input as HTMLSelectElement;
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            displayValue = selectedOption ? selectedOption.textContent || selectedOption.value : '';
+        } else if (input.tagName === 'INPUT') {
+            const inputElement = input as HTMLInputElement;
+            if (inputElement.type === 'checkbox') {
+                // 체크박스는 processCheckboxes에서 처리하므로 여기서는 스킵
+                return;
+            } else if (inputElement.type === 'date') {
+                // 날짜 입력은 그대로 표시
+                displayValue = inputElement.value || '';
+            } else {
+                // 일반 입력 필드
+                displayValue = inputElement.value || '';
+
+                // 합계 입력필드인 경우 원화 표기 추가
+                if (inputElement.placeholder?.includes('₩') ||
+                    inputElement.name?.includes('total') ||
+                    inputElement.className?.includes('total')) {
+                    if (displayValue && displayValue !== '₩0') {
+                        displayValue = `₩${displayValue}`;
+                    }
+                }
+            }
+        } else if (input.tagName === 'TEXTAREA') {
+            const textareaElement = input as HTMLTextAreaElement;
+            displayValue = textareaElement.value || '';
+        }
+
+        // 빈 값이면 placeholder 표시
+        if (!displayValue.trim()) {
+            const placeholder = input.getAttribute('placeholder');
+            displayValue = placeholder ? `(${placeholder})` : '';
+        }
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = displayValue;
+
+        // 계약금 입력창인 경우 잔금, 합계와 같은 스타일 적용
+        const isDownPayment = input.getAttribute('placeholder')?.includes('₩0') &&
+            input.closest('.bg-gradient-to-br.from-blue-50');
+
+        // 모든 테이블 섹션의 입력폼인지 확인 (골프, 숙박, 픽업)
+        const isTableSectionInput = input.closest('table') &&
+            (input.closest('td') || input.closest('th'));
+
+        // 포함사항, 사전결제1인, 총합계 부분인지 확인
+        const isSummarySection = input.closest('.bg-gradient-to-r') ||
+            input.closest('.bg-gradient-to-br') ||
+            input.closest('.space-y-3') ||
+            input.closest('.flex.justify-between');
+
+        if (isDownPayment) {
+            // 계약금 값에 세자리 콤마 적용
+            if (displayValue && displayValue !== '(₩0)' && !displayValue.includes(',')) {
+                const numericValue = displayValue.replace(/[^\d]/g, '');
+                if (numericValue) {
+                    displayValue = `₩${parseInt(numericValue).toLocaleString()}`;
+                }
+            }
+            textSpan.textContent = displayValue;
+            textSpan.className = 'text-2xl font-bold text-blue-800 py-3 preview-text inline-block';
+        } else if (isTableSectionInput) {
+            // 모든 테이블 섹션 입력폼은 가운데 정렬 적용 (골프, 숙박, 픽업)
+            textSpan.className = 'preview-text inline-block text-center w-full';
+        } else if (isSummarySection) {
+            // 포함사항, 사전결제1인, 총합계 부분은 가운데 정렬 적용
+            textSpan.className = 'preview-text inline-block text-center w-full';
+        } else {
+            textSpan.className = 'preview-text inline-block';
+        }
+
+        input.parentNode?.replaceChild(textSpan, input);
+    });
+};
+
+/**
+ * 추가/삭제 버튼 제거
+ */
+const removeActionButtons = (element: HTMLElement): void => {
+    const buttons = element.querySelectorAll('button');
+    buttons.forEach(button => {
+        const buttonText = button.textContent?.trim() || '';
+        const buttonHTML = button.innerHTML || '';
+
+        // 삭제 버튼 감지 (더 정확한 패턴)
+        const isDeleteButton =
+            buttonText.includes('삭제') ||
+            buttonText.includes('×') ||
+            buttonText.includes('X') ||
+            buttonHTML.includes('Trash2') ||
+            buttonHTML.includes('trash') ||
+            buttonHTML.includes('delete') ||
+            button.className.includes('delete') ||
+            button.className.includes('remove');
+
+        // 추가 버튼 감지
+        const isAddButton =
+            buttonText.includes('추가') ||
+            buttonText.includes('+') ||
+            buttonHTML.includes('Plus') ||
+            buttonHTML.includes('plus') ||
+            buttonHTML.includes('add') ||
+            button.className.includes('add');
+
+        if (isDeleteButton || isAddButton) {
+            button.remove();
+        }
+    });
+
+    // 추가로 아이콘만 있는 버튼들도 제거 (SVG 아이콘)
+    const iconButtons = element.querySelectorAll('button svg');
+    iconButtons.forEach(icon => {
+        const button = icon.closest('button');
+        if (button) {
+            const buttonText = button.textContent?.trim() || '';
+            const iconName = icon.getAttribute('data-lucide') ||
+                icon.getAttribute('class') || '';
+
+            // 아이콘만 있고 텍스트가 없는 버튼들 (삭제/추가 버튼)
+            if (buttonText === '' &&
+                (iconName.includes('trash') ||
+                    iconName.includes('plus') ||
+                    iconName.includes('x'))) {
+                button.remove();
+            }
+        }
+    });
+};
+
+/**
+ * 테이블 액션 컬럼 제거 (삭제 컬럼 전체 제거)
+ */
+const removeActionColumns = (element: HTMLElement): void => {
+    const tables = element.querySelectorAll('table');
+    tables.forEach(table => {
+        // 헤더에서 "삭제" 컬럼 찾기
+        const headers = table.querySelectorAll('th');
+        let deleteColumnIndex = -1;
+
+        headers.forEach((header, index) => {
+            const headerText = header.textContent?.trim() || '';
+            if (headerText.includes('삭제') ||
+                headerText.includes('액션') ||
+                headerText.includes('Action')) {
+                deleteColumnIndex = index;
+            }
+        });
+
+        // 삭제 컬럼이 발견되면 해당 컬럼의 모든 셀 제거
+        if (deleteColumnIndex !== -1) {
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td, th');
+                if (cells[deleteColumnIndex]) {
+                    cells[deleteColumnIndex].remove();
+                }
+            });
+        }
+
+        // 마지막 컬럼이 삭제 버튼만 있는 경우도 제거
+        const rows = table.querySelectorAll('tr');
+        if (rows.length > 0) {
+            const firstRow = rows[0];
+            const cells = firstRow.querySelectorAll('td, th');
+            if (cells.length > 0) {
+                const lastCell = cells[cells.length - 1];
+                const lastCellText = lastCell.textContent?.trim() || '';
+                const lastCellHTML = lastCell.innerHTML || '';
+
+                // 마지막 셀이 삭제 버튼만 있는 경우
+                if (lastCellText.includes('삭제') ||
+                    lastCellHTML.includes('Trash2') ||
+                    lastCellHTML.includes('trash')) {
+
+                    // 모든 행에서 마지막 셀 제거
+                    rows.forEach(row => {
+                        const rowCells = row.querySelectorAll('td, th');
+                        if (rowCells.length > 0) {
+                            rowCells[rowCells.length - 1].remove();
+                        }
+                    });
+                }
+            }
+        }
+    });
+};
+
+/**
+ * 체크박스 상태를 텍스트로 변환
+ */
+const processCheckboxes = (element: HTMLElement): void => {
+    // 포함사항 체크박스 그룹 처리
+    const inclusionContainers = element.querySelectorAll('div.flex.flex-wrap.gap-2');
+    inclusionContainers.forEach(container => {
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        const checkedOptions: string[] = [];
+
+        checkboxes.forEach(checkbox => {
+            const htmlCheckbox = checkbox as HTMLInputElement;
+            if (htmlCheckbox.checked) {
+                const label = checkbox.closest('label');
+                if (label) {
+                    const optionText = label.textContent?.trim() || '';
+                    if (optionText) {
+                        checkedOptions.push(optionText);
+                    }
+                }
+            }
+        });
+
+        // 체크된 옵션들을 쉼표로 구분하여 표시
+        if (checkedOptions.length > 0) {
+            container.innerHTML = '';
+            // 테이블 셀 내부인지 확인하여 가운데 정렬 적용
+            const isInTableCell = container.closest('td') || container.closest('th');
+            if (isInTableCell) {
+                container.className = 'preview-text inline-block text-center w-full';
+            } else {
+                container.className = 'preview-text inline-block';
+            }
+            container.textContent = checkedOptions.join(', ');
+        } else {
+            // 체크된 옵션이 없으면 컨테이너 제거
+            container.remove();
+        }
+    });
+
+    // 다른 개별 체크박스들 처리 (포함사항이 아닌 것들)
+    const otherCheckboxes = element.querySelectorAll('input[type="checkbox"]:not(div.flex.flex-wrap.gap-2 input)');
+    otherCheckboxes.forEach(checkbox => {
+        const htmlCheckbox = checkbox as HTMLInputElement;
+        const container = checkbox.closest('div') || checkbox.parentElement;
+        if (container) {
+            if (htmlCheckbox.checked) {
+                // 체크된 경우: 라벨 텍스트만 표시
+                const label = container.querySelector('label') || checkbox.nextElementSibling;
+                if (label) {
+                    container.textContent = label.textContent || '';
+                    container.className = 'preview-text inline-block';
+                }
+            } else {
+                // 체크되지 않은 경우: 요소 제거
+                container.remove();
+            }
+        }
+    });
+};
+
+/**
+ * 총합계 행 텍스트 가운데 정렬 처리
+ */
+const processTotalSumRows = (element: HTMLElement): void => {
+    // 총합계 행의 td 요소들 찾기
+    const totalSumRows = element.querySelectorAll('tr.bg-gray-100.font-semibold td');
+    totalSumRows.forEach((td) => {
+        // colSpan이 있는 셀(총 합계 텍스트)은 왼쪽 정렬 유지
+        const hasColSpan = td.hasAttribute('colspan');
+        if (!hasColSpan) {
+            // colSpan이 없는 셀(금액 부분)은 가운데 정렬
+            td.className = td.className + ' text-center';
+        }
+    });
+};
+
+/**
+ * 사전결제(1인) 셀 텍스트 가운데 정렬 처리
+ */
+const processPrepaymentCells = (element: HTMLElement): void => {
+    // 사전결제(1인) 셀의 span 요소들 찾기
+    const prepaymentSpans = element.querySelectorAll('td span.text-sm.text-gray-700');
+    prepaymentSpans.forEach(span => {
+        // 사전결제(1인) 셀인지 확인 (₩ 또는 - 텍스트가 있는 경우)
+        const text = span.textContent?.trim() || '';
+        if (text.includes('₩') || text === '-') {
+            // 부모 td 요소에 가운데 정렬 적용
+            const parentTd = span.closest('td');
+            if (parentTd) {
+                parentTd.className = parentTd.className + ' text-center';
+            }
+        }
+    });
+};
+
+/**
+ * 테이블 레이아웃 최적화
+ */
+const optimizeTableLayout = (element: HTMLElement): void => {
+    const tables = element.querySelectorAll('table');
+    tables.forEach(table => {
+        // 테이블이 전체 너비로 꽉 차도록 설정
+        table.style.tableLayout = 'fixed';
+        table.style.width = '100%';
+        table.style.minWidth = '100%';
+        table.style.maxWidth = '100%';
+
+        // 테이블이 자연스럽게 확장되도록 설정
+        const tableElement = table as HTMLTableElement;
+        tableElement.style.overflow = 'visible';
+
+        // 컬럼 너비를 균등하게 분배
+        const rows = table.querySelectorAll('tr');
+        if (rows.length > 0) {
+            const firstRow = rows[0];
+            const cells = firstRow.querySelectorAll('td, th');
+            const cellCount = cells.length;
+
+            // 각 셀의 너비를 균등하게 분배
+            cells.forEach(cell => {
+                const cellElement = cell as HTMLTableCellElement;
+                cellElement.style.width = `${100 / cellCount}%`;
+                cellElement.style.minWidth = '0';
+                cellElement.style.whiteSpace = 'nowrap';
+                cellElement.style.textAlign = 'center';
+            });
+        }
+
+        // 모든 셀에 동일한 스타일 적용
+        const allCells = table.querySelectorAll('td, th');
+        allCells.forEach(cell => {
+            const cellElement = cell as HTMLTableCellElement;
+            cellElement.style.padding = '8px 12px';
+            cellElement.style.border = '1px solid #e5e7eb';
+            cellElement.style.verticalAlign = 'middle';
+        });
+    });
+};
+
+/**
+ * 정제된 DOM을 임시로 body에 추가하고 렌더링 준비
+ */
+const prepareDOMForCapture = (element: HTMLElement): HTMLElement => {
+    // 임시 컨테이너 생성
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '100%';
+    container.style.height = 'auto';
+    container.style.overflow = 'visible';
+    container.style.zIndex = '-1';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
+
+    // 컨테이너에 요소 추가
+    container.appendChild(element);
+    document.body.appendChild(container);
+
+    // 요소 스타일 설정
+    element.style.position = 'static';
+    element.style.width = '100%';
+    element.style.height = 'auto';
+    element.style.overflow = 'visible';
+
+    return container;
+};
+
+/**
+ * 임시 DOM 제거
+ */
+const cleanupTemporaryDOM = (container: HTMLElement): void => {
+    if (document.body.contains(container)) {
+        document.body.removeChild(container);
+    }
+};
+
+/**
+ * 견적서 미리보기 이미지 생성
+ */
+export const generatePreviewImage = async (element: HTMLElement): Promise<string> => {
+    const cleanDOM = createCleanPreviewDOM(element);
+    if (!cleanDOM) {
+        throw new Error('DOM 복제에 실패했습니다.');
+    }
+
+    const preparedDOM = prepareDOMForCapture(cleanDOM);
+
+    try {
+        // DOM이 제대로 렌더링될 때까지 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // 컨테이너 내부의 실제 요소를 캡처
+        const actualElement = preparedDOM.firstChild as HTMLElement;
+
+        const dataUrl = await toPng(actualElement, {
+            quality: 1.0,
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+        });
+
+        return dataUrl;
+    } finally {
+        cleanupTemporaryDOM(preparedDOM);
+    }
+};
+
+/**
+ * 이미지 다운로드
+ */
+export const downloadImage = (dataUrl: string, filename: string): void => {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+};
+
+/**
+ * 견적서 파일명 생성
+ */
+export const generateQuotationFilename = (customerName: string): string => {
+    const date = new Date().toISOString().split('T')[0];
+    return `견적서_${customerName || '고객'}_${date}.png`;
+};

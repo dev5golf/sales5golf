@@ -8,9 +8,6 @@ import { useGolfCourses } from '../../../../hooks/useGolfCourses';
 import QuotationHeader from './components/QuotationHeader';
 import QuotationForm from './components/QuotationForm';
 import GolfScheduleTable from './components/GolfScheduleTable';
-import AccommodationTable from './components/AccommodationTable';
-import PickupTable from './components/PickupTable';
-import PaymentSummary from './components/PaymentSummary';
 import PreviewModal from './components/PreviewModal';
 
 export default function AdminTools() {
@@ -54,8 +51,6 @@ export default function AdminTools() {
                 <QuotationForm
                     quotationData={quotation.quotationData}
                     travelDates={quotation.travelDates}
-                    inclusions={quotation.generateInclusions()}
-                    pricePerPerson={quotation.calculatePricePerPerson()}
                     onQuotationChange={quotation.updateQuotationData}
                     onTravelDateChange={quotation.updateTravelDates}
                 />
@@ -66,42 +61,28 @@ export default function AdminTools() {
                     onAdd={quotation.addGolfSchedule}
                     onUpdate={quotation.updateGolfSchedule}
                     onRemove={quotation.removeGolfSchedule}
-                    numberOfPeople={quotation.quotationData.numberOfPeople}
-                    isFormValid={quotation.isFormValid()}
                 />
 
-                {/* 숙박 일정 테이블 */}
-                <AccommodationTable
-                    schedules={quotation.accommodationSchedules}
-                    onAdd={quotation.addAccommodationSchedule}
-                    onUpdate={quotation.updateAccommodationSchedule}
-                    onRemove={quotation.removeAccommodationSchedule}
-                    numberOfPeople={quotation.quotationData.numberOfPeople}
-                    isFormValid={quotation.isFormValid()}
-                />
+                {/* 기타 섹션들... */}
+                <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">안내사항</h3>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                        <li>• 현지결제 비용은 실시간 환율에 따라 변동될 수 있습니다.</li>
+                        <li>• 픽업 차량 이용 시 실제 거리에 따라 측정되므로 골프장에 따라 변동될 수 있습니다.</li>
+                        <li>• 현지결제 비용은 현지에서 결제되는 점 참고해 주세요.</li>
+                    </ul>
+                </div>
 
-                {/* 픽업 일정 테이블 */}
-                <PickupTable
-                    schedules={quotation.pickupSchedules}
-                    onAdd={quotation.addPickupSchedule}
-                    onUpdate={quotation.updatePickupSchedule}
-                    onRemove={quotation.removePickupSchedule}
-                    numberOfPeople={quotation.quotationData.numberOfPeople}
-                    isFormValid={quotation.isFormValid()}
-                />
-
-                {/* 결제 요약 */}
-                <PaymentSummary
-                    paymentInfo={quotation.paymentInfo}
-                    onPaymentChange={quotation.updatePaymentInfo}
-                    additionalOptions={quotation.additionalOptions}
-                    onAdditionalOptionsChange={quotation.setAdditionalOptions}
-                    totalPrepayment={quotation.calculateTotalPrepayment()}
-                    downPayment={quotation.paymentInfo.downPayment}
-                    balance={quotation.calculateBalance()}
-                    balanceDueDate={quotation.calculateBalanceDueDate()}
-                    totalAmount={`₩${quotation.calculateTotalAmount().toLocaleString()}`}
-                />
+                {/* 추가 선택사항 */}
+                <div className="mt-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">추가선택사항</h3>
+                    <textarea
+                        value={quotation.additionalOptions}
+                        onChange={(e) => quotation.setAdditionalOptions(e.target.value)}
+                        placeholder="추가 선택사항을 입력하세요..."
+                        className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                </div>
             </div>
 
             {/* 미리보기 모달 */}
