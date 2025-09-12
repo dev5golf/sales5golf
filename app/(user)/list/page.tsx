@@ -9,6 +9,9 @@ import { Course } from '../../../types';
 import {
     getTypeLabel
 } from '../../../lib/utils';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 // 사용자 페이지용 골프장 타입 (Firebase Course + 추가 UI 필드)
 type UserCourse = Course & {
@@ -205,13 +208,15 @@ export default function ListPage() {
                             </div>
                         )}
                         {!loading && coursesToShow.map(course => (
-                            <div key={course.id} className="course-card">
+                            <Card key={course.id} className="course-card">
                                 <div className="course-card-image" style={{ position: 'relative', height: 250 }}>
                                     <Image src={course.image} alt={course.name} fill sizes="(max-width: 768px) 100vw, 400px" style={{ objectFit: 'cover' }} />
-                                    <div className={`course-card-badge ${course.type}`}>{getTypeLabel(course.type)}</div>
+                                    <Badge variant={course.type as any} className="absolute top-4 left-4">
+                                        {getTypeLabel(course.type)}
+                                    </Badge>
                                     {course.discount && <div className="course-card-discount">{course.discount}</div>}
                                 </div>
-                                <div className="course-card-content">
+                                <CardContent className="course-card-content">
                                     <h3 className="course-card-title">{course.name}</h3>
                                     <div className="course-card-location"><i className="fas fa-map-marker-alt" /> {course.provinceName} {course.cityName}</div>
                                     <div className="course-card-rating"><i className="fas fa-star" /> {course.rating} ({course.reviews} reviews)</div>
@@ -221,12 +226,16 @@ export default function ListPage() {
                                         <span className="current-price">{course.price ? `${course.price.toLocaleString()}원` : '가격 문의'}</span>
                                         {course.originalPrice && <span className="original-price">{course.originalPrice}</span>}
                                     </div>
-                                    <div className="course-card-actions">
-                                        <Link className="btn btn-outline" href={`/detail?course=${course.id}`}><i className="fas fa-eye" /> 상세보기</Link>
-                                        <Link className="btn btn-primary" href={`/detail?course=${course.id}&booking=true`}><i className="fas fa-calendar-check" /> 예약하기</Link>
-                                    </div>
-                                </div>
-                            </div>
+                                </CardContent>
+                                <CardFooter className="course-card-actions">
+                                    <Button variant="outline" asChild>
+                                        <Link href={`/detail?course=${course.id}`}><i className="fas fa-eye" /> 상세보기</Link>
+                                    </Button>
+                                    <Button asChild>
+                                        <Link href={`/detail?course=${course.id}&booking=true`}><i className="fas fa-calendar-check" /> 예약하기</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
                         ))}
                     </div>
                     <div className="pagination">

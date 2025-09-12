@@ -56,19 +56,19 @@ export default function Calendar({ currentMonth, onDateClick, teeTimes }: Calend
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
     return (
-        <div className="calendar-container">
-            <div className="calendar-grid">
+        <div className="w-full">
+            <div className="grid grid-cols-7 gap-1 mb-4">
                 {/* 요일 헤더 */}
-                <div className="calendar-header">
+                <div className="grid grid-cols-7 gap-1 col-span-7">
                     {weekDays.map(day => (
-                        <div key={day} className="calendar-day-header">
+                        <div key={day} className="p-3 text-center text-sm font-semibold text-gray-600 bg-gray-50 rounded-md">
                             {day}
                         </div>
                     ))}
                 </div>
 
                 {/* 달력 날짜들 */}
-                <div className="calendar-body">
+                <div className="grid grid-cols-7 gap-1 col-span-7">
                     {/* 현재 월의 날짜들만 표시 */}
                     {currentMonthDays.map((date, index) => {
                         const dateTeeTimes = getTeeTimesForDate(date);
@@ -82,21 +82,35 @@ export default function Calendar({ currentMonth, onDateClick, teeTimes }: Calend
                         return (
                             <div
                                 key={index}
-                                className={`calendar-day ${isTodayDate ? 'today' : ''} ${isPastDateDay ? 'past-date' : ''} ${isSelected ? 'selected' : ''}`}
+                                className={`
+                                    relative p-2 min-h-[80px] border border-gray-200 rounded-md cursor-pointer transition-all duration-200
+                                    ${isTodayDate ? 'bg-blue-50 border-blue-300' : ''}
+                                    ${isPastDateDay ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-50'}
+                                    ${isSelected ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-200' : ''}
+                                    ${!isPastDateDay ? 'hover:shadow-sm' : ''}
+                                `}
                                 style={{ gridColumnStart }}
                                 onClick={() => handleDateClick(date)}
                                 title={isPastDateDay ? '지나간 날짜는 선택할 수 없습니다' : ''}
                             >
-                                <div className="day-number">{date.getDate()}</div>
+                                <div className={`text-sm font-medium ${isPastDateDay ? 'text-gray-400' : 'text-gray-900'}`}>
+                                    {date.getDate()}
+                                </div>
                                 {dateTeeTimes.length > 0 && (
-                                    <div className="tee-time-indicators">
+                                    <div className="mt-1 space-y-1">
                                         {dateTeeTimes.slice(0, 3).map((teeTime, idx) => (
-                                            <div key={idx} className="tee-time-dot" title={`${teeTime.time} - ${teeTime.availableSlots}슬롯`}>
-                                                <span className="time">{teeTime.time}</span>
+                                            <div
+                                                key={idx}
+                                                className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded truncate"
+                                                title={`${teeTime.time} - ${teeTime.availableSlots}슬롯`}
+                                            >
+                                                {teeTime.time}
                                             </div>
                                         ))}
                                         {dateTeeTimes.length > 3 && (
-                                            <div className="more-indicator">+{dateTeeTimes.length - 3}</div>
+                                            <div className="text-xs text-gray-500 font-medium">
+                                                +{dateTeeTimes.length - 3}개 더
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -107,22 +121,22 @@ export default function Calendar({ currentMonth, onDateClick, teeTimes }: Calend
             </div>
 
             {/* 범례 */}
-            <div className="calendar-legend">
-                <div className="legend-item">
-                    <div className="legend-dot today"></div>
-                    <span>오늘</span>
+            <div className="flex flex-wrap gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                    <span className="text-sm text-gray-600">오늘</span>
                 </div>
-                <div className="legend-item">
-                    <div className="legend-dot has-teetime"></div>
-                    <span>티타임 등록됨</span>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+                    <span className="text-sm text-gray-600">티타임 등록됨</span>
                 </div>
-                <div className="legend-item">
-                    <div className="legend-dot selected"></div>
-                    <span>선택된 날짜</span>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-100 border-2 border-blue-400 rounded"></div>
+                    <span className="text-sm text-gray-600">선택된 날짜</span>
                 </div>
-                <div className="legend-item">
-                    <div className="legend-dot past-date"></div>
-                    <span>지나간 날짜</span>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+                    <span className="text-sm text-gray-600">지나간 날짜</span>
                 </div>
             </div>
         </div>

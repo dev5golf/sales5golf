@@ -6,6 +6,9 @@ import { collection, getDocs, query, where, addDoc, updateDoc, deleteDoc, doc, s
 import Calendar from '../(dashboard)/components/Calendar';
 import TeeTimeModal from '../(dashboard)/components/TeeTimeModal';
 import { TeeTime, Course } from '../../../../types';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function TeeTimeManagement() {
     const { user, isAdmin } = useAuth();
@@ -266,14 +269,14 @@ export default function TeeTimeManagement() {
 
     if (!user) {
         return (
-            <div className="admin-dashboard">
-                <div className="dashboard-header">
-                    <h1>티타임 관리</h1>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">티타임 관리</h1>
                 </div>
-                <div className="no-data-container">
-                    <i className="fas fa-user-times"></i>
-                    <h3>로그인이 필요합니다</h3>
-                    <p>티타임 관리를 위해 로그인해주세요.</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <i className="fas fa-user-times text-6xl text-gray-400 mb-4"></i>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">로그인이 필요합니다</h3>
+                    <p className="text-gray-500">티타임 관리를 위해 로그인해주세요.</p>
                 </div>
             </div>
         );
@@ -281,13 +284,13 @@ export default function TeeTimeManagement() {
 
     if (loading) {
         return (
-            <div className="admin-dashboard">
-                <div className="dashboard-header">
-                    <h1>티타임 관리</h1>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">티타임 관리</h1>
                 </div>
-                <div className="loading-container">
-                    <div className="loading-spinner"></div>
-                    <p>골프장 정보를 불러오는 중...</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">골프장 정보를 불러오는 중...</p>
                 </div>
             </div>
         );
@@ -295,37 +298,37 @@ export default function TeeTimeManagement() {
 
     if (courses.length === 0) {
         return (
-            <div className="admin-dashboard">
-                <div className="dashboard-header">
-                    <h1>티타임 관리</h1>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">티타임 관리</h1>
                 </div>
-                <div className="no-data-container">
-                    <i className="fas fa-golf-ball"></i>
-                    <h3>관리할 수 있는 골프장이 없습니다</h3>
-                    <p>골프장 관리자 권한이 필요하거나 활성화된 골프장이 없습니다.</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <i className="fas fa-golf-ball text-6xl text-gray-400 mb-4"></i>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">관리할 수 있는 골프장이 없습니다</h3>
+                    <p className="text-gray-500">골프장 관리자 권한이 필요하거나 활성화된 골프장이 없습니다.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-dashboard">
-            <div className="dashboard-header">
-                <h1>티타임 관리</h1>
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <h1 className="text-3xl font-semibold text-gray-800">티타임 관리</h1>
             </div>
 
             {/* 골프장 선택 필터 - 수퍼관리자와 사이트 관리자만 표시 */}
             {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
-                <div className="course-filter-section">
-                    <div className="filter-header">
-                        <h3>골프장 선택</h3>
-                        <p>관리할 골프장을 선택하세요</p>
+                <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">골프장 선택</h3>
+                        <p className="text-gray-600 text-sm">관리할 골프장을 선택하세요</p>
                     </div>
-                    <div className="course-selector">
+                    <div className="flex gap-4 items-center">
                         <select
                             value={selectedCourseId}
                             onChange={(e) => handleCourseChange(e.target.value)}
-                            className="form-select"
+                            className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">골프장을 선택하세요</option>
                             {courses.map(course => (
@@ -339,27 +342,29 @@ export default function TeeTimeManagement() {
             )}
 
             {selectedCourseId && (
-                <div className="calendar-section">
-                    <div className="calendar-header">
-                        <h2>
+                <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800">
                             {courses.find(c => c.id === selectedCourseId)?.name} - 티타임 등록 캘린더
                         </h2>
-                        <div className="calendar-navigation">
-                            <button
+                        <div className="flex items-center gap-4">
+                            <Button
                                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                                className="btn btn-outline"
+                                variant="outline"
+                                size="sm"
                             >
                                 <i className="fas fa-chevron-left"></i>
-                            </button>
-                            <span className="current-month">
+                            </Button>
+                            <span className="text-lg font-medium text-gray-700 min-w-[120px] text-center">
                                 {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
                             </span>
-                            <button
+                            <Button
                                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                                className="btn btn-outline"
+                                variant="outline"
+                                size="sm"
                             >
                                 <i className="fas fa-chevron-right"></i>
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -372,10 +377,10 @@ export default function TeeTimeManagement() {
             )}
 
             {!selectedCourseId && (user?.role === 'super_admin' || user?.role === 'site_admin') && (
-                <div className="no-selection-container">
-                    <i className="fas fa-calendar-alt"></i>
-                    <h3>골프장을 선택해주세요</h3>
-                    <p>티타임을 관리할 골프장을 위에서 선택하시면 캘린더가 표시됩니다.</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <i className="fas fa-calendar-alt text-6xl text-gray-400 mb-4"></i>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">골프장을 선택해주세요</h3>
+                    <p className="text-gray-500">티타임을 관리할 골프장을 위에서 선택하시면 캘린더가 표시됩니다.</p>
                 </div>
             )}
 

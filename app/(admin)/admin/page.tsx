@@ -70,24 +70,22 @@ export default function AdminDashboard() {
 
 
     return (
-        <div className="admin-dashboard">
-            <div className="dashboard-header">
-                <h1>대시보드</h1>
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <h1 className="text-3xl font-semibold text-gray-800">대시보드</h1>
             </div>
 
-            <div className="dashboard-stats">
-                <div className="stat-card">
-                    <div className="stat-icon">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 flex items-center gap-4">
+                    <div className="w-15 h-15 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white text-2xl">
                         <i className="fas fa-calendar-alt"></i>
                     </div>
-                    <div className="stat-content">
-                        <h3>{teeTimes.length}</h3>
-                        <p>등록된 티타임</p>
+                    <div>
+                        <h3 className="text-3xl font-bold text-gray-800 mb-1">{teeTimes.length}</h3>
+                        <p className="text-gray-600 text-sm">등록된 티타임</p>
                     </div>
                 </div>
             </div>
-
-
         </div>
     );
 }

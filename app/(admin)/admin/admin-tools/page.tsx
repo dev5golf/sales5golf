@@ -505,186 +505,184 @@ export default function AdminTools() {
     }
 
     return (
-        <div className="admin-tools">
-            <div className="admin-tools-header">
-                <h1>관리자 도구</h1>
-                <p>편의 기능</p>
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-800">관리자 도구</h1>
+                    <p className="text-gray-600 mt-1">편의 기능</p>
+                </div>
             </div>
 
-            <div className="quotation-container">
-                <div className="quotation-header">
-                    <div className="quotation-company">
-                        <div className="company-name">오분골프</div>
-                        <div className="company-desc">해외 골프장 실시간 예약</div>
+            <div className="bg-white rounded-lg shadow-sm p-8">
+                <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-200">
+                    <div>
+                        <div className="text-2xl font-bold text-gray-900">오분골프</div>
+                        <div className="text-gray-600">해외 골프장 실시간 예약</div>
                     </div>
-                    <div className="quotation-title">
-                        <h2>견적서</h2>
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-900">견적서</h2>
                     </div>
                 </div>
 
-                <div className="quotation-info">
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">고객명: </span>
+                <div className="space-y-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">고객명:</span>
                             <input
                                 type="text"
                                 value={quotationData.customerName}
                                 onChange={(e) => handleInputChange('customerName', e.target.value)}
                                 placeholder="손성영"
-                                className="quotation-input"
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
-                            <span>님</span>
+                            <span className="text-gray-600">님</span>
                         </div>
-                        <div className="info-item">
-                            <span className="label">여행지: </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">여행지:</span>
                             <input
                                 type="text"
                                 value={quotationData.destination}
                                 onChange={(e) => handleInputChange('destination', e.target.value)}
                                 placeholder="태국/치앙마이"
-                                className="quotation-input"
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                     </div>
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">여행기간: </span>
-                            <div className="date-inputs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">여행기간:</span>
+                            <div className="flex items-center gap-2">
                                 <input
                                     type="date"
                                     value={travelDates.startDate}
                                     onChange={(e) => handleTravelDateChange('startDate', e.target.value)}
-                                    className="quotation-input date-picker"
+                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                                <span className="date-separator">~</span>
+                                <span className="text-gray-500">~</span>
                                 <input
                                     type="date"
                                     value={travelDates.endDate}
                                     onChange={(e) => handleTravelDateChange('endDate', e.target.value)}
-                                    className="quotation-input date-picker"
+                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
                         </div>
-                        <div className="info-item">
-                            <span className="label">인원: </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">인원:</span>
                             <input
                                 type="text"
                                 value={quotationData.numberOfPeople}
                                 onChange={(e) => handleInputChange('numberOfPeople', e.target.value)}
                                 placeholder="9"
-                                className="quotation-input"
+                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
-                            <span>명</span>
+                            <span className="text-gray-600">명</span>
                         </div>
                     </div>
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">포함사항: </span>
-                            <span className="value">{generateInclusions()}</span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">포함사항:</span>
+                        <span className="text-gray-900">{generateInclusions()}</span>
                     </div>
-                    <div className="info-row">
-                        <div className="info-item">
-                            <span className="label">1인당 요금: </span>
-                            <span className="value amount">{calculatePricePerPerson()} (KRW)</span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">1인당 요금:</span>
+                        <span className="text-lg font-semibold text-blue-600">{calculatePricePerPerson()} (KRW)</span>
                     </div>
                 </div>
 
                 {/* 골프 일정 */}
-                <div className="quotation-section">
-                    <div className="section-header">
-                        <h3>골프 (사전결제)</h3>
+                <div className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-gray-800">골프 (사전결제)</h3>
                         <button
                             onClick={addGolfSchedule}
-                            className="btn btn-primary btn-sm"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             + 추가
                         </button>
                     </div>
-                    <div className="table-container">
-                        <table className="quotation-table">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th>날짜</th>
-                                    <th>골프장명</th>
-                                    <th>홀수(H)</th>
-                                    <th>포함사항</th>
-                                    <th>TEE-OFF</th>
-                                    <th>합계</th>
-                                    <th>사전결제(1인)</th>
-                                    <th>삭제</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">골프장명</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">홀수(H)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">포함사항</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TEE-OFF</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">합계</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사전결제(1인)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">삭제</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {golfSchedules.map((schedule) => (
                                     <tr key={schedule.id}>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.date}
                                                 onChange={(e) => handleGolfScheduleChange(schedule.id, 'date', e.target.value)}
                                                 placeholder="1/8"
-                                                className="quotation-input date-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <GolfCourseAutocomplete
                                                 value={schedule.courseName}
                                                 onChange={(value) => handleGolfScheduleChange(schedule.id, 'courseName', value)}
                                                 placeholder="노스힐 골프 클럽 치앙마이"
-                                                className=""
+                                                className="w-full"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.holes}
                                                 onChange={(e) => handleGolfScheduleChange(schedule.id, 'holes', e.target.value)}
                                                 placeholder="18"
-                                                className="quotation-input holes-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
-                                            <div className="inclusion-checkboxes">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="space-y-1">
                                                 {inclusionOptions.map((option) => (
-                                                    <label key={option} className="inclusion-checkbox">
+                                                    <label key={option} className="flex items-center">
                                                         <input
                                                             type="checkbox"
                                                             checked={schedule.inclusions?.includes(option) || false}
                                                             onChange={(e) => handleGolfInclusionChange(schedule.id, option, e.target.checked)}
-                                                            className="inclusion-input"
+                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                                         />
-                                                        <span className="inclusion-label">{option}</span>
+                                                        <span className="ml-2 text-sm text-gray-700">{option}</span>
                                                     </label>
                                                 ))}
                                             </div>
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.teeOff}
                                                 onChange={(e) => handleGolfScheduleChange(schedule.id, 'teeOff', e.target.value)}
                                                 placeholder="오전"
-                                                className="quotation-input teeoff-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.total}
                                                 onChange={(e) => handleGolfScheduleChange(schedule.id, 'total', e.target.value)}
                                                 placeholder="₩1,036,000"
-                                                className="quotation-input total-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
-                                            <span className="value">{schedule.perPerson}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {schedule.perPerson}
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <button
                                                 onClick={() => removeGolfSchedule(schedule.id)}
-                                                className="btn btn-danger btn-sm"
+                                                className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                                             >
                                                 삭제
                                             </button>
@@ -692,12 +690,12 @@ export default function AdminTools() {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot>
-                                <tr className="total-row">
-                                    <td colSpan={5}>총 합계(KRW)</td>
-                                    <td>{calculateGolfTotal()}</td>
-                                    <td>{calculateGolfPerPersonTotal()}</td>
-                                    <td></td>
+                            <tfoot className="bg-gray-50">
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-3 text-sm font-medium text-gray-900">총 합계(KRW)</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculateGolfTotal()}</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculateGolfPerPersonTotal()}</td>
+                                    <td className="px-6 py-3"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -705,104 +703,104 @@ export default function AdminTools() {
                 </div>
 
                 {/* 숙박 일정 */}
-                <div className="quotation-section">
-                    <div className="section-header">
-                        <h3>숙박 (사전결제) 실시간 최저가 기준</h3>
+                <div className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-gray-800">숙박 (사전결제) 실시간 최저가 기준</h3>
                         <button
                             onClick={addAccommodationSchedule}
-                            className="btn btn-primary btn-sm"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             + 추가
                         </button>
                     </div>
-                    <div className="table-container">
-                        <table className="quotation-table">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th>날짜</th>
-                                    <th>호텔명</th>
-                                    <th>박수</th>
-                                    <th>객실수</th>
-                                    <th>객실타입</th>
-                                    <th>식사포함여부</th>
-                                    <th>합계</th>
-                                    <th>사전결제(1인)</th>
-                                    <th>삭제</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">호텔명</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">박수</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">객실수</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">객실타입</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">식사포함여부</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">합계</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사전결제(1인)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">삭제</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {accommodationSchedules.map((schedule) => (
                                     <tr key={schedule.id}>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.date}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'date', e.target.value)}
                                                 placeholder="2026.1.7-1.11"
-                                                className="quotation-input date-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.hotelName}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'hotelName', e.target.value)}
                                                 placeholder="트래블로지 님만"
-                                                className="quotation-input hotel-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.nights}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'nights', e.target.value)}
                                                 placeholder="4"
-                                                className="quotation-input holes-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.rooms}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'rooms', e.target.value)}
                                                 placeholder="9"
-                                                className="quotation-input holes-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.roomType}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'roomType', e.target.value)}
                                                 placeholder="슈페리어룸"
-                                                className="quotation-input roomtype-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.meals}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'meals', e.target.value)}
                                                 placeholder="조식"
-                                                className="quotation-input teeoff-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.total}
                                                 onChange={(e) => handleAccommodationScheduleChange(schedule.id, 'total', e.target.value)}
                                                 placeholder="₩4,629,000"
-                                                className="quotation-input total-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
-                                            <span className="value">{schedule.perPerson}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {schedule.perPerson}
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <button
                                                 onClick={() => removeAccommodationSchedule(schedule.id)}
-                                                className="btn btn-danger btn-sm"
+                                                className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                                             >
                                                 삭제
                                             </button>
@@ -810,12 +808,12 @@ export default function AdminTools() {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot>
-                                <tr className="total-row">
-                                    <td colSpan={6}>총 합계(KRW)</td>
-                                    <td>{calculateAccommodationTotal()}</td>
-                                    <td>{calculateAccommodationPerPersonTotal()}</td>
-                                    <td></td>
+                            <tfoot className="bg-gray-50">
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-3 text-sm font-medium text-gray-900">총 합계(KRW)</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculateAccommodationTotal()}</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculateAccommodationPerPersonTotal()}</td>
+                                    <td className="px-6 py-3"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -823,59 +821,59 @@ export default function AdminTools() {
                 </div>
 
                 {/* 픽업 일정 */}
-                <div className="quotation-section">
-                    <div className="section-header">
-                        <h3>픽업 (사전결제)</h3>
+                <div className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-gray-800">픽업 (사전결제)</h3>
                         <button
                             onClick={addPickupSchedule}
-                            className="btn btn-primary btn-sm"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             + 추가
                         </button>
                     </div>
-                    <div className="pickup-info">
-                        <div className="pickup-subsection">
-                            <h4>픽업 항공 정보</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-700">픽업 항공 정보</h4>
                         </div>
-                        <div className="pickup-subsection">
-                            <h4>샌딩 항공 정보</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-700">샌딩 항공 정보</h4>
                         </div>
-                        <div className="pickup-subsection">
-                            <h4>픽업 숙소명</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-gray-700">픽업 숙소명</h4>
                         </div>
                     </div>
-                    <div className="table-container">
-                        <table className="quotation-table">
-                            <thead>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th>날짜</th>
-                                    <th>행선지</th>
-                                    <th>인원</th>
-                                    <th>차량수</th>
-                                    <th>차종</th>
-                                    <th>지역</th>
-                                    <th>합계</th>
-                                    <th>사전결제(1인)</th>
-                                    <th>삭제</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">행선지</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">인원</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">차량수</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">차종</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">지역</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">합계</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사전결제(1인)</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">삭제</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white divide-y divide-gray-200">
                                 {pickupSchedules.map((schedule) => (
                                     <tr key={schedule.id}>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.date}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'date', e.target.value)}
                                                 placeholder="1/7"
-                                                className="quotation-input pickup-date-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <select
                                                 value={schedule.destination}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'destination', e.target.value)}
-                                                className="quotation-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             >
                                                 <option value="">선택하세요</option>
                                                 <option value="공항 > 호텔">공항 &gt; 호텔</option>
@@ -885,29 +883,29 @@ export default function AdminTools() {
                                                 <option value="호텔 > 공항">호텔 &gt; 공항</option>
                                             </select>
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.people}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'people', e.target.value)}
                                                 placeholder="9"
-                                                className="quotation-input holes-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.vehicles}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'vehicles', e.target.value)}
                                                 placeholder="2"
-                                                className="quotation-input holes-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <select
                                                 value={schedule.vehicleType}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'vehicleType', e.target.value)}
-                                                className="quotation-input vehicletype-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             >
                                                 <option value="">선택하세요</option>
                                                 <option value="SUV">SUV</option>
@@ -915,31 +913,31 @@ export default function AdminTools() {
                                                 <option value="밴">밴</option>
                                             </select>
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.region}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'region', e.target.value)}
                                                 placeholder="치앙마이"
-                                                className="quotation-input region-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="text"
                                                 value={schedule.total}
                                                 onChange={(e) => handlePickupScheduleChange(schedule.id, 'total', e.target.value)}
                                                 placeholder="₩1,594,000"
-                                                className="quotation-input total-input"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </td>
-                                        <td>
-                                            <span className="value">{schedule.perPerson}</span>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {schedule.perPerson}
                                         </td>
-                                        <td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <button
                                                 onClick={() => removePickupSchedule(schedule.id)}
-                                                className="btn btn-danger btn-sm"
+                                                className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                                             >
                                                 삭제
                                             </button>
@@ -947,12 +945,12 @@ export default function AdminTools() {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot>
-                                <tr className="total-row">
-                                    <td colSpan={6}>총 합계(KRW)</td>
-                                    <td>{calculatePickupTotal()}</td>
-                                    <td>{calculatePickupPerPersonTotal()}</td>
-                                    <td></td>
+                            <tfoot className="bg-gray-50">
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-3 text-sm font-medium text-gray-900">총 합계(KRW)</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculatePickupTotal()}</td>
+                                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">{calculatePickupPerPersonTotal()}</td>
+                                    <td className="px-6 py-3"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -961,26 +959,41 @@ export default function AdminTools() {
 
 
                 {/* 안내사항 */}
-                <div className="quotation-section">
-                    <h3>안내사항</h3>
-                    <ul className="notice-list">
-                        <li>일정표의 금액은 요금표에 따라 변경될 수 있습니다.</li>
-                        <li>모든 일정에는 차량이 포함되어 있습니다.</li>
-                        <li>비로 인한 취소는 당일 현장 폐쇄 시에만 처리됩니다.</li>
-                        <li>행사일 20일 전까지 취소/환불이 가능합니다.</li>
-                        <li>티타임 확인은 추후 예정입니다. 골프장 사정으로 토너먼트 행사가 있을 경우 자동 취소될 수 있으니 참고해 주세요.</li>
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4">안내사항</h3>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>일정표의 금액은 요금표에 따라 변경될 수 있습니다.</span>
+                        </li>
+                        <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>모든 일정에는 차량이 포함되어 있습니다.</span>
+                        </li>
+                        <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>비로 인한 취소는 당일 현장 폐쇄 시에만 처리됩니다.</span>
+                        </li>
+                        <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>행사일 20일 전까지 취소/환불이 가능합니다.</span>
+                        </li>
+                        <li className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span>티타임 확인은 추후 예정입니다. 골프장 사정으로 토너먼트 행사가 있을 경우 자동 취소될 수 있으니 참고해 주세요.</span>
+                        </li>
                     </ul>
                 </div>
 
                 {/* 추가선택사항 */}
-                <div className="quotation-section">
-                    <h3>추가선택사항</h3>
-                    <div className="additional-options">
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4">추가선택사항</h3>
+                    <div>
                         <textarea
                             value={additionalOptions}
                             onChange={(e) => setAdditionalOptions(e.target.value)}
                             placeholder="추가 선택사항을 입력하세요..."
-                            className="quotation-textarea"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             rows={4}
                         />
                     </div>
@@ -988,53 +1001,60 @@ export default function AdminTools() {
 
 
                 {/* 결제 정보 */}
-                <div className="payment-section">
-                    <div className="payment-total">
-                        <div className="total-label">사전결제 총비용(KRW)</div>
-                        <div className="total-amount">{calculateTotalPrepayment()}</div>
+                <div className="bg-gray-50 p-6 rounded-lg">
+                    <div className="text-center mb-6">
+                        <div className="text-sm font-medium text-gray-700 mb-2">사전결제 총비용(KRW)</div>
+                        <div className="text-3xl font-bold text-blue-600">{calculateTotalPrepayment()}</div>
                     </div>
 
-                    <div className="payment-breakdown">
-                        <div className="payment-item">
-                            <div className="payment-label">계약금</div>
-                            <div className="payment-amount">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                            <div className="text-sm font-medium text-gray-700">계약금</div>
+                            <div className="w-32">
                                 <input
                                     type="text"
                                     value={paymentInfo.downPayment}
                                     onChange={(e) => handlePaymentChange('downPayment', e.target.value)}
                                     placeholder="₩0"
-                                    className="quotation-input amount"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                                 />
                             </div>
                         </div>
-                        <div className="payment-item">
-                            <div className="payment-label">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                            <div className="text-sm font-medium text-gray-700">
                                 잔금 {calculateBalanceDueDate() && `(${calculateBalanceDueDate()}까지)`}
                             </div>
-                            <div className="payment-amount">
-                                <span className="payment-value">{calculateBalance()}</span>
-                            </div>
+                            <div className="text-lg font-semibold text-gray-900">{calculateBalance()}</div>
                         </div>
-                        <div className="payment-item total">
-                            <div className="payment-label">합계</div>
-                            <div className="payment-amount">
-                                <span className="payment-value">{calculateTotalPrepayment()}</span>
-                            </div>
+                        <div className="flex justify-between items-center py-2 bg-blue-50 px-4 rounded-md">
+                            <div className="text-lg font-semibold text-gray-900">합계</div>
+                            <div className="text-xl font-bold text-blue-600">{calculateTotalPrepayment()}</div>
                         </div>
                     </div>
-                    <div className="payment-info">
-                        <div className="bank-info">
-                            <div className="bank-label">입금하실 곳:</div>
-                            <div className="bank-details">
+                    <div className="mt-6 space-y-4">
+                        <div className="bg-white p-4 rounded-lg border">
+                            <div className="text-sm font-medium text-gray-700 mb-3">입금하실 곳:</div>
+                            <div className="space-y-1 text-sm text-gray-600">
                                 <div>은행: 우리은행</div>
                                 <div>계좌번호: 1005-304-415722</div>
                                 <div>예금주: (주)엠오엠트래블</div>
                             </div>
                         </div>
-                        <div className="payment-notes">
-                            <div>• 현지결제 비용은 실시간 환율에 따라 변동될 수 있습니다.</div>
-                            <div>• 픽업 차량 이용 시 실제 거리에 따라 측정되므로 골프장에 따라 변동될 수 있습니다.</div>
-                            <div>• 현지결제 비용은 현지에서 결제되는 점 참고해 주세요.</div>
+                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <div className="space-y-1 text-sm text-yellow-800">
+                                <div className="flex items-start">
+                                    <span className="text-yellow-600 mr-2">•</span>
+                                    <span>현지결제 비용은 실시간 환율에 따라 변동될 수 있습니다.</span>
+                                </div>
+                                <div className="flex items-start">
+                                    <span className="text-yellow-600 mr-2">•</span>
+                                    <span>픽업 차량 이용 시 실제 거리에 따라 측정되므로 골프장에 따라 변동될 수 있습니다.</span>
+                                </div>
+                                <div className="flex items-start">
+                                    <span className="text-yellow-600 mr-2">•</span>
+                                    <span>현지결제 비용은 현지에서 결제되는 점 참고해 주세요.</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1042,3 +1062,4 @@ export default function AdminTools() {
         </div>
     );
 }
+

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 export default function HomePage() {
     return (
@@ -9,8 +11,12 @@ export default function HomePage() {
                         <h1 className="page-title">땡처리 기반 실시간 부킹 현황 사이트</h1>
                         <p className="page-subtitle">남는 티타임을 실시간으로 모아 가장 합리적인 가격으로 제공합니다. 지금 바로 가까운 골프장의 핫딜을 확인하세요.</p>
                         <div style={{ marginTop: 25, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/list" className="btn btn-primary">지금 핫딜 보기</Link>
-                            {/* <Link href="/detail" className="btn btn-outline">샘플 상세페이지 보기</Link> */}
+                            <Button asChild>
+                                <Link href="/list">지금 핫딜 보기</Link>
+                            </Button>
+                            {/* <Button variant="outline" asChild>
+                                <Link href="/detail">샘플 상세페이지 보기</Link>
+                            </Button> */}
                         </div>
                     </div>
                 </div>

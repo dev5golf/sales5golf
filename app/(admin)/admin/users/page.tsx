@@ -7,6 +7,9 @@ import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { User } from '../../../../types';
 import UserModal from '../components/UserModal';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import '../../admin.css';
 
 export default function UsersPage() {
@@ -135,13 +138,13 @@ export default function UsersPage() {
         }
     };
 
-    const getRoleBadgeClass = (role: string) => {
+    const getRoleBadgeVariant = (role: string) => {
         switch (role) {
-            case 'super_admin': return 'role-badge super-admin';
-            case 'course_admin': return 'role-badge course-admin';
-            case 'site_admin': return 'role-badge site-admin';
-            case 'user': return 'role-badge user';
-            default: return 'role-badge';
+            case 'super_admin': return 'super-admin';
+            case 'course_admin': return 'course-admin';
+            case 'site_admin': return 'site-admin';
+            case 'user': return 'user';
+            default: return 'default';
         }
     };
 
@@ -153,47 +156,52 @@ export default function UsersPage() {
 
     if (loading) {
         return (
-            <div className="admin-loading">
-                <div className="loading-spinner"></div>
-                <p>사용자 목록을 불러오는 중...</p>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">회원 관리</h1>
+                </div>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">사용자 목록을 불러오는 중...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-page">
-            <div className="dashboard-header">
-                <h1>회원 관리</h1>
-                <div className="page-actions">
-                    <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <h1 className="text-3xl font-semibold text-gray-800">회원 관리</h1>
+                <div className="flex gap-3">
+                    <Button onClick={() => setShowCreateModal(true)}>
                         <i className="fas fa-plus"></i>
                         회원 등록
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* 검색 및 필터 */}
-            <div className="filters-section">
-                <form onSubmit={handleSearch} className="search-form">
-                    <div className="search-input-group">
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                <form onSubmit={handleSearch} className="mb-4">
+                    <div className="flex gap-3">
                         <input
                             type="text"
                             placeholder="이름, 이메일, 전화번호로 검색..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        <button type="submit" className="btn btn-secondary">
+                        <Button type="submit" variant="secondary">
                             <i className="fas fa-search"></i>
-                        </button>
+                        </Button>
                     </div>
                 </form>
 
-                <div className="filter-group">
+                <div className="flex gap-4">
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 역할</option>
                         <option value="user">일반 회원</option>
@@ -205,7 +213,7 @@ export default function UsersPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 상태</option>
                         <option value="active">활성</option>
@@ -215,101 +223,103 @@ export default function UsersPage() {
             </div>
 
             {/* 사용자 목록 */}
-            <div className="table-container">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>이름</th>
-                            <th>이메일</th>
-                            <th>전화번호</th>
-                            <th>역할</th>
-                            <th>골프장</th>
-                            <th>상태</th>
-                            <th>액션</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>이름</TableHead>
+                            <TableHead>이메일</TableHead>
+                            <TableHead>전화번호</TableHead>
+                            <TableHead>역할</TableHead>
+                            <TableHead>골프장</TableHead>
+                            <TableHead>상태</TableHead>
+                            <TableHead>액션</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {filteredUsers.map((user) => (
-                            <tr key={user.id}>
-                                <td>
-                                    <div className="user-info">
-                                        <span className="user-name">{user.name}</span>
+                            <TableRow key={user.id}>
+                                <TableCell>
+                                    <div className="flex items-center">
+                                        <span className="font-medium text-gray-900">{user.name}</span>
                                     </div>
-                                </td>
-                                <td>{user.email}</td>
-                                <td>{user.phone || '-'}</td>
-                                <td>
-                                    <span className={getRoleBadgeClass(user.role)}>
+                                </TableCell>
+                                <TableCell className="text-gray-600">{user.email}</TableCell>
+                                <TableCell className="text-gray-600">{user.phone || '-'}</TableCell>
+                                <TableCell>
+                                    <Badge variant={getRoleBadgeVariant(user.role) as any}>
                                         {getRoleDisplayName(user.role)}
-                                    </span>
-                                </td>
-                                <td>{user.courseName || '-'}</td>
-                                <td>
-                                    <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-gray-600">{user.courseName || '-'}</TableCell>
+                                <TableCell>
+                                    <Badge variant={user.isActive ? 'active' : 'inactive'}>
                                         {user.isActive ? '활성' : '비활성'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <button
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex gap-2">
+                                        <Button
                                             onClick={() => {
                                                 setSelectedUser(user);
                                                 setShowEditModal(true);
                                             }}
-                                            className="btn btn-sm btn-outline"
+                                            size="sm"
+                                            variant="outline"
                                             title="수정"
                                         >
                                             <i className="fas fa-edit"></i>
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             onClick={() => handleDeleteUser(user.id, user.name)}
-                                            className="btn btn-sm btn-danger"
+                                            size="sm"
+                                            variant="destructive"
                                             title="삭제"
                                         >
                                             <i className="fas fa-trash"></i>
-                                        </button>
+                                        </Button>
                                     </div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
 
                 {filteredUsers.length === 0 && (
-                    <div className="empty-state">
-                        <i className="fas fa-users"></i>
-                        <p>등록된 회원이 없습니다.</p>
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <i className="fas fa-users text-6xl text-gray-400 mb-4"></i>
+                        <p className="text-gray-500">등록된 회원이 없습니다.</p>
                     </div>
                 )}
             </div>
 
             {/* 페이지네이션 */}
-            <div className="pagination">
-                <button
+            <div className="flex justify-center items-center gap-4 mt-8">
+                <Button
                     onClick={() => {
                         setCurrentPage(prev => Math.max(1, prev - 1));
                     }}
                     disabled={currentPage === 1}
-                    className="btn btn-outline"
+                    variant="outline"
                 >
                     <i className="fas fa-chevron-left"></i>
                     이전
-                </button>
+                </Button>
 
-                <span className="page-info">
+                <span className="text-gray-600 text-sm">
                     페이지 {currentPage} / {Math.ceil(totalUsers / usersPerPage)}
                 </span>
 
-                <button
+                <Button
                     onClick={() => {
                         setCurrentPage(prev => prev + 1);
                     }}
                     disabled={!hasMore}
-                    className="btn btn-outline"
+                    variant="outline"
                 >
                     다음
                     <i className="fas fa-chevron-right"></i>
-                </button>
+                </Button>
             </div>
 
             {/* 사용자 생성 모달 */}

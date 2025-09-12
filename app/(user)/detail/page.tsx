@@ -11,6 +11,8 @@ import {
     getAvailabilityClass,
     isDatePast
 } from '../../../lib/utils';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 function DetailContent() {
     const params = useSearchParams();
@@ -240,15 +242,15 @@ function DetailContent() {
                     ) : (
                         <div className="tee-times-grid">
                             {teeTimes.map((teeTime) => (
-                                <div key={teeTime.id} className="tee-time-card">
-                                    <div className="card-header">
+                                <Card key={teeTime.id} className="tee-time-card">
+                                    <CardHeader className="bg-gradient-to-r from-red-500 to-orange-500 text-white">
                                         <div className="time-info">
                                             <span className="time">{formatTime(teeTime.time)}</span>
                                             <span className="date">{formatRelativeDate(teeTime.date)}</span>
                                         </div>
                                         {Math.random() < 0.3 && <div className="hot-deal-badge">HOT DEAL</div>}
-                                    </div>
-                                    <div className="card-body">
+                                    </CardHeader>
+                                    <CardContent>
                                         <div className="price-info">
                                             <span className="current-price">{teeTime.agentPrice.toLocaleString()}원</span>
                                             {Math.random() < 0.5 && (
@@ -270,16 +272,16 @@ function DetailContent() {
                                             </span>
                                             <span className="cancellation">무료 취소</span>
                                         </div>
-                                    </div>
-                                    <div className="card-footer">
-                                        <button className="btn btn-primary btn-book" onClick={() => setStatus('done')}>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button className="flex-1" onClick={() => setStatus('done')}>
                                             예약하기
-                                        </button>
-                                        <button className="btn btn-outline btn-details" onClick={() => alert('상세 정보는 골프장에 문의하세요.')}>
+                                        </Button>
+                                        <Button variant="outline" onClick={() => alert('상세 정보는 골프장에 문의하세요.')}>
                                             상세보기
-                                        </button>
-                                    </div>
-                                </div>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
                             ))}
                         </div>
                     )}

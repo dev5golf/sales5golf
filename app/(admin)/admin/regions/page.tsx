@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import '../../admin.css';
 
 interface Country {
@@ -691,33 +695,40 @@ export default function RegionsPage() {
 
     if (loading) {
         return (
-            <div className="admin-loading">
-                <div className="loading-spinner"></div>
-                <p>지역 데이터를 불러오는 중...</p>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">지역 관리</h1>
+                </div>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">지역 데이터를 불러오는 중...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-page">
-            <div className="dashboard-header">
-                <h1>지역 관리</h1>
-                <div className="page-actions">
-                    <button
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <h1 className="text-3xl font-semibold text-gray-800">지역 관리</h1>
+                <div className="flex gap-3">
+                    <Button
                         onClick={() => setShowAddForm(!showAddForm)}
-                        className="btn btn-primary"
                     >
                         <i className="fas fa-plus"></i>
                         {activeTab === 'countries' ? '국가 등록' :
                             activeTab === 'provinces' ? '지방 등록' : '도시 등록'}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* 탭 네비게이션 */}
-            <div className="tab-navigation">
+            <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
                 <button
-                    className={`tab-button ${activeTab === 'countries' ? 'active' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'countries'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
                     onClick={() => {
                         setActiveTab('countries');
                         setSearchTerm('');
@@ -740,7 +751,10 @@ export default function RegionsPage() {
                     국가 ({countries.length})
                 </button>
                 <button
-                    className={`tab-button ${activeTab === 'provinces' ? 'active' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'provinces'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
                     onClick={() => {
                         setActiveTab('provinces');
                         setSearchTerm('');
@@ -763,7 +777,10 @@ export default function RegionsPage() {
                     지방 ({provinces.length})
                 </button>
                 <button
-                    className={`tab-button ${activeTab === 'cities' ? 'active' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cities'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
                     onClick={() => {
                         setActiveTab('cities');
                         setSearchTerm('');
@@ -788,9 +805,9 @@ export default function RegionsPage() {
             </div>
 
             {/* 검색 및 필터 */}
-            <div className="filters-section">
-                <form onSubmit={handleSearch} className="search-form">
-                    <div className="search-input-group">
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                <form onSubmit={handleSearch} className="mb-4">
+                    <div className="flex gap-3">
                         <input
                             type="text"
                             placeholder={
@@ -800,20 +817,20 @@ export default function RegionsPage() {
                             }
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        <button type="submit" className="btn btn-secondary">
+                        <Button type="submit" variant="secondary">
                             <i className="fas fa-search"></i>
-                        </button>
+                        </Button>
                     </div>
                 </form>
 
-                <div className="filter-group">
+                <div className="flex gap-4">
                     {activeTab === 'provinces' && (
                         <select
                             value={countryFilter}
                             onChange={(e) => setCountryFilter(e.target.value)}
-                            className="filter-select"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">모든 국가</option>
                             {countries.map(country => (
@@ -828,7 +845,7 @@ export default function RegionsPage() {
                         <select
                             value={countryFilter}
                             onChange={(e) => setCountryFilter(e.target.value)}
-                            className="filter-select"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">모든 국가</option>
                             {countries.map(country => (
@@ -843,7 +860,7 @@ export default function RegionsPage() {
                         <select
                             value={provinceFilter}
                             onChange={(e) => setProvinceFilter(e.target.value)}
-                            className="filter-select"
+                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">모든 지방</option>
                             {provinces.map(province => (
@@ -857,7 +874,7 @@ export default function RegionsPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 상태</option>
                         <option value="active">활성</option>
@@ -868,13 +885,16 @@ export default function RegionsPage() {
 
             {/* 등록 폼 */}
             {showAddForm && (
-                <div className="form-container" style={{ marginBottom: '2rem' }}>
-                    <div className="form-header">
-                        <h3>
+                <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800">
                             {activeTab === 'countries' ? '새 국가 등록' :
                                 activeTab === 'provinces' ? '새 지방 등록' : '새 도시 등록'}
                         </h3>
-                        <button onClick={resetForm} className="btn btn-outline btn-sm">
+                        <button
+                            onClick={resetForm}
+                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
                             <i className="fas fa-times"></i>
                         </button>
                     </div>
@@ -882,51 +902,54 @@ export default function RegionsPage() {
                     <form onSubmit={
                         activeTab === 'countries' ? handleAddCountry :
                             activeTab === 'provinces' ? handleAddProvince : handleAddCity
-                    } className="admin-form">
+                    } className="space-y-6">
                         {errors.submit && (
-                            <div className="error-message">
-                                {errors.submit}
+                            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                                <div className="flex items-center">
+                                    <i className="fas fa-exclamation-circle text-red-400 mr-2"></i>
+                                    <span className="text-red-800 text-sm">{errors.submit}</span>
+                                </div>
                             </div>
                         )}
 
                         {activeTab === 'countries' && (
-                            <div className="form-row">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="countryName">국가명 *</label>
-                                        <input
-                                            type="text"
-                                            id="countryName"
-                                            value={newCountry.name}
-                                            onChange={(e) => setNewCountry(prev => ({ ...prev, name: e.target.value }))}
-                                            placeholder="예: 대한민국"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="countryCode">국가코드 *</label>
-                                        <input
-                                            type="text"
-                                            id="countryCode"
-                                            value={newCountry.code}
-                                            onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                            placeholder="예: KR"
-                                            maxLength={3}
-                                        />
-                                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label htmlFor="countryName" className="block text-sm font-medium text-gray-700">국가명 *</label>
+                                    <input
+                                        type="text"
+                                        id="countryName"
+                                        value={newCountry.name}
+                                        onChange={(e) => setNewCountry(prev => ({ ...prev, name: e.target.value }))}
+                                        placeholder="예: 대한민국"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
                                 </div>
-
+                                <div className="space-y-2">
+                                    <label htmlFor="countryCode" className="block text-sm font-medium text-gray-700">국가코드 *</label>
+                                    <input
+                                        type="text"
+                                        id="countryCode"
+                                        value={newCountry.code}
+                                        onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                        placeholder="예: KR"
+                                        maxLength={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
                             </div>
                         )}
 
                         {activeTab === 'provinces' && (
                             <>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="provinceCountry">국가 *</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="provinceCountry" className="block text-sm font-medium text-gray-700">국가 *</label>
                                         <select
                                             id="provinceCountry"
                                             value={newProvince.countryCode}
                                             onChange={(e) => handleCountryChangeForProvince(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         >
                                             <option value="">국가를 선택하세요</option>
                                             {countries.map(country => (
@@ -935,65 +958,63 @@ export default function RegionsPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <small className="form-help">국가를 선택하면 지방 코드가 자동으로 생성됩니다.</small>
+                                        <small className="text-gray-500 text-xs">국가를 선택하면 지방 코드가 자동으로 생성됩니다.</small>
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="provinceName">지방명 *</label>
+                                    <div className="space-y-2">
+                                        <label htmlFor="provinceName" className="block text-sm font-medium text-gray-700">지방명 *</label>
                                         <input
                                             type="text"
                                             id="provinceName"
                                             value={newProvince.name}
                                             onChange={(e) => setNewProvince(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder="예: 서울특별시"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="provinceCode">지방 코드 *</label>
-                                        <div className="input-with-loading">
-                                            <input
-                                                type="text"
-                                                id="provinceCode"
-                                                value={newProvince.code}
-                                                readOnly
-                                                className={isGeneratingCode ? 'loading' : ''}
-                                                placeholder={isGeneratingCode ? "코드 생성 중..." : "국가를 선택하면 자동 생성됩니다"}
-                                            />
-                                            {isGeneratingCode && (
-                                                <div className="loading-spinner-small">
-                                                    <i className="fas fa-spinner fa-spin"></i>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <small className="form-help">지방 코드는 자동으로 생성됩니다. (형식: 국가코드_001, 국가코드_002...)</small>
+                                <div className="space-y-2">
+                                    <label htmlFor="provinceCode" className="block text-sm font-medium text-gray-700">지방 코드 *</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            id="provinceCode"
+                                            value={newProvince.code}
+                                            readOnly
+                                            className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 ${isGeneratingCode ? 'opacity-50' : ''}`}
+                                            placeholder={isGeneratingCode ? "코드 생성 중..." : "국가를 선택하면 자동 생성됩니다"}
+                                        />
+                                        {isGeneratingCode && (
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                <i className="fas fa-spinner fa-spin text-gray-400"></i>
+                                            </div>
+                                        )}
                                     </div>
+                                    <small className="text-gray-500 text-xs">지방 코드는 자동으로 생성됩니다. (형식: 국가코드_001, 국가코드_002...)</small>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="checkbox-label">
-                                            <input
-                                                type="checkbox"
-                                                checked={newProvince.isActive}
-                                                onChange={(e) => setNewProvince(prev => ({ ...prev, isActive: e.target.checked }))}
-                                            />
-                                            <span className="checkmark"></span>
-                                            활성 상태
-                                        </label>
-                                    </div>
+                                <div className="flex items-center">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={newProvince.isActive}
+                                            onChange={(e) => setNewProvince(prev => ({ ...prev, isActive: e.target.checked }))}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">활성 상태</span>
+                                    </label>
                                 </div>
                             </>
                         )}
 
                         {activeTab === 'cities' && (
                             <>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="cityProvince">지방 *</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="cityProvince" className="block text-sm font-medium text-gray-700">지방 *</label>
                                         <select
                                             id="cityProvince"
                                             value={newCity.provinceCode}
                                             onChange={(e) => handleProvinceChangeForCity(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         >
                                             <option value="">지방을 선택하세요</option>
                                             {provinces.map(province => (
@@ -1002,62 +1023,66 @@ export default function RegionsPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <small className="form-help">지방을 선택하면 도시 코드가 자동으로 생성됩니다.</small>
+                                        <small className="text-gray-500 text-xs">지방을 선택하면 도시 코드가 자동으로 생성됩니다.</small>
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="cityName">도시명 *</label>
+                                    <div className="space-y-2">
+                                        <label htmlFor="cityName" className="block text-sm font-medium text-gray-700">도시명 *</label>
                                         <input
                                             type="text"
                                             id="cityName"
                                             value={newCity.name}
                                             onChange={(e) => setNewCity(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder="예: 강남구"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="cityCode">도시 코드 *</label>
-                                        <div className="input-with-loading">
-                                            <input
-                                                type="text"
-                                                id="cityCode"
-                                                value={newCity.code}
-                                                readOnly
-                                                className={isGeneratingCode ? 'loading' : ''}
-                                                placeholder={isGeneratingCode ? "코드 생성 중..." : "시도를 선택하면 자동 생성됩니다"}
-                                            />
-                                            {isGeneratingCode && (
-                                                <div className="loading-spinner-small">
-                                                    <i className="fas fa-spinner fa-spin"></i>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <small className="form-help">도시 코드는 자동으로 생성됩니다. (형식: 지방코드_001, 지방코드_002...)</small>
+                                <div className="space-y-2">
+                                    <label htmlFor="cityCode" className="block text-sm font-medium text-gray-700">도시 코드 *</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            id="cityCode"
+                                            value={newCity.code}
+                                            readOnly
+                                            className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 ${isGeneratingCode ? 'opacity-50' : ''}`}
+                                            placeholder={isGeneratingCode ? "코드 생성 중..." : "시도를 선택하면 자동 생성됩니다"}
+                                        />
+                                        {isGeneratingCode && (
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                <i className="fas fa-spinner fa-spin text-gray-400"></i>
+                                            </div>
+                                        )}
                                     </div>
+                                    <small className="text-gray-500 text-xs">도시 코드는 자동으로 생성됩니다. (형식: 지방코드_001, 지방코드_002...)</small>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label className="checkbox-label">
-                                            <input
-                                                type="checkbox"
-                                                checked={newCity.isActive}
-                                                onChange={(e) => setNewCity(prev => ({ ...prev, isActive: e.target.checked }))}
-                                            />
-                                            <span className="checkmark"></span>
-                                            활성 상태
-                                        </label>
-                                    </div>
+                                <div className="flex items-center">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={newCity.isActive}
+                                            onChange={(e) => setNewCity(prev => ({ ...prev, isActive: e.target.checked }))}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">활성 상태</span>
+                                    </label>
                                 </div>
                             </>
                         )}
 
-                        <div className="form-actions">
-                            <button type="submit" className="btn btn-primary">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                            <button
+                                type="submit"
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
                                 {activeTab === 'countries' ? '국가 등록' :
                                     activeTab === 'provinces' ? '지방 등록' : '도시 등록'}
                             </button>
-                            <button type="button" onClick={resetForm} className="btn btn-outline">
+                            <button
+                                type="button"
+                                onClick={resetForm}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
                                 취소
                             </button>
                         </div>
@@ -1249,144 +1274,150 @@ export default function RegionsPage() {
             )}
 
             {/* 데이터 테이블 */}
-            <div className="table-container">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 {activeTab === 'countries' && (
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>국가명</th>
-                                <th>국가코드</th>
-                                <th>상태</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>국가명</TableHead>
+                                <TableHead>국가코드</TableHead>
+                                <TableHead>상태</TableHead>
+                                <TableHead>액션</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {filteredCountries.map((country) => (
-                                <tr key={country.id}>
-                                    <td>{country.name}</td>
-                                    <td><span className="font-mono">{country.id}</span></td>
-                                    <td>
-                                        <span className={`status-badge ${country.isActive ? 'active' : 'inactive'}`}>
+                                <TableRow key={country.id}>
+                                    <TableCell className="font-medium text-gray-900">{country.name}</TableCell>
+                                    <TableCell><span className="font-mono text-sm text-gray-600">{country.id}</span></TableCell>
+                                    <TableCell>
+                                        <Badge variant={country.isActive ? 'active' : 'inactive'}>
                                             {country.isActive ? '활성' : '비활성'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button
-                                                className="btn btn-sm btn-outline"
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
                                                 onClick={() => handleEditCountry(country)}
                                             >
                                                 <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button
-                                                className="btn btn-sm btn-danger"
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
                                                 onClick={() => handleDeleteCountry(country.id, country.name)}
                                             >
                                                 <i className="fas fa-trash"></i>
-                                            </button>
+                                            </Button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 )}
 
                 {activeTab === 'provinces' && (
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>지방명</th>
-                                <th>지방코드</th>
-                                <th>국가</th>
-                                <th>상태</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>지방명</TableHead>
+                                <TableHead>지방코드</TableHead>
+                                <TableHead>국가</TableHead>
+                                <TableHead>상태</TableHead>
+                                <TableHead>액션</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {filteredProvinces.map((province) => (
-                                <tr key={province.id}>
-                                    <td>{province.name}</td>
-                                    <td><span className="font-mono">{province.id}</span></td>
-                                    <td>{province.countryName}</td>
-                                    <td>
-                                        <span className={`status-badge ${province.isActive ? 'active' : 'inactive'}`}>
+                                <TableRow key={province.id}>
+                                    <TableCell className="font-medium text-gray-900">{province.name}</TableCell>
+                                    <TableCell><span className="font-mono text-sm text-gray-600">{province.id}</span></TableCell>
+                                    <TableCell className="text-gray-600">{province.countryName}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={province.isActive ? 'active' : 'inactive'}>
                                             {province.isActive ? '활성' : '비활성'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button
-                                                className="btn btn-sm btn-outline"
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
                                                 onClick={() => handleEditProvince(province)}
                                             >
                                                 <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button
-                                                className="btn btn-sm btn-danger"
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
                                                 onClick={() => handleDeleteProvince(province.id, province.name)}
                                             >
                                                 <i className="fas fa-trash"></i>
-                                            </button>
+                                            </Button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 )}
 
                 {activeTab === 'cities' && (
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>도시명</th>
-                                <th>도시코드</th>
-                                <th>지방</th>
-                                <th>상태</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>도시명</TableHead>
+                                <TableHead>도시코드</TableHead>
+                                <TableHead>지방</TableHead>
+                                <TableHead>상태</TableHead>
+                                <TableHead>액션</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {filteredCities.map((city) => (
-                                <tr key={city.id}>
-                                    <td>{city.name}</td>
-                                    <td><span className="font-mono">{city.id}</span></td>
-                                    <td>{city.provinceName}</td>
-                                    <td>
-                                        <span className={`status-badge ${city.isActive ? 'active' : 'inactive'}`}>
+                                <TableRow key={city.id}>
+                                    <TableCell className="font-medium text-gray-900">{city.name}</TableCell>
+                                    <TableCell><span className="font-mono text-sm text-gray-600">{city.id}</span></TableCell>
+                                    <TableCell className="text-gray-600">{city.provinceName}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={city.isActive ? 'active' : 'inactive'}>
                                             {city.isActive ? '활성' : '비활성'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button
-                                                className="btn btn-sm btn-outline"
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
                                                 onClick={() => handleEditCity(city)}
                                             >
                                                 <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button
-                                                className="btn btn-sm btn-danger"
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
                                                 onClick={() => handleDeleteCity(city.id, city.name)}
                                             >
                                                 <i className="fas fa-trash"></i>
-                                            </button>
+                                            </Button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 )}
 
                 {/* 빈 상태 */}
                 {((activeTab === 'countries' && filteredCountries.length === 0) ||
                     (activeTab === 'provinces' && filteredProvinces.length === 0) ||
                     (activeTab === 'cities' && filteredCities.length === 0)) && (
-                        <div className="empty-state">
-                            <i className="fas fa-map-marked-alt"></i>
-                            <p>
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <i className="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
+                            <p className="text-gray-500">
                                 {searchTerm || countryFilter !== 'all' || provinceFilter !== 'all' || statusFilter !== 'all'
                                     ? '검색 조건에 맞는 데이터가 없습니다.'
                                     : `등록된 ${activeTab === 'countries' ? '국가' : activeTab === 'provinces' ? '지방' : '도시'}가 없습니다.`

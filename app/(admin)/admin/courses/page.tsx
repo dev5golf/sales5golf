@@ -7,6 +7,9 @@ import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { Course, Country, Province } from '../../../../types';
 import CourseModal from '../components/CourseModal';
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import '../../admin.css';
 
 export default function CoursesPage() {
@@ -181,50 +184,55 @@ export default function CoursesPage() {
 
     if (loading) {
         return (
-            <div className="admin-loading">
-                <div className="loading-spinner"></div>
-                <p>골프장 목록을 불러오는 중...</p>
+            <div className="p-8 bg-gray-50 min-h-screen">
+                <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                    <h1 className="text-3xl font-semibold text-gray-800">골프장 관리</h1>
+                </div>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">골프장 목록을 불러오는 중...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-page">
-            <div className="dashboard-header">
-                <h1>골프장 관리</h1>
-                <div className="page-actions">
-                    <button onClick={handleCreateCourse} className="btn btn-primary">
+        <div className="p-8 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <h1 className="text-3xl font-semibold text-gray-800">골프장 관리</h1>
+                <div className="flex gap-3">
+                    <Button onClick={handleCreateCourse}>
                         <i className="fas fa-plus"></i>
                         골프장 등록
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* 검색 및 필터 */}
-            <div className="filters-section">
-                <form onSubmit={handleSearch} className="search-form">
-                    <div className="search-input-group">
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+                <form onSubmit={handleSearch} className="mb-4">
+                    <div className="flex gap-3">
                         <input
                             type="text"
                             placeholder="골프장명, 주소, 전화번호로 검색..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        <button type="submit" className="btn btn-secondary">
+                        <Button type="submit" variant="secondary">
                             <i className="fas fa-search"></i>
-                        </button>
+                        </Button>
                     </div>
                 </form>
 
-                <div className="filter-group">
+                <div className="flex gap-4">
                     <select
                         value={countryFilter}
                         onChange={(e) => {
                             setCountryFilter(e.target.value);
                             setProvinceFilter('all');
                         }}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 국가</option>
                         {countries.map(country => (
@@ -237,7 +245,7 @@ export default function CoursesPage() {
                     <select
                         value={provinceFilter}
                         onChange={(e) => setProvinceFilter(e.target.value)}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         disabled={countryFilter === 'all'}
                     >
                         <option value="all">모든 지방</option>
@@ -251,7 +259,7 @@ export default function CoursesPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="filter-select"
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 상태</option>
                         <option value="active">활성</option>
@@ -261,64 +269,63 @@ export default function CoursesPage() {
             </div>
 
             {/* 골프장 목록 */}
-            <div className="table-container">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>골프장명</th>
-                            <th>지역</th>
-                            <th>주소</th>
-                            <th>전화번호</th>
-                            <th>가격</th>
-                            <th>상태</th>
-                            <th>등록일</th>
-                            <th>액션</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>골프장명</TableHead>
+                            <TableHead>지역</TableHead>
+                            <TableHead>주소</TableHead>
+                            <TableHead>전화번호</TableHead>
+                            <TableHead>가격</TableHead>
+                            <TableHead>상태</TableHead>
+                            <TableHead>등록일</TableHead>
+                            <TableHead>액션</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {filteredCourses.map((course) => (
-                            <tr key={course.id}>
-                                <td>
-                                    <div className="course-info">
-                                        <span className="course-name">{course.name}</span>
+                            <TableRow key={course.id}>
+                                <TableCell>
+                                    <div className="flex items-center">
+                                        <span className="font-medium text-gray-900">{course.name}</span>
                                     </div>
-                                </td>
-                                <td>
-                                    <div className="location-info">
-                                        <span className="location-text">
-                                            {course.countryName} &gt; {course.provinceName} &gt; {course.cityName}
-                                        </span>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="text-sm text-gray-600">
+                                        {course.countryName} &gt; {course.provinceName} &gt; {course.cityName}
                                     </div>
-                                </td>
-                                <td>{course.address}</td>
-                                <td>{course.phone}</td>
-                                <td>{course.price ? `${course.price.toLocaleString()}원` : '미설정'}</td>
-                                <td>
-                                    <span className={`status-badge ${course.isActive ? 'active' : 'inactive'}`}>
+                                </TableCell>
+                                <TableCell className="text-gray-600">{course.address}</TableCell>
+                                <TableCell className="text-gray-600">{course.phone}</TableCell>
+                                <TableCell className="text-gray-600">{course.price ? `${course.price.toLocaleString()}원` : '미설정'}</TableCell>
+                                <TableCell>
+                                    <Badge variant={course.isActive ? 'active' : 'inactive'}>
                                         {course.isActive ? '활성' : '비활성'}
-                                    </span>
-                                </td>
-                                <td>{formatDate(course.createdAt)}</td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <button
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-gray-600">{formatDate(course.createdAt)}</TableCell>
+                                <TableCell>
+                                    <div className="flex gap-2">
+                                        <Button
                                             onClick={() => handleEditCourse(course)}
-                                            className="btn btn-sm btn-outline"
+                                            size="sm"
+                                            variant="outline"
                                             title="수정"
                                         >
                                             <i className="fas fa-edit"></i>
-                                        </button>
+                                        </Button>
                                     </div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
 
                 {filteredCourses.length === 0 && (
-                    <div className="empty-state">
-                        <i className="fas fa-golf-ball"></i>
-                        <p>등록된 골프장이 없습니다.</p>
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <i className="fas fa-golf-ball text-6xl text-gray-400 mb-4"></i>
+                        <p className="text-gray-500">등록된 골프장이 없습니다.</p>
                     </div>
                 )}
             </div>

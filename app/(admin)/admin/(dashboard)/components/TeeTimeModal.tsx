@@ -156,42 +156,50 @@ export default function TeeTimeModal({
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <div className="modal-header">
-                    <h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                    <h2 className="text-xl font-semibold text-gray-800">
                         {courseName && `${courseName} - `}
                         {formatDate(date)} 티타임 관리
                     </h2>
-                    <button className="modal-close" onClick={onClose}>
-                        <i className="fas fa-times"></i>
+                    <button
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        onClick={onClose}
+                    >
+                        <i className="fas fa-times text-gray-500"></i>
                     </button>
                 </div>
 
                 {isDatePast && (
-                    <div className="modal-warning">
-                        <i className="fas fa-exclamation-triangle"></i>
-                        <span>지나간 날짜는 조회만 가능하며, 등록/수정/삭제가 제한됩니다.</span>
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">
+                        <div className="flex items-center">
+                            <i className="fas fa-exclamation-triangle text-yellow-400 mr-2"></i>
+                            <span className="text-yellow-800 text-sm">지나간 날짜는 조회만 가능하며, 등록/수정/삭제가 제한됩니다.</span>
+                        </div>
                     </div>
                 )}
 
-                <div className="modal-body">
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
                     {/* 기존 티타임 목록 */}
                     {existingTeeTimes.length > 0 && (
-                        <div className="existing-teetimes">
-                            <h3>등록된 티타임</h3>
-                            <div className="teetime-list">
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">등록된 티타임</h3>
+                            <div className="space-y-3">
                                 {existingTeeTimes.map(teeTime => (
-                                    <div key={teeTime.id} className="teetime-item">
-                                        <div className="teetime-info">
-                                            <span className="time">{teeTime.time}</span>
-                                            <span className="slots">{teeTime.availableSlots}슬롯</span>
-                                            <span className="price">{teeTime.agentPrice.toLocaleString()}원</span>
-                                            {teeTime.note && <span className="note">{teeTime.note}</span>}
+                                    <div key={teeTime.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-4">
+                                            <span className="font-medium text-gray-900">{teeTime.time}</span>
+                                            <span className="text-sm text-gray-600">{teeTime.availableSlots}슬롯</span>
+                                            <span className="text-sm font-medium text-green-600">{teeTime.agentPrice.toLocaleString()}원</span>
+                                            {teeTime.note && <span className="text-sm text-gray-500">{teeTime.note}</span>}
                                         </div>
-                                        <div className="teetime-actions">
+                                        <div className="flex gap-2">
                                             <button
-                                                className={`btn btn-sm btn-outline ${isDatePast ? 'disabled' : ''}`}
+                                                className={`px-3 py-1 text-sm border rounded-md transition-colors ${isDatePast
+                                                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                                        : 'border-blue-300 text-blue-600 hover:bg-blue-50'
+                                                    }`}
                                                 onClick={() => handleEdit(teeTime)}
                                                 disabled={isDatePast}
                                                 title={isDatePast ? '지나간 날짜는 수정할 수 없습니다' : '수정'}
@@ -199,7 +207,10 @@ export default function TeeTimeModal({
                                                 <i className="fas fa-edit"></i>
                                             </button>
                                             <button
-                                                className={`btn btn-sm btn-danger ${isDatePast ? 'disabled' : ''}`}
+                                                className={`px-3 py-1 text-sm border rounded-md transition-colors ${isDatePast
+                                                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                                        : 'border-red-300 text-red-600 hover:bg-red-50'
+                                                    }`}
                                                 onClick={() => handleDelete(teeTime.id)}
                                                 disabled={isDatePast}
                                                 title={isDatePast ? '지나간 날짜는 삭제할 수 없습니다' : '삭제'}
@@ -214,27 +225,30 @@ export default function TeeTimeModal({
                     )}
 
                     {/* 새 티타임 등록 폼 */}
-                    <form onSubmit={handleSubmit} className="teetime-form">
-                        <h3>{editingId ? '티타임 수정' : '새 티타임 등록'}</h3>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <h3 className="text-lg font-semibold text-gray-800">{editingId ? '티타임 수정' : '새 티타임 등록'}</h3>
 
                         {isDatePast && (
-                            <div className="form-disabled-notice">
-                                <i className="fas fa-lock"></i>
-                                <span>지나간 날짜에는 새 티타임을 등록할 수 없습니다.</span>
+                            <div className="bg-gray-100 border border-gray-300 rounded-md p-3">
+                                <div className="flex items-center">
+                                    <i className="fas fa-lock text-gray-500 mr-2"></i>
+                                    <span className="text-gray-600 text-sm">지나간 날짜에는 새 티타임을 등록할 수 없습니다.</span>
+                                </div>
                             </div>
                         )}
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>티타임 *</label>
-                                <div className="time-picker-row">
-                                    <div className="time-picker-item">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">티타임 *</label>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
                                         <select
                                             name="hour"
                                             value={formData.hour}
                                             onChange={handleInputChange}
                                             required
-                                            className="time-select"
+                                            disabled={isDatePast}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
                                             <option value="">시</option>
                                             {Array.from({ length: 24 }, (_, hour) => (
@@ -244,13 +258,14 @@ export default function TeeTimeModal({
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="time-picker-item">
+                                    <div className="flex-1">
                                         <select
                                             name="minute"
                                             value={formData.minute}
                                             onChange={handleInputChange}
                                             required
-                                            className="time-select"
+                                            disabled={isDatePast}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
                                             <option value="">분</option>
                                             {Array.from({ length: 60 }, (_, minute) => (
@@ -261,11 +276,11 @@ export default function TeeTimeModal({
                                         </select>
                                     </div>
                                 </div>
-                                <small className="form-help">시와 분을 각각 선택하세요 (00시~23시, 00분~59분)</small>
+                                <small className="text-gray-500 text-xs">시와 분을 각각 선택하세요 (00시~23시, 00분~59분)</small>
                             </div>
 
-                            <div className="form-group">
-                                <label htmlFor="availableSlots">예약 가능 슬롯 *</label>
+                            <div className="space-y-2">
+                                <label htmlFor="availableSlots" className="block text-sm font-medium text-gray-700">예약 가능 슬롯 *</label>
                                 <input
                                     type="number"
                                     id="availableSlots"
@@ -275,13 +290,15 @@ export default function TeeTimeModal({
                                     min="1"
                                     max="20"
                                     required
+                                    disabled={isDatePast}
                                     placeholder="예약 가능한 슬롯 수를 입력하세요"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="agentPrice">에이전트 가격 (원) *</label>
+                        <div className="space-y-2">
+                            <label htmlFor="agentPrice" className="block text-sm font-medium text-gray-700">에이전트 가격 (원) *</label>
                             <input
                                 type="number"
                                 id="agentPrice"
@@ -290,29 +307,40 @@ export default function TeeTimeModal({
                                 onChange={handleInputChange}
                                 min="0"
                                 required
+                                disabled={isDatePast}
                                 placeholder="예: 2300000"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="note">메모</label>
+                        <div className="space-y-2">
+                            <label htmlFor="note" className="block text-sm font-medium text-gray-700">메모</label>
                             <textarea
                                 id="note"
                                 name="note"
                                 value={formData.note}
                                 onChange={handleInputChange}
                                 rows={3}
+                                disabled={isDatePast}
                                 placeholder="특별한 사항이나 메모를 입력하세요"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             />
                         </div>
 
-                        <div className="form-actions">
-                            <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                            <button
+                                type="button"
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onClick={handleCancel}
+                            >
                                 취소
                             </button>
                             <button
                                 type="submit"
-                                className={`btn btn-primary ${isDatePast ? 'disabled' : ''}`}
+                                className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDatePast
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
                                 disabled={isDatePast}
                             >
                                 {editingId ? '수정' : '등록'}
