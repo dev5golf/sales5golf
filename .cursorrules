@@ -1,0 +1,74 @@
+# Tailwind + shadcn/ui – CSS 최소화 원칙
+# 파일명 예시: .cursorrules / .cursor/rules.yaml / docs/prompt-guide.md
+
+principles:
+  - 스타일링은 기본적으로 Tailwind 유틸리티 클래스를 className으로 적용한다.
+  - 공통 UI는 shadcn/ui 컴포넌트를 우선 사용한다.
+  - CSS 파일 신규 생성은 지양한다. (globals.css, vendor override, keyframes 등 예외만 허용)
+  - 반응형/상태/다크모드는 Tailwind 프리픽스(sm:, md:, hover:, dark:)로 처리한다.
+  - 디자인 토큰(색/폰트/간격/라운드)은 tailwind.config.js(theme.extend)에서 통일 관리한다.
+  - 재사용 가능한 변형(variant)은 cva/clsx로 컴포넌트 내부에서 선언적으로 관리한다.
+
+stack:
+  runtime: nextjs-14-app-router
+  styling: tailwind-css
+  ui-library: shadcn-ui (radix-ui 기반)
+  helpers: clsx, class-variance-authority (cva)
+
+file_policy:
+  - allow:
+      - app/globals.css (reset/폰트/다크모드 토글/아주 제한적 base 스타일)
+      - styles/vendor/*.css (외부 라이브러리 오버라이드 분리)
+      - animations/*.css (복잡한 keyframes 필요한 경우만)
+  - deny:
+      - pages/컴포넌트별 *.module.css 남발
+      - admin.css 등 비대한 전역 CSS 생성
+  - if_css_needed:
+      - 먼저 Tailwind로 가능한지 검토 → 안 되면 최소 범위로 별도 파일 생성
+      - 파일 라인수 300줄 이상 금지(초과 시 분리)
+
+generation_rules:
+  - 기본: JSX/TSX에서 className으로 Tailwind만 사용.
+  - shadcn/ui 컴포넌트가 있으면 우선 사용 (Button, Dialog, Input, Select 등).
+  - variant/size/state는 cva로 선언하고, className은 clsx로 병합.
+  - @apply는 반복이 과한 유틸 묶음에 한정적으로만 사용(가능하면 지양).
+  - 미디어쿼리는 직접 쓰지 말고 sm:/md:/lg:/xl: 프리픽스 사용.
+  - 다크모드는 class 전략('class' darkMode) + dark: 프리픽스 사용.
+
+review_checklist:
+  - 전역 CSS를 추가했는가? → 가능한지 Tailwind/shadcn로 대체.
+  - 동일 패턴 반복? → cva/컴포넌트화.
+  - 디자인 토큰 하드코딩? → tailwind.config.js로 이동.
+  - 외부 라이브러리 오버라이드? → styles/vendor/*.css로 분리.
+  - Lighthouse/번들크기 영향? → 거대 CSS 생성 금지, 코드 스플리팅 유지.
+
+examples:
+  - responsive: "p-3 sm:p-4 md:p-6"
+  - state: "hover:bg-primary/90 disabled:opacity-50"
+  - dark: "bg-white dark:bg-neutral-900"
+
+
+# ==========================================
+# PowerShell 규칙
+# ==========================================
+
+principles:
+  - 코드 예시에서 터미널 명령어는 항상 PowerShell 기준으로 작성한다.
+  - bash, zsh, Linux 계열 명령어 대신 PowerShell 명령어를 기본으로 사용한다.
+  - Windows 개발 환경을 전제로 스크립트와 명령어를 작성한다.
+  - 예시 출력도 PowerShell 환경에 맞춰 제공한다.
+
+# 예시: 올바른 PowerShell 명령어
+examples:
+  - PowerShell:
+      - "Get-ChildItem"
+      - "New-Item -Path './src/components' -ItemType Directory"
+      - "Remove-Item -Path './dist' -Recurse -Force"
+  - 금지 명령어:
+      - "ls -la"        # bash 계열
+      - "rm -rf"        # bash 계열
+      - "mkdir src"     # 기본 cmd 계열 (가능하면 New-Item 사용)
+
+generation_rules:
+  - 코드 블록 내에 터미널 예시는 항상 PowerShell 명령어로 작성.
+  - 필요한 경우 Windows 환경에서 바로 실행 가능한 스크립트(.ps1) 형태를 제공.

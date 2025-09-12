@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import './admin.css';
+import { Button } from '../../components/ui/button';
+import { LogOut, Home, Calendar, Users, Map, Building, Globe, Settings, Menu, X } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading, logout, isAdmin, isSiteAdmin } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         // 로그인 페이지가 아니고, 로딩이 완료되었으며, 관리자가 아닌 경우 로그인 페이지로 리다이렉트
@@ -29,18 +31,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // 로그인 페이지는 별도 처리
     if (pathname === '/admin/login') {
-        return (
-            <div className="admin-login-container">
-                {children}
-            </div>
-        );
+        return <>{children}</>;
     }
 
     if (loading) {
         return (
-            <div className="admin-loading">
-                <div className="loading-spinner"></div>
-                <p>로딩 중...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600">로딩 중...</p>
+                </div>
             </div>
         );
     }
@@ -50,120 +50,163 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="admin-layout">
-            <aside className="admin-sidebar">
-                <div className="admin-sidebar-header">
-                    <h2>5MGOLF 관리자</h2>
-                    <div className="admin-user-info">
-                        <span className="admin-user-name">{user?.name}</span>
-                        <span className="admin-user-role">
+        <div className="flex min-h-screen bg-gray-50">
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`
+                fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out
+                lg:translate-x-0 lg:static lg:inset-0
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
+                <div className="p-6 border-b border-slate-800">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold">5MGOLF 관리자</h2>
+                        <button
+                            onClick={() => setSidebarOpen(false)}
+                            className="lg:hidden p-1 rounded-md hover:bg-slate-800"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                    <div className="text-sm text-slate-300 mt-2">
+                        <div className="font-medium">{user?.name}</div>
+                        <div className="text-slate-400">
                             {user?.role === 'super_admin' ? '통합 관리자' :
                                 user?.role === 'site_admin' ? '사이트 관리자' : '골프장 관리자'}
-                        </span>
+                        </div>
                     </div>
                 </div>
 
-                <nav className="admin-nav">
-                    <ul className="admin-nav-list">
-                        {user?.role === 'super_admin' && (
-                            <li>
-                                <Link
-                                    href="/admin"
-                                    className={`admin-nav-link ${pathname === '/admin' ? 'active' : ''}`}
-                                >
-                                    <i className="fas fa-home"></i>
-                                    대시보드
-                                </Link>
-                            </li>
-                        )}
-                        <li>
+                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                    {user?.role === 'super_admin' && (
+                        <Link
+                            href="/admin"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname === '/admin'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                }`}
+                        >
+                            <Home className="h-5 w-5" />
+                            <span>대시보드</span>
+                        </Link>
+                    )}
+
+                    <Link
+                        href="/admin/tee-times"
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname === '/admin/tee-times'
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                            }`}
+                    >
+                        <Calendar className="h-5 w-5" />
+                        <span>티타임 관리</span>
+                    </Link>
+
+                    {user?.role === 'super_admin' && (
+                        <Link
+                            href="/admin/users"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/users')
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                }`}
+                        >
+                            <Users className="h-5 w-5" />
+                            <span>회원 관리</span>
+                        </Link>
+                    )}
+
+                    {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
+                        <Link
+                            href="/admin/regions"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/regions')
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                }`}
+                        >
+                            <Map className="h-5 w-5" />
+                            <span>지역 관리</span>
+                        </Link>
+                    )}
+
+                    {user?.role === 'super_admin' && (
+                        <>
                             <Link
-                                href="/admin/tee-times"
-                                className={`admin-nav-link ${pathname === '/admin/tee-times' ? 'active' : ''}`}
+                                href="/admin/courses"
+                                onClick={() => setSidebarOpen(false)}
+                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/courses')
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                    }`}
                             >
-                                <i className="fas fa-calendar-alt"></i>
-                                티타임 관리
+                                <Building className="h-5 w-5" />
+                                <span>골프장 관리</span>
                             </Link>
-                        </li>
-                        {user?.role === 'super_admin' && (
-                            <li>
-                                <Link
-                                    href="/admin/users"
-                                    className={`admin-nav-link ${pathname.startsWith('/admin/users') ? 'active' : ''}`}
-                                >
-                                    <i className="fas fa-users"></i>
-                                    회원 관리
-                                </Link>
-                            </li>
-                        )}
-                        {/* 사이트 관리자는 지역 관리만 접근 가능 */}
-                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
-                            <li>
-                                <Link
-                                    href="/admin/regions"
-                                    className={`admin-nav-link ${pathname.startsWith('/admin/regions') ? 'active' : ''}`}
-                                >
-                                    <i className="fas fa-map"></i>
-                                    지역 관리
-                                </Link>
-                            </li>
-                        )}
 
-                        {/* 통합 관리자만 접근 가능한 메뉴들 */}
-                        {user?.role === 'super_admin' && (
-                            <>
-                                <li>
-                                    <Link
-                                        href="/admin/courses"
-                                        className={`admin-nav-link ${pathname.startsWith('/admin/courses') ? 'active' : ''}`}
-                                    >
-                                        <i className="fas fa-golf-ball"></i>
-                                        골프장 관리
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href="/admin/translations"
-                                        className={`admin-nav-link ${pathname.startsWith('/admin/translations') ? 'active' : ''}`}
-                                    >
-                                        <i className="fas fa-language"></i>
-                                        번역 관리
-                                    </Link>
-                                </li>
-                            </>
-                        )}
+                            <Link
+                                href="/admin/translations"
+                                onClick={() => setSidebarOpen(false)}
+                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/translations')
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                    }`}
+                            >
+                                <Globe className="h-5 w-5" />
+                                <span>번역 관리</span>
+                            </Link>
+                        </>
+                    )}
 
-                        {/* 통합 관리자와 사이트 관리자만 접근 가능한 메뉴들 */}
-                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
-                            <li>
-                                <Link
-                                    href="/admin/admin-tools"
-                                    className={`admin-nav-link ${pathname.startsWith('/admin/admin-tools') ? 'active' : ''}`}
-                                >
-                                    <i className="fas fa-tools"></i>
-                                    관리자 도구
-                                </Link>
-                            </li>
-                        )}
-                    </ul>
+                    {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
+                        <Link
+                            href="/admin/admin-tools"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/admin-tools')
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                }`}
+                        >
+                            <Settings className="h-5 w-5" />
+                            <span>관리자 도구</span>
+                        </Link>
+                    )}
                 </nav>
-
-
             </aside>
 
-            <main className="admin-main">
-                <header className="admin-header">
-                    <div className="admin-header-content">
-                        <div className="admin-header-actions">
-                            <button onClick={handleLogout} className="admin-logout-btn">
-                                <i className="fas fa-sign-out-alt"></i>
-                                로그아웃
-                            </button>
-                        </div>
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col lg:ml-0">
+                <header className="bg-white border-b border-gray-200 px-4 py-4 lg:px-6">
+                    <div className="flex items-center justify-between">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+                        >
+                            <Menu className="h-5 w-5" />
+                        </button>
+
+                        <Button
+                            onClick={handleLogout}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            로그아웃
+                        </Button>
                     </div>
                 </header>
 
-                <div className="admin-content">
+                <div className="flex-1 p-4 lg:p-6">
                     {children}
                 </div>
             </main>

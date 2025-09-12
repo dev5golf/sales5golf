@@ -3,7 +3,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../contexts/AuthContext';
-import '../../admin.css';
+import { Button } from '../../../../components/ui/button';
+import { Input } from '../../../../components/ui/input';
+import { Label } from '../../../../components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Alert, AlertDescription } from '../../../../components/ui/alert';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
     const { signIn, isAdmin, loading } = useAuth();
@@ -68,67 +73,92 @@ export default function AdminLoginPage() {
     // 로딩 중이면 로딩 화면 표시
     if (loading) {
         return (
-            <div className="admin-login-card">
-                <div className="loading-spinner"></div>
-                <p>로딩 중...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <Card className="w-full max-w-md">
+                    <CardContent className="flex flex-col items-center justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+                        <p className="text-gray-600">로딩 중...</p>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
     return (
-        <div className="admin-login-card">
-            <div className="admin-login-header">
-                <h1>5MGOLF 관리자</h1>
-                <p>관리자 로그인</p>
-            </div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-md space-y-8">
+                <Card>
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-center">
+                            5MGOLF 관리자
+                        </CardTitle>
+                        <CardDescription className="text-center">
+                            관리자 계정으로 로그인하세요
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
 
-            <form onSubmit={handleSubmit} className="admin-login-form">
-                {error && (
-                    <div className="error-message">
-                        {error}
-                    </div>
-                )}
+                            <div className="space-y-2">
+                                <Label htmlFor="email">이메일</Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="admin@5mgolf.com"
+                                    className="w-full"
+                                />
+                            </div>
 
-                <div className="form-group">
-                    <label htmlFor="email">이메일</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="admin@5mgolf.com"
-                    />
-                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">비밀번호</Label>
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="비밀번호를 입력하세요"
+                                    className="w-full"
+                                />
+                            </div>
 
-                <div className="form-group">
-                    <label htmlFor="password">비밀번호</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        placeholder="비밀번호를 입력하세요"
-                    />
-                </div>
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        로그인 중...
+                                    </>
+                                ) : (
+                                    '로그인'
+                                )}
+                            </Button>
+                        </form>
 
-                <button
-                    type="submit"
-                    className="btn btn-primary admin-login-btn"
-                    disabled={isLoading}
-                >
-                    {isLoading ? '로그인 중...' : '로그인'}
-                </button>
-            </form>
-
-            <div className="admin-login-footer">
-                <Link href="/" className="back-to-site">
-                    <i className="fas fa-arrow-left"></i>
-                    사이트로 돌아가기
-                </Link>
+                        <div className="mt-6 text-center">
+                            <Link
+                                href="/"
+                                className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                사이트로 돌아가기
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
