@@ -76,7 +76,52 @@ export const useQuotationData = () => {
     const [additionalOptions, setAdditionalOptions] = useState('');
 
     const updateQuotationData = (field: keyof QuotationData, value: string) => {
-        setQuotationData(prev => ({ ...prev, [field]: value }));
+        setQuotationData(prev => {
+            const newData = { ...prev, [field]: value };
+
+            // 인원이 변경되면 모든 일정의 사전결제를 재계산
+            if (field === 'numberOfPeople') {
+                const people = parseInt(value) || 1;
+
+                // 골프 일정 사전결제 재계산
+                setGolfSchedules(prevGolf =>
+                    prevGolf.map(schedule => {
+                        const totalAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        const prepaymentPerPerson = Math.floor(totalAmount / people);
+                        return {
+                            ...schedule,
+                            prepayment: prepaymentPerPerson.toLocaleString()
+                        };
+                    })
+                );
+
+                // 숙박 일정 사전결제 재계산
+                setAccommodationSchedules(prevAccommodation =>
+                    prevAccommodation.map(schedule => {
+                        const totalAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        const prepaymentPerPerson = Math.floor(totalAmount / people);
+                        return {
+                            ...schedule,
+                            prepayment: prepaymentPerPerson.toLocaleString()
+                        };
+                    })
+                );
+
+                // 픽업 일정 사전결제 재계산
+                setPickupSchedules(prevPickup =>
+                    prevPickup.map(schedule => {
+                        const totalAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        const prepaymentPerPerson = Math.floor(totalAmount / people);
+                        return {
+                            ...schedule,
+                            prepayment: prepaymentPerPerson.toLocaleString()
+                        };
+                    })
+                );
+            }
+
+            return newData;
+        });
     };
 
     const updateTravelDates = (field: keyof TravelDates, value: string) => {

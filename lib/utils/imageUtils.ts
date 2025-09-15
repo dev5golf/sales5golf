@@ -9,20 +9,6 @@ export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null 
     // DOM 복제
     const clonedElement = element.cloneNode(true) as HTMLElement;
 
-    // 스크롤바 제거 및 레이아웃 최적화
-    clonedElement.style.overflow = 'visible';
-    clonedElement.style.overflowX = 'visible';
-    clonedElement.style.overflowY = 'visible';
-    clonedElement.classList.add('overflow-visible');
-
-    // 모든 자식 요소의 스크롤바도 제거
-    const allElements = clonedElement.querySelectorAll('*');
-    allElements.forEach(el => {
-        const element = el as HTMLElement;
-        element.style.overflow = 'visible';
-        element.style.overflowX = 'visible';
-        element.style.overflowY = 'visible';
-    });
 
     // 입력 필드를 텍스트로 변환
     convertInputsToText(clonedElement);
@@ -42,7 +28,7 @@ export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null 
     // 사전결제(1인) 셀 텍스트 가운데 정렬 처리
     processPrepaymentCells(clonedElement);
 
-    // 테이블 정렬을 위한 스타일 조정
+    // 테이블 레이아웃 최적화 (Tailwind 클래스 기반)
     optimizeTableLayout(clonedElement);
 
     return clonedElement;
@@ -119,15 +105,15 @@ const convertInputsToText = (element: HTMLElement): void => {
                 }
             }
             textSpan.textContent = displayValue;
-            textSpan.className = 'text-2xl font-bold text-blue-800 py-3 preview-text inline-block';
+            textSpan.className = 'text-2xl font-bold text-blue-800 py-3 inline-block';
         } else if (isTableSectionInput) {
             // 모든 테이블 섹션 입력폼은 가운데 정렬 적용 (골프, 숙박, 픽업)
-            textSpan.className = 'preview-text inline-block text-center w-full';
+            textSpan.className = 'inline-block text-center w-full';
         } else if (isSummarySection) {
             // 포함사항, 사전결제1인, 총합계 부분은 가운데 정렬 적용
-            textSpan.className = 'preview-text inline-block text-center w-full';
+            textSpan.className = 'inline-block text-center w-full';
         } else {
-            textSpan.className = 'preview-text inline-block';
+            textSpan.className = 'inline-block';
         }
 
         input.parentNode?.replaceChild(textSpan, input);
@@ -275,9 +261,9 @@ const processCheckboxes = (element: HTMLElement): void => {
             // 테이블 셀 내부인지 확인하여 가운데 정렬 적용
             const isInTableCell = container.closest('td') || container.closest('th');
             if (isInTableCell) {
-                container.className = 'preview-text inline-block text-center w-full';
+                container.className = 'inline-block text-center w-full';
             } else {
-                container.className = 'preview-text inline-block';
+                container.className = 'inline-block';
             }
             container.textContent = checkedOptions.join(', ');
         } else {
@@ -297,7 +283,7 @@ const processCheckboxes = (element: HTMLElement): void => {
                 const label = container.querySelector('label') || checkbox.nextElementSibling;
                 if (label) {
                     container.textContent = label.textContent || '';
-                    container.className = 'preview-text inline-block';
+                    container.className = 'inline-block';
                 }
             } else {
                 // 체크되지 않은 경우: 요소 제거
@@ -312,13 +298,13 @@ const processCheckboxes = (element: HTMLElement): void => {
  */
 const processTotalSumRows = (element: HTMLElement): void => {
     // 총합계 행의 td 요소들 찾기
-    const totalSumRows = element.querySelectorAll('tr.bg-gray-100.font-semibold td');
+    const totalSumRows = element.querySelectorAll('tr.bg-gray-100.font-semibold td, tr.bg-gradient-to-r td');
     totalSumRows.forEach((td) => {
         // colSpan이 있는 셀(총 합계 텍스트)은 왼쪽 정렬 유지
         const hasColSpan = td.hasAttribute('colspan');
         if (!hasColSpan) {
             // colSpan이 없는 셀(금액 부분)은 가운데 정렬
-            td.className = td.className + ' text-center';
+            td.classList.add('text-center');
         }
     });
 };
@@ -328,7 +314,7 @@ const processTotalSumRows = (element: HTMLElement): void => {
  */
 const processPrepaymentCells = (element: HTMLElement): void => {
     // 사전결제(1인) 셀의 span 요소들 찾기
-    const prepaymentSpans = element.querySelectorAll('td span.text-sm.text-gray-700');
+    const prepaymentSpans = element.querySelectorAll('td span.text-sm.text-gray-700, td span.text-sm.font-medium');
     prepaymentSpans.forEach(span => {
         // 사전결제(1인) 셀인지 확인 (₩ 또는 - 텍스트가 있는 경우)
         const text = span.textContent?.trim() || '';
@@ -336,27 +322,21 @@ const processPrepaymentCells = (element: HTMLElement): void => {
             // 부모 td 요소에 가운데 정렬 적용
             const parentTd = span.closest('td');
             if (parentTd) {
-                parentTd.className = parentTd.className + ' text-center';
+                parentTd.classList.add('text-center');
             }
         }
     });
 };
 
 /**
- * 테이블 레이아웃 최적화
+ * 테이블 레이아웃 최적화 (Tailwind 클래스 기반)
  */
 const optimizeTableLayout = (element: HTMLElement): void => {
     const tables = element.querySelectorAll('table');
     tables.forEach(table => {
-        // 테이블이 전체 너비로 꽉 차도록 설정
-        table.style.tableLayout = 'fixed';
-        table.style.width = '100%';
-        table.style.minWidth = '100%';
-        table.style.maxWidth = '100%';
+        // Tailwind 클래스로 테이블 최적화
+        table.classList.add('w-full', 'table-fixed');
 
-        // 테이블이 자연스럽게 확장되도록 설정
-        const tableElement = table as HTMLTableElement;
-        tableElement.style.overflow = 'visible';
 
         // 컬럼 너비를 균등하게 분배
         const rows = table.querySelectorAll('tr');
@@ -368,20 +348,17 @@ const optimizeTableLayout = (element: HTMLElement): void => {
             // 각 셀의 너비를 균등하게 분배
             cells.forEach(cell => {
                 const cellElement = cell as HTMLTableCellElement;
+                cellElement.classList.add('text-center', 'whitespace-nowrap');
+                // Tailwind의 grid 시스템을 활용한 균등 분배
                 cellElement.style.width = `${100 / cellCount}%`;
-                cellElement.style.minWidth = '0';
-                cellElement.style.whiteSpace = 'nowrap';
-                cellElement.style.textAlign = 'center';
             });
         }
 
-        // 모든 셀에 동일한 스타일 적용
+        // 모든 셀에 기본 스타일 적용
         const allCells = table.querySelectorAll('td, th');
         allCells.forEach(cell => {
             const cellElement = cell as HTMLTableCellElement;
-            cellElement.style.padding = '8px 12px';
-            cellElement.style.border = '1px solid #e5e7eb';
-            cellElement.style.verticalAlign = 'middle';
+            cellElement.classList.add('px-3', 'py-2', 'align-middle');
         });
     });
 };
@@ -392,25 +369,15 @@ const optimizeTableLayout = (element: HTMLElement): void => {
 const prepareDOMForCapture = (element: HTMLElement): HTMLElement => {
     // 임시 컨테이너 생성
     const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '100%';
-    container.style.height = 'auto';
-    container.style.overflow = 'visible';
-    container.style.zIndex = '-1';
-    container.style.opacity = '0';
-    container.style.pointerEvents = 'none';
+    container.className = 'absolute -left-[9999px] top-0 w-full h-auto overflow-visible -z-10 opacity-0 pointer-events-none';
 
     // 컨테이너에 요소 추가
     container.appendChild(element);
     document.body.appendChild(container);
 
     // 요소 스타일 설정
-    element.style.position = 'static';
-    element.style.width = '100%';
-    element.style.height = 'auto';
-    element.style.overflow = 'visible';
+    element.classList.add('static', 'w-full', 'h-auto', 'overflow-visible');
+
 
     return container;
 };
