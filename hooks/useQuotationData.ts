@@ -391,6 +391,35 @@ export const useQuotationData = () => {
         return `₩${pricePerPerson.toLocaleString()}`;
     };
 
+    // 일정 데이터 직접 설정 함수들 (저장/불러오기용)
+    const setGolfSchedulesData = (schedules: GolfSchedule[]) => {
+        setGolfSchedules(schedules);
+    };
+
+    const setGolfOnSiteSchedulesData = (schedules: GolfSchedule[]) => {
+        setGolfOnSiteSchedules(schedules);
+    };
+
+    const setAccommodationSchedulesData = (schedules: AccommodationSchedule[]) => {
+        setAccommodationSchedules(schedules);
+    };
+
+    const setPickupSchedulesData = (schedules: PickupSchedule[]) => {
+        setPickupSchedules(schedules);
+    };
+
+    const setPaymentInfoData = (info: PaymentInfo) => {
+        setPaymentInfo(info);
+    };
+
+    const setTravelDatesData = (dates: TravelDates) => {
+        setTravelDates(dates);
+    };
+
+    const setQuotationDataData = (data: QuotationData) => {
+        setQuotationData(data);
+    };
+
     return {
         quotationData,
         travelDates,
@@ -421,6 +450,14 @@ export const useQuotationData = () => {
         calculateBalance,
         generateInclusions,
         isFormValid,
-        calculatePricePerPerson
+        calculatePricePerPerson,
+        // 저장/불러오기용 setter 함수들
+        setGolfSchedulesData,
+        setGolfOnSiteSchedulesData,
+        setAccommodationSchedulesData,
+        setPickupSchedulesData,
+        setPaymentInfoData,
+        setTravelDatesData,
+        setQuotationDataData
     };
 };

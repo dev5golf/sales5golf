@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useQuotationData } from '../../../../hooks/useQuotationData';
 import { usePreview } from '../../../../hooks/usePreview';
+import { useQuotationStorage } from '../../../../hooks/useQuotationStorage';
 import { Button } from '../../../../components/ui/button';
-import { Download, Eye } from 'lucide-react';
+import { Download, Eye, Save, FolderOpen, Plus } from 'lucide-react';
 import QuotationHeader from './components/QuotationHeader';
 import QuotationForm from './components/QuotationForm';
 import GolfScheduleTable from './components/GolfScheduleTable';
@@ -15,6 +16,7 @@ import AccommodationTable from './components/AccommodationTable';
 import PickupTable from './components/PickupTable';
 import PaymentSummary from './components/PaymentSummary';
 import PreviewModal from './components/PreviewModal';
+import QuotationListModal from './components/QuotationListModal';
 
 export default function AdminTools() {
     const { user, loading } = useAuth();
@@ -23,9 +25,115 @@ export default function AdminTools() {
     // 커스텀 훅 사용
     const quotation = useQuotationData();
     const preview = usePreview();
+    const storage = useQuotationStorage();
 
     // 기본/일본 선택 상태
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
+
+    // 모달 상태
+    const [isQuotationListOpen, setIsQuotationListOpen] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+
+    // 자동 저장 (30초마다) - 주석처리
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         if (hasUnsavedChanges && quotation.isFormValid()) {
+    //             handleSaveQuotation();
+    //         }
+    //     }, 30000);
+    //     return () => clearInterval(interval);
+    // }, [hasUnsavedChanges, quotation.isFormValid()]);
+
+    // 변경사항 감지
+    useEffect(() => {
+        setHasUnsavedChanges(true);
+    }, [quotation.quotationData, quotation.travelDates, quotation.golfSchedules,
+    quotation.golfOnSiteSchedules, quotation.accommodationSchedules,
+    quotation.pickupSchedules, quotation.paymentInfo, quotation.additionalOptions]);
+
+    // 견적서 저장
+    const handleSaveQuotation = async () => {
+        try {
+            await storage.saveQuotationData(
+                quotation.quotationData,
+                quotation.travelDates,
+                quotation.golfSchedules,
+                quotation.golfOnSiteSchedules,
+                quotation.accommodationSchedules,
+                quotation.pickupSchedules,
+                quotation.paymentInfo,
+                quotation.additionalOptions
+            );
+            setHasUnsavedChanges(false);
+
+            // 저장 성공 팝업 표시
+            setShowSaveSuccess(true);
+            setTimeout(() => {
+                setShowSaveSuccess(false);
+            }, 2000); // 2초 후 자동으로 사라짐
+        } catch (error) {
+            console.error('저장 실패:', error);
+        }
+    };
+
+    // 견적서 불러오기
+    const handleLoadQuotation = async (quotationId: string) => {
+        try {
+            const quotationData = await storage.loadQuotation(quotationId);
+            if (quotationData) {
+                // 모든 상태를 불러온 견적서 데이터로 복원
+                quotation.setQuotationDataData(quotationData.quotationData);
+                quotation.setTravelDatesData(quotationData.travelDates);
+                quotation.setGolfSchedulesData(quotationData.golfSchedules);
+                quotation.setGolfOnSiteSchedulesData(quotationData.golfOnSiteSchedules);
+                quotation.setAccommodationSchedulesData(quotationData.accommodationSchedules);
+                quotation.setPickupSchedulesData(quotationData.pickupSchedules);
+                quotation.setPaymentInfoData(quotationData.paymentInfo);
+                quotation.setAdditionalOptions(quotationData.additionalOptions);
+
+                setHasUnsavedChanges(false);
+            }
+        } catch (error) {
+            console.error('불러오기 실패:', error);
+        }
+    };
+
+    // 새 견적서 시작
+    const handleNewQuotation = () => {
+        if (hasUnsavedChanges && !confirm('저장되지 않은 변경사항이 있습니다. 새 견적서를 시작하시겠습니까?')) {
+            return;
+        }
+
+        // 모든 상태 초기화
+        quotation.setQuotationDataData({
+            customerName: '',
+            destination: '',
+            travelPeriod: '',
+            numberOfPeople: ''
+        });
+
+        quotation.setTravelDatesData({
+            startDate: '',
+            endDate: ''
+        });
+
+        quotation.setGolfSchedulesData([]);
+        quotation.setGolfOnSiteSchedulesData([]);
+        quotation.setAccommodationSchedulesData([]);
+        quotation.setPickupSchedulesData([]);
+
+        quotation.setPaymentInfoData({
+            downPayment: '',
+            downPaymentDate: '',
+            balanceDueDate: ''
+        });
+
+        quotation.setAdditionalOptions('');
+
+        storage.startNewQuotation();
+        setHasUnsavedChanges(false);
+    };
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
     if (!loading && user?.role !== 'super_admin' && user?.role !== 'site_admin') {
@@ -141,10 +249,38 @@ export default function AdminTools() {
             {/* 액션 버튼 섹션 */}
             <div className="mt-8 flex justify-center gap-4">
                 <Button
+                    onClick={handleNewQuotation}
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2 px-6 py-3"
+                >
+                    <Plus className="h-5 w-5" />
+                    새 견적서
+                </Button>
+                <Button
+                    onClick={() => setIsQuotationListOpen(true)}
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2 px-6 py-3"
+                >
+                    <FolderOpen className="h-5 w-5" />
+                    불러오기
+                </Button>
+                <Button
+                    onClick={handleSaveQuotation}
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2 px-6 py-3"
+                    disabled={!quotation.isFormValid() || storage.isLoading}
+                >
+                    <Save className="h-5 w-5" />
+                    {storage.isLoading ? '저장 중...' : '저장'}
+                </Button>
+                <Button
                     onClick={preview.generatePreview}
                     variant="outline"
                     size="lg"
-                    className="flex items-center gap-2 px-8 py-3"
+                    className="flex items-center gap-2 px-6 py-3"
                 >
                     <Eye className="h-5 w-5" />
                     미리보기
@@ -153,7 +289,7 @@ export default function AdminTools() {
                     onClick={() => preview.downloadQuotationAsImage(quotation.quotationData.customerName)}
                     variant="default"
                     size="lg"
-                    className="flex items-center gap-2 px-8 py-3"
+                    className="flex items-center gap-2 px-6 py-3"
                 >
                     <Download className="h-5 w-5" />
                     이미지 다운로드
@@ -169,6 +305,23 @@ export default function AdminTools() {
                 isGenerating={preview.isGeneratingPreview}
                 fileName={`견적서_${quotation.quotationData.customerName || '고객'}_${new Date().toISOString().split('T')[0]}.png`}
             />
+
+            {/* 견적서 목록 모달 */}
+            <QuotationListModal
+                isOpen={isQuotationListOpen}
+                onClose={() => setIsQuotationListOpen(false)}
+                onSelectQuotation={handleLoadQuotation}
+            />
+
+            {/* 저장 성공 팝업 */}
+            {showSaveSuccess && (
+                <div className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">견적서가 저장되었습니다!</span>
+                </div>
+            )}
         </div>
     );
 }

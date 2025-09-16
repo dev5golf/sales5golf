@@ -84,7 +84,11 @@ export default function PaymentSummary({
                                         onChange={(date: Date | null) => {
                                             if (date) {
                                                 setLastSelectedDate(date);
-                                                const formattedDate = date.toISOString().split('T')[0];
+                                                // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
+                                                const year = date.getFullYear();
+                                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                const day = String(date.getDate()).padStart(2, '0');
+                                                const formattedDate = `${year}-${month}-${day}`;
                                                 onPaymentChange('downPaymentDate', formattedDate);
                                             } else {
                                                 onPaymentChange('downPaymentDate', '');
@@ -112,7 +116,11 @@ export default function PaymentSummary({
                                         onChange={(date: Date | null) => {
                                             if (date) {
                                                 setLastSelectedDate(date);
-                                                const formattedDate = date.toISOString().split('T')[0];
+                                                // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
+                                                const year = date.getFullYear();
+                                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                const day = String(date.getDate()).padStart(2, '0');
+                                                const formattedDate = `${year}-${month}-${day}`;
                                                 onPaymentChange('balanceDueDate', formattedDate);
                                             } else {
                                                 onPaymentChange('balanceDueDate', '');
