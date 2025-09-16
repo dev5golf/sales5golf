@@ -12,7 +12,7 @@ import { Course } from '../../../../../types';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
-interface GolfScheduleTableProps {
+interface GolfOnSiteTableProps {
     schedules: GolfSchedule[];
     onAdd: () => void;
     onUpdate: (id: string, field: keyof GolfSchedule, value: string | string[]) => void;
@@ -21,16 +21,29 @@ interface GolfScheduleTableProps {
     isFormValid: boolean;
 }
 
-export default function GolfScheduleTable({
+export default function GolfOnSiteTable({
     schedules,
     onAdd,
     onUpdate,
     onRemove,
     numberOfPeople,
     isFormValid
-}: GolfScheduleTableProps) {
+}: GolfOnSiteTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
+    // 환율 (1엔 = 8.5원으로 설정, 실제로는 API에서 가져올 수 있음)
+    const exchangeRate = 8.5;
+
+    // 엔화를 원화로 변환하는 함수
+    const convertYenToWon = (yenAmount: number): number => {
+        return Math.round(yenAmount * exchangeRate);
+    };
+
+    // 원화를 엔화로 변환하는 함수
+    const convertWonToYen = (wonAmount: number): number => {
+        return Math.round(wonAmount / exchangeRate);
+    };
 
     const handleAddClick = () => {
         if (!isFormValid) {
@@ -65,13 +78,17 @@ export default function GolfScheduleTable({
         onUpdate(id, 'inclusions', inclusions);
     };
 
-    const handleTotalChange = (id: string, total: string) => {
-        onUpdate(id, 'total', total);
+    const handleTotalChange = (id: string, yenAmount: string) => {
+        // 엔화 금액을 원화로 변환하여 저장
+        const yen = parseInt(yenAmount.replace(/[¥,]/g, '')) || 0;
+        const wonAmount = convertYenToWon(yen);
+        const wonFormatted = `₩${wonAmount.toLocaleString()}`;
+
+        onUpdate(id, 'total', wonFormatted);
 
         // 인원수에 따라 사전결제(1인) 자동 계산
         const people = parseInt(numberOfPeople) || 1;
-        const totalAmount = parseInt(total.replace(/[₩,]/g, '')) || 0;
-        const prepaymentPerPerson = Math.floor(totalAmount / people);
+        const prepaymentPerPerson = Math.floor(wonAmount / people);
 
         onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
     };
@@ -80,14 +97,14 @@ export default function GolfScheduleTable({
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-xl font-semibold text-gray-900">골프 (사전결제)</h3>
+                    <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
+                    <h3 className="text-xl font-semibold text-gray-900">골프 (현장결제)</h3>
                 </div>
                 <Button
                     onClick={handleAddClick}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                    className="flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 hover:border-orange-300 transition-colors"
                 >
                     <Plus className="h-4 w-4" />
                     추가
@@ -103,14 +120,18 @@ export default function GolfScheduleTable({
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">홀수(H)</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">포함사항</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">TEE-OFF</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">
+                                합계
+                            </th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">
+                                현장결제(1인)
+                            </th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
-                            <tr key={schedule.id} className={`hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                            <tr key={schedule.id} className={`hover:bg-orange-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <DatePicker
                                         key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
@@ -142,7 +163,7 @@ export default function GolfScheduleTable({
                                         dateFormat="MM/dd"
                                         locale={ko}
                                         placeholderText="MM/DD"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
                                     />
@@ -165,7 +186,7 @@ export default function GolfScheduleTable({
                                         defaultValue="18"
                                         min="9"
                                         max="36"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                     />
                                 </td>
                                 <td className="px-4 py-4 text-center">
@@ -176,7 +197,7 @@ export default function GolfScheduleTable({
                                                     type="checkbox"
                                                     checked={schedule.inclusions.includes(option)}
                                                     onChange={(e) => handleInclusionChange(schedule.id, option, e.target.checked)}
-                                                    className="mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    className="mr-2 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                                                 />
                                                 <span className="text-gray-700">{option}</span>
                                             </label>
@@ -187,7 +208,7 @@ export default function GolfScheduleTable({
                                     <select
                                         value={schedule.teeOff}
                                         onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                     >
                                         <option value="">선택</option>
                                         <option value="오전">오전</option>
@@ -195,18 +216,39 @@ export default function GolfScheduleTable({
                                     </select>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <input
-                                        type="text"
-                                        value={schedule.total}
-                                        onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
-                                        placeholder="₩0"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    />
+                                    <div className="space-y-1">
+                                        <input
+                                            type="text"
+                                            value={(() => {
+                                                // 저장된 원화 금액을 엔화로 역변환하여 표시
+                                                const wonAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                                                const yenAmount = convertWonToYen(wonAmount);
+                                                return yenAmount > 0 ? `¥${yenAmount.toLocaleString()}` : '';
+                                            })()}
+                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                            placeholder="¥0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                        />
+                                        <div className="text-xs text-gray-500">
+                                            {schedule.total || '₩0'}
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <span className="text-sm font-medium text-gray-900">
-                                        {schedule.prepayment ? `₩${schedule.prepayment}` : '-'}
-                                    </span>
+                                    <div className="space-y-1">
+                                        {schedule.prepayment ? (
+                                            <>
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    ¥{convertWonToYen(parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0).toLocaleString()}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    ₩{schedule.prepayment}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-sm font-medium text-gray-900">-</div>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 text-center w-20">
                                     <Button
@@ -223,19 +265,39 @@ export default function GolfScheduleTable({
 
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
-                            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200">
+                            <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-200">
                                 <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-sm font-bold text-blue-900 w-32 text-center">
-                                    ₩{schedules.reduce((sum, schedule) => {
-                                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                                        return sum + total;
-                                    }, 0).toLocaleString()}
+                                <td className="px-4 py-4 text-sm font-bold text-orange-900 w-32 text-center">
+                                    <div className="space-y-1">
+                                        <div>
+                                            ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
+                                                const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                                                return sum + total;
+                                            }, 0)).toLocaleString()}
+                                        </div>
+                                        <div className="text-xs font-normal text-orange-700">
+                                            ₩{schedules.reduce((sum, schedule) => {
+                                                const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                                                return sum + total;
+                                            }, 0).toLocaleString()}
+                                        </div>
+                                    </div>
                                 </td>
-                                <td className="px-4 py-4 text-sm font-bold text-blue-900 w-32 text-center">
-                                    ₩{schedules.reduce((sum, schedule) => {
-                                        const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
-                                        return sum + prepayment;
-                                    }, 0).toLocaleString()}
+                                <td className="px-4 py-4 text-sm font-bold text-orange-900 w-32 text-center">
+                                    <div className="space-y-1">
+                                        <div>
+                                            ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
+                                                const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
+                                                return sum + prepayment;
+                                            }, 0)).toLocaleString()}
+                                        </div>
+                                        <div className="text-xs font-normal text-orange-700">
+                                            ₩{schedules.reduce((sum, schedule) => {
+                                                const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
+                                                return sum + prepayment;
+                                            }, 0).toLocaleString()}
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-20"></td>
                             </tr>

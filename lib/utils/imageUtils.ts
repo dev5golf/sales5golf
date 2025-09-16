@@ -272,6 +272,16 @@ const processCheckboxes = (element: HTMLElement): void => {
         }
     });
 
+    // 픽업 테이블의 "동일" 체크박스 제거 (체크 상태와 관계없이)
+    const pickupCheckboxes = element.querySelectorAll('input[type="checkbox"]');
+    pickupCheckboxes.forEach(checkbox => {
+        const label = checkbox.closest('label');
+        if (label && label.textContent?.includes('동일')) {
+            // "동일" 체크박스가 포함된 라벨 전체 제거
+            label.remove();
+        }
+    });
+
     // 다른 개별 체크박스들 처리 (포함사항이 아닌 것들)
     const otherCheckboxes = element.querySelectorAll('input[type="checkbox"]:not(div.flex.flex-wrap.gap-2 input)');
     otherCheckboxes.forEach(checkbox => {

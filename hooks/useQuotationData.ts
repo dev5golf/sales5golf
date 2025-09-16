@@ -39,6 +39,8 @@ export interface PickupSchedule {
     id: string;
     date: string;
     destination: string;
+    pickupLocation: string;
+    dropoffLocation: string;
     people: string;
     vehicles: string;
     vehicleType: string;
@@ -49,6 +51,7 @@ export interface PickupSchedule {
 
 export interface PaymentInfo {
     downPayment: string;
+    downPaymentDate: string;
     balanceDueDate: string;
 }
 
@@ -66,10 +69,12 @@ export const useQuotationData = () => {
     });
 
     const [golfSchedules, setGolfSchedules] = useState<GolfSchedule[]>([]);
+    const [golfOnSiteSchedules, setGolfOnSiteSchedules] = useState<GolfSchedule[]>([]);
     const [accommodationSchedules, setAccommodationSchedules] = useState<AccommodationSchedule[]>([]);
     const [pickupSchedules, setPickupSchedules] = useState<PickupSchedule[]>([]);
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
         downPayment: '',
+        downPaymentDate: '',
         balanceDueDate: ''
     });
 
@@ -86,6 +91,18 @@ export const useQuotationData = () => {
                 // 골프 일정 사전결제 재계산
                 setGolfSchedules(prevGolf =>
                     prevGolf.map(schedule => {
+                        const totalAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        const prepaymentPerPerson = Math.floor(totalAmount / people);
+                        return {
+                            ...schedule,
+                            prepayment: prepaymentPerPerson.toLocaleString()
+                        };
+                    })
+                );
+
+                // 골프(현장결제) 일정 사전결제 재계산
+                setGolfOnSiteSchedules(prevGolfOnSite =>
+                    prevGolfOnSite.map(schedule => {
                         const totalAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                         const prepaymentPerPerson = Math.floor(totalAmount / people);
                         return {
@@ -137,7 +154,7 @@ export const useQuotationData = () => {
             id: Date.now().toString(),
             date: '',
             courseName: '',
-            holes: '',
+            holes: '18',
             inclusions: [],
             teeOff: '',
             total: '',
@@ -158,6 +175,34 @@ export const useQuotationData = () => {
 
     const removeGolfSchedule = (id: string) => {
         setGolfSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    const addGolfOnSiteSchedule = () => {
+        const newSchedule: GolfSchedule = {
+            id: Date.now().toString(),
+            date: '',
+            courseName: '',
+            holes: '18',
+            inclusions: [],
+            teeOff: '',
+            total: '',
+            prepayment: ''
+        };
+        setGolfOnSiteSchedules(prev => [...prev, newSchedule]);
+    };
+
+    const updateGolfOnSiteSchedule = (id: string, field: keyof GolfSchedule, value: string | string[]) => {
+        setGolfOnSiteSchedules(prev =>
+            prev.map(schedule =>
+                schedule.id === id
+                    ? { ...schedule, [field]: value }
+                    : schedule
+            )
+        );
+    };
+
+    const removeGolfOnSiteSchedule = (id: string) => {
+        setGolfOnSiteSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
     const addAccommodationSchedule = () => {
@@ -194,6 +239,8 @@ export const useQuotationData = () => {
             id: Date.now().toString(),
             date: '',
             destination: '',
+            pickupLocation: '',
+            dropoffLocation: '',
             people: '',
             vehicles: '',
             vehicleType: '',
@@ -218,13 +265,18 @@ export const useQuotationData = () => {
         setPickupSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
-    // 총 사전결제 금액 계산 (골프 + 숙박 + 픽업)
+    // 총 사전결제 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업)
     const calculateTotalPrepayment = () => {
         const golfTotal = golfSchedules.reduce((sum, schedule) => {
             const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
             return sum + prepayment;
         }, 0);
 
+        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
+            const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
+            return sum + prepayment;
+        }, 0);
+
         const accommodationTotal = accommodationSchedules.reduce((sum, schedule) => {
             const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
             return sum + prepayment;
@@ -235,17 +287,22 @@ export const useQuotationData = () => {
             return sum + prepayment;
         }, 0);
 
-        const total = golfTotal + accommodationTotal + pickupTotal;
+        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal;
         return `₩${total.toLocaleString()}`;
     };
 
-    // 총 합계 금액 계산 (골프 + 숙박 + 픽업)
+    // 총 합계 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업)
     const calculateTotalAmount = () => {
         const golfTotal = golfSchedules.reduce((sum, schedule) => {
             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
             return sum + total;
         }, 0);
 
+        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
+            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+            return sum + total;
+        }, 0);
+
         const accommodationTotal = accommodationSchedules.reduce((sum, schedule) => {
             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
             return sum + total;
@@ -256,7 +313,7 @@ export const useQuotationData = () => {
             return sum + total;
         }, 0);
 
-        const total = golfTotal + accommodationTotal + pickupTotal;
+        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal;
         return total;
     };
 
@@ -268,25 +325,6 @@ export const useQuotationData = () => {
         return `₩${balance.toLocaleString()}`;
     };
 
-    // 잔금 납부일 계산 (여행 시작일 30일 전)
-    const calculateBalanceDueDate = () => {
-        if (!travelDates.startDate) return '';
-
-        // 날짜 형식 파싱 (25/01/07 형식)
-        const [year, month, day] = travelDates.startDate.split('/');
-        const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-        const startDate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-
-        const dueDate = new Date(startDate);
-        dueDate.setDate(dueDate.getDate() - 30);
-
-        // YY/MM/DD 형식으로 반환
-        const dueYear = dueDate.getFullYear() % 100;
-        const dueMonth = String(dueDate.getMonth() + 1).padStart(2, '0');
-        const dueDay = String(dueDate.getDate()).padStart(2, '0');
-
-        return `${dueYear}/${dueMonth}/${dueDay}`;
-    };
 
     // 포함사항 동적 생성
     const generateInclusions = () => {
@@ -357,6 +395,7 @@ export const useQuotationData = () => {
         quotationData,
         travelDates,
         golfSchedules,
+        golfOnSiteSchedules,
         accommodationSchedules,
         pickupSchedules,
         paymentInfo,
@@ -367,6 +406,9 @@ export const useQuotationData = () => {
         addGolfSchedule,
         updateGolfSchedule,
         removeGolfSchedule,
+        addGolfOnSiteSchedule,
+        updateGolfOnSiteSchedule,
+        removeGolfOnSiteSchedule,
         addAccommodationSchedule,
         updateAccommodationSchedule,
         removeAccommodationSchedule,
@@ -377,7 +419,6 @@ export const useQuotationData = () => {
         calculateTotalPrepayment,
         calculateTotalAmount,
         calculateBalance,
-        calculateBalanceDueDate,
         generateInclusions,
         isFormValid,
         calculatePricePerPerson

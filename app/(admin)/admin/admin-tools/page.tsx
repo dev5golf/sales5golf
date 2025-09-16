@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useQuotationData } from '../../../../hooks/useQuotationData';
 import { usePreview } from '../../../../hooks/usePreview';
-import { useGolfCourses } from '../../../../hooks/useGolfCourses';
+import { Button } from '../../../../components/ui/button';
+import { Download, Eye } from 'lucide-react';
 import QuotationHeader from './components/QuotationHeader';
 import QuotationForm from './components/QuotationForm';
 import GolfScheduleTable from './components/GolfScheduleTable';
+import GolfOnSiteTable from './components/GolfOnSiteTable';
 import AccommodationTable from './components/AccommodationTable';
 import PickupTable from './components/PickupTable';
 import PaymentSummary from './components/PaymentSummary';
@@ -20,7 +23,9 @@ export default function AdminTools() {
     // 커스텀 훅 사용
     const quotation = useQuotationData();
     const preview = usePreview();
-    const golfCourses = useGolfCourses();
+
+    // 기본/일본 선택 상태
+    const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
     if (!loading && user?.role !== 'super_admin' && user?.role !== 'site_admin') {
@@ -43,10 +48,27 @@ export default function AdminTools() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* 헤더 */}
-            <QuotationHeader
-                onPreview={preview.generatePreview}
-                onDownload={() => preview.downloadQuotationAsImage(quotation.quotationData.customerName)}
-            />
+            <QuotationHeader />
+
+            {/* 지역 선택 */}
+            <div className="hidden bg-white border-b border-gray-200 px-6 py-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-bold text-gray-900"></h1>
+                        <div className="flex items-center gap-4">
+                            <label className="text-sm font-medium text-gray-700">지역:</label>
+                            <select
+                                value={regionType}
+                                onChange={(e) => setRegionType(e.target.value as 'basic' | 'japan')}
+                                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="basic">기본</option>
+                                <option value="japan">일본</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* 견적서 컨테이너 */}
             <div ref={preview.quotationRef} className="bg-white rounded-lg shadow-sm p-8">
@@ -69,6 +91,18 @@ export default function AdminTools() {
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                 />
+
+                {/* 골프(현장결제) 일정 테이블 - 일본 선택 시에만 표시 */}
+                {regionType === 'japan' && (
+                    <GolfOnSiteTable
+                        schedules={quotation.golfOnSiteSchedules}
+                        onAdd={quotation.addGolfOnSiteSchedule}
+                        onUpdate={quotation.updateGolfOnSiteSchedule}
+                        onRemove={quotation.removeGolfOnSiteSchedule}
+                        numberOfPeople={quotation.quotationData.numberOfPeople}
+                        isFormValid={quotation.isFormValid()}
+                    />
+                )}
 
                 {/* 숙박 일정 테이블 */}
                 <AccommodationTable
@@ -99,9 +133,31 @@ export default function AdminTools() {
                     totalPrepayment={quotation.calculateTotalPrepayment()}
                     downPayment={quotation.paymentInfo.downPayment}
                     balance={quotation.calculateBalance()}
-                    balanceDueDate={quotation.calculateBalanceDueDate()}
+                    balanceDueDate={quotation.paymentInfo.balanceDueDate}
                     totalAmount={`₩${quotation.calculateTotalAmount().toLocaleString()}`}
                 />
+            </div>
+
+            {/* 액션 버튼 섹션 */}
+            <div className="mt-8 flex justify-center gap-4">
+                <Button
+                    onClick={preview.generatePreview}
+                    variant="outline"
+                    size="lg"
+                    className="flex items-center gap-2 px-8 py-3"
+                >
+                    <Eye className="h-5 w-5" />
+                    미리보기
+                </Button>
+                <Button
+                    onClick={() => preview.downloadQuotationAsImage(quotation.quotationData.customerName)}
+                    variant="default"
+                    size="lg"
+                    className="flex items-center gap-2 px-8 py-3"
+                >
+                    <Download className="h-5 w-5" />
+                    이미지 다운로드
+                </Button>
             </div>
 
             {/* 미리보기 모달 */}

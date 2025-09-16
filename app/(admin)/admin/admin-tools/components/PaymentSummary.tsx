@@ -1,7 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import { ko } from 'date-fns/locale';
 import { PaymentInfo } from '../../../../../hooks/useQuotationData';
 import { BANK_INFO, QUOTATION_NOTES } from '../../../../../constants/quotationConstants';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/styles/vendor/react-datepicker.css';
 
 interface PaymentSummaryProps {
     paymentInfo: PaymentInfo;
@@ -26,6 +31,9 @@ export default function PaymentSummary({
     balanceDueDate,
     totalAmount
 }: PaymentSummaryProps) {
+    // 마지막 선택한 날짜를 기억하는 상태
+    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
     return (
         <>
             {/* 안내사항 */}
@@ -69,15 +77,55 @@ export default function PaymentSummary({
                                     placeholder="₩0"
                                     className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
                                 />
+                                <div className="mt-3">
+                                    <label className="block text-xs text-blue-600 mb-1">계약금 납부일</label>
+                                    <DatePicker
+                                        selected={paymentInfo.downPaymentDate ? new Date(paymentInfo.downPaymentDate) : null}
+                                        onChange={(date: Date | null) => {
+                                            if (date) {
+                                                setLastSelectedDate(date);
+                                                const formattedDate = date.toISOString().split('T')[0];
+                                                onPaymentChange('downPaymentDate', formattedDate);
+                                            } else {
+                                                onPaymentChange('downPaymentDate', '');
+                                            }
+                                        }}
+                                        dateFormat="yyyy-MM-dd"
+                                        locale={ko}
+                                        placeholderText="날짜 선택"
+                                        className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center bg-white"
+                                        showPopperArrow={false}
+                                        popperClassName="react-datepicker-popper"
+                                    />
+                                </div>
                             </div>
                         </div>
 
                         <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
                             <div className="text-center">
-                                <div className="text-sm font-medium text-green-700 mb-3">
-                                    잔금 {balanceDueDate && `(${balanceDueDate}까지)`}
-                                </div>
+                                <div className="text-sm font-medium text-green-700 mb-3">잔금</div>
                                 <div className="text-2xl font-bold text-green-800 py-3">{balance}</div>
+                                <div className="mt-3">
+                                    <label className="block text-xs text-green-600 mb-1">잔금 납부일</label>
+                                    <DatePicker
+                                        selected={paymentInfo.balanceDueDate ? new Date(paymentInfo.balanceDueDate) : null}
+                                        onChange={(date: Date | null) => {
+                                            if (date) {
+                                                setLastSelectedDate(date);
+                                                const formattedDate = date.toISOString().split('T')[0];
+                                                onPaymentChange('balanceDueDate', formattedDate);
+                                            } else {
+                                                onPaymentChange('balanceDueDate', '');
+                                            }
+                                        }}
+                                        dateFormat="yyyy-MM-dd"
+                                        locale={ko}
+                                        placeholderText="날짜 선택"
+                                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm text-center bg-white"
+                                        showPopperArrow={false}
+                                        popperClassName="react-datepicker-popper"
+                                    />
+                                </div>
                             </div>
                         </div>
 

@@ -1,6 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import { ko } from 'date-fns/locale';
 import { QuotationData, TravelDates } from '../../../../../hooks/useQuotationData';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/styles/vendor/react-datepicker.css';
 
 interface QuotationFormProps {
     quotationData: QuotationData;
@@ -19,6 +24,9 @@ export default function QuotationForm({
     onQuotationChange,
     onTravelDateChange
 }: QuotationFormProps) {
+    // 마지막 선택한 날짜를 기억하는 상태
+    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
     return (
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
             <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-200">
@@ -42,7 +50,7 @@ export default function QuotationForm({
                         value={quotationData.customerName}
                         onChange={(e) => onQuotationChange('customerName', e.target.value)}
                         placeholder="고객명을 입력하세요"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                     />
                 </div>
 
@@ -55,7 +63,7 @@ export default function QuotationForm({
                         value={quotationData.destination}
                         onChange={(e) => onQuotationChange('destination', e.target.value)}
                         placeholder="태국/치앙마이"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                     />
                 </div>
 
@@ -63,12 +71,34 @@ export default function QuotationForm({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         여행기간 시작일
                     </label>
-                    <input
-                        type="text"
-                        value={travelDates.startDate}
-                        onChange={(e) => onTravelDateChange('startDate', e.target.value)}
-                        placeholder="25/01/17"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    <DatePicker
+                        selected={(() => {
+                            if (!travelDates.startDate) return null;
+                            if (travelDates.startDate.includes('/')) {
+                                const [year, month, day] = travelDates.startDate.split('/');
+                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                            }
+                            return null;
+                        })()}
+                        onChange={(date: Date | null) => {
+                            if (date) {
+                                setLastSelectedDate(date);
+                                const year = date.getFullYear().toString().slice(-2);
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const formattedDate = `${year}/${month}/${day}`;
+                                onTravelDateChange('startDate', formattedDate);
+                            } else {
+                                onTravelDateChange('startDate', '');
+                            }
+                        }}
+                        dateFormat="yy/MM/dd"
+                        locale={ko}
+                        placeholderText="YY/MM/DD"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                        showPopperArrow={false}
+                        popperClassName="react-datepicker-popper"
                     />
                 </div>
 
@@ -76,12 +106,34 @@ export default function QuotationForm({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         여행기간 종료일
                     </label>
-                    <input
-                        type="text"
-                        value={travelDates.endDate}
-                        onChange={(e) => onTravelDateChange('endDate', e.target.value)}
-                        placeholder="25/01/20"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    <DatePicker
+                        selected={(() => {
+                            if (!travelDates.endDate) return null;
+                            if (travelDates.endDate.includes('/')) {
+                                const [year, month, day] = travelDates.endDate.split('/');
+                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                            }
+                            return null;
+                        })()}
+                        onChange={(date: Date | null) => {
+                            if (date) {
+                                setLastSelectedDate(date);
+                                const year = date.getFullYear().toString().slice(-2);
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const formattedDate = `${year}/${month}/${day}`;
+                                onTravelDateChange('endDate', formattedDate);
+                            } else {
+                                onTravelDateChange('endDate', '');
+                            }
+                        }}
+                        dateFormat="yy/MM/dd"
+                        locale={ko}
+                        placeholderText="YY/MM/DD"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                        showPopperArrow={false}
+                        popperClassName="react-datepicker-popper"
                     />
                 </div>
 
@@ -95,7 +147,7 @@ export default function QuotationForm({
                         onChange={(e) => onQuotationChange('numberOfPeople', e.target.value)}
                         placeholder="인원수를 입력하세요"
                         min="1"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                     />
                 </div>
             </div>

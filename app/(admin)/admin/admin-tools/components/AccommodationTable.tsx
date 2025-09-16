@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { AccommodationSchedule } from '../../../../../hooks/useQuotationData';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/styles/vendor/react-datepicker.css';
 
 interface AccommodationTableProps {
     schedules: AccommodationSchedule[];
@@ -21,6 +26,9 @@ export default function AccommodationTable({
     numberOfPeople,
     isFormValid
 }: AccommodationTableProps) {
+    // 마지막 선택한 날짜 범위를 기억하는 상태
+    const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
+
     const handleAddClick = () => {
         if (!isFormValid) {
             alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
@@ -61,10 +69,10 @@ export default function AccommodationTable({
                 <table className="w-full table-fixed">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">날짜</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">호텔명</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">박수</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">객실수</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">박수</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">객실수</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">객실타입</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">식사포함여부</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
@@ -75,13 +83,63 @@ export default function AccommodationTable({
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-green-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
-                                    <input
-                                        type="text"
-                                        value={schedule.date}
-                                        onChange={(e) => onUpdate(schedule.id, 'date', e.target.value)}
-                                        placeholder="25/01/17-01/20"
+                                <td className="px-4 py-4 w-48 text-center">
+                                    <DatePicker
+                                        selected={(() => {
+                                            if (!schedule.date) return null;
+                                            if (schedule.date.includes('-')) {
+                                                const [startDateStr] = schedule.date.split('-');
+                                                const [year, month, day] = startDateStr.split('/');
+                                                const currentYear = new Date().getFullYear();
+                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                            }
+                                            return null;
+                                        })()}
+                                        startDate={(() => {
+                                            if (!schedule.date) return lastSelectedDateRange[0];
+                                            if (schedule.date.includes('-')) {
+                                                const [startDateStr] = schedule.date.split('-');
+                                                const [year, month, day] = startDateStr.split('/');
+                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                            }
+                                            return lastSelectedDateRange[0];
+                                        })()}
+                                        endDate={(() => {
+                                            if (!schedule.date) return lastSelectedDateRange[1];
+                                            if (schedule.date.includes('-')) {
+                                                const [, endDateStr] = schedule.date.split('-');
+                                                const [month, day] = endDateStr.split('/');
+                                                const currentYear = new Date().getFullYear();
+                                                return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                            }
+                                            return lastSelectedDateRange[1];
+                                        })()}
+                                        selectsRange
+                                        onChange={(dates: [Date | null, Date | null]) => {
+                                            const [start, end] = dates;
+                                            setLastSelectedDateRange([start, end]);
+
+                                            if (start && end) {
+                                                const startYear = start.getFullYear().toString().slice(-2);
+                                                const startMonth = String(start.getMonth() + 1).padStart(2, '0');
+                                                const startDay = String(start.getDate()).padStart(2, '0');
+                                                const endMonth = String(end.getMonth() + 1).padStart(2, '0');
+                                                const endDay = String(end.getDate()).padStart(2, '0');
+
+                                                const formattedDate = `${startYear}/${startMonth}/${startDay}-${endMonth}/${endDay}`;
+                                                onUpdate(schedule.id, 'date', formattedDate);
+                                            } else {
+                                                onUpdate(schedule.id, 'date', '');
+                                            }
+                                        }}
+                                        dateFormat="yy/MM/dd"
+                                        locale={ko}
+                                        placeholderText="YY/MM/DD-MM/DD"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                        showPopperArrow={false}
+                                        popperClassName="react-datepicker-popper"
                                     />
                                 </td>
                                 <td className="px-4 py-4 text-center">
@@ -93,7 +151,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-20 text-center">
+                                <td className="px-4 py-4 w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.nights}
@@ -102,7 +160,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-20 text-center">
+                                <td className="px-4 py-4 w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.rooms}

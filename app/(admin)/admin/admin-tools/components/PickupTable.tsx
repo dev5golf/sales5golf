@@ -1,9 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { PickupSchedule } from '../../../../../hooks/useQuotationData';
 import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/styles/vendor/react-datepicker.css';
 
 interface PickupTableProps {
     schedules: PickupSchedule[];
@@ -22,6 +27,9 @@ export default function PickupTable({
     numberOfPeople,
     isFormValid
 }: PickupTableProps) {
+    // 마지막 선택한 날짜를 기억하는 상태
+    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
     const handleAddClick = () => {
         if (!isFormValid) {
             alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
@@ -64,10 +72,10 @@ export default function PickupTable({
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">행선지</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">인원</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">차량수</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">탑승지/하차장소</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">인원</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">차량수</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">차종</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">지역</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
@@ -77,12 +85,39 @@ export default function PickupTable({
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-purple-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <input
-                                        type="text"
-                                        value={schedule.date}
-                                        onChange={(e) => onUpdate(schedule.id, 'date', e.target.value)}
-                                        placeholder="01/17"
+                                    <DatePicker
+                                        key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
+                                        selected={(() => {
+                                            if (!schedule.date) return null;
+
+                                            // MM/DD 형식인 경우 Date 객체로 변환
+                                            if (schedule.date.includes('/')) {
+                                                const [month, day] = schedule.date.split('/');
+                                                const currentYear = new Date().getFullYear();
+                                                return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                            }
+
+                                            return null;
+                                        })()}
+                                        openToDate={lastSelectedDate || new Date()}
+                                        onChange={(date: Date | null) => {
+                                            if (date) {
+                                                // 마지막 선택한 날짜 업데이트
+                                                setLastSelectedDate(date);
+                                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                const day = String(date.getDate()).padStart(2, '0');
+                                                const formattedDate = `${month}/${day}`;
+                                                onUpdate(schedule.id, 'date', formattedDate);
+                                            } else {
+                                                onUpdate(schedule.id, 'date', '');
+                                            }
+                                        }}
+                                        dateFormat="MM/dd"
+                                        locale={ko}
+                                        placeholderText="MM/DD"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                        showPopperArrow={false}
+                                        popperClassName="react-datepicker-popper"
                                     />
                                 </td>
                                 <td className="px-4 py-4 w-40 text-center">
@@ -97,7 +132,46 @@ export default function PickupTable({
                                         ))}
                                     </select>
                                 </td>
-                                <td className="px-4 py-4 w-20 text-center">
+                                <td className="px-4 py-4 w-48 text-center">
+                                    <div className="space-y-2">
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={schedule.pickupLocation}
+                                                onChange={(e) => onUpdate(schedule.id, 'pickupLocation', e.target.value)}
+                                                placeholder="탑승지"
+                                                className="w-full px-2 py-1 border border-gray-200 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs text-gray-600">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={schedule.pickupLocation === schedule.dropoffLocation && schedule.pickupLocation !== ''}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            onUpdate(schedule.id, 'dropoffLocation', schedule.pickupLocation);
+                                                        } else {
+                                                            onUpdate(schedule.id, 'dropoffLocation', '');
+                                                        }
+                                                    }}
+                                                    className="mr-1 w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                />
+                                                동일
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={schedule.dropoffLocation}
+                                                onChange={(e) => onUpdate(schedule.id, 'dropoffLocation', e.target.value)}
+                                                placeholder="하차장소"
+                                                className="w-full px-2 py-1 border border-gray-200 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-4 w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.people}
@@ -106,7 +180,7 @@ export default function PickupTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-20 text-center">
+                                <td className="px-4 py-4 w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.vehicles}
@@ -126,15 +200,6 @@ export default function PickupTable({
                                             <option key={type} value={type}>{type}</option>
                                         ))}
                                     </select>
-                                </td>
-                                <td className="px-4 py-4 w-20 text-center">
-                                    <input
-                                        type="text"
-                                        value={schedule.region}
-                                        onChange={(e) => onUpdate(schedule.id, 'region', e.target.value)}
-                                        placeholder="지역명"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                    />
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <input
