@@ -1,4 +1,4 @@
-export const INCLUSION_OPTIONS = ['그린피', '캐디피', '카트비'] as const;
+export const INCLUSION_OPTIONS = ['그린피', '캐디피', '카트비', '식사'] as const;
 
 export const VEHICLE_TYPES = ['승용차', 'SUV', '밴', '대형버스'] as const;
 

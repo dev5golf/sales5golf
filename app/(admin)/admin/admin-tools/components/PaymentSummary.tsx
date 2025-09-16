@@ -55,7 +55,7 @@ export default function PaymentSummary({
                 <textarea
                     value={additionalOptions}
                     onChange={(e) => onAdditionalOptionsChange(e.target.value)}
-                    placeholder="추가 선택사항을 입력하세요..."
+                    placeholder=""
                     className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
             </div>
