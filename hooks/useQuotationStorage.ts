@@ -8,6 +8,9 @@ import {
     QuotationDocument,
     QuotationListItem
 } from '@/lib/quotationService';
+
+// Re-export types for external use
+export type { QuotationListItem, QuotationDocument };
 import {
     QuotationData,
     TravelDates,
