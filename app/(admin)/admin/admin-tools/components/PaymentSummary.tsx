@@ -34,6 +34,26 @@ export default function PaymentSummary({
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
+    // 계약금 입력 처리
+    const handleDownPaymentChange = (value: string) => {
+        // 숫자만 추출
+        const numericValue = value.replace(/[₩,]/g, '');
+
+        // 빈 값이면 그대로 저장
+        if (numericValue === '') {
+            onPaymentChange('downPayment', '');
+            return;
+        }
+
+        // 숫자로 변환
+        const amount = parseInt(numericValue) || 0;
+
+        // 원화 표기와 천단위 콤마 추가
+        const formattedAmount = `₩${amount.toLocaleString()}`;
+        onPaymentChange('downPayment', formattedAmount);
+    };
+
+
     return (
         <>
             {/* 안내사항 */}
@@ -73,7 +93,7 @@ export default function PaymentSummary({
                                 <input
                                     type="text"
                                     value={paymentInfo.downPayment}
-                                    onChange={(e) => onPaymentChange('downPayment', e.target.value)}
+                                    onChange={(e) => handleDownPaymentChange(e.target.value)}
                                     placeholder="₩0"
                                     className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
                                 />
@@ -140,7 +160,7 @@ export default function PaymentSummary({
                         <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
                             <div className="text-center">
                                 <div className="text-sm font-medium text-white mb-3">합계</div>
-                                <div className="text-2xl font-bold text-white py-3">{totalAmount}</div>
+                                <div className="text-5xl font-bold text-white py-3">{totalAmount}</div>
                             </div>
                         </div>
                     </div>

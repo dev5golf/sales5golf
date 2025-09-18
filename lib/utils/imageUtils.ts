@@ -62,14 +62,7 @@ const convertInputsToText = (element: HTMLElement): void => {
                 // 일반 입력 필드
                 displayValue = inputElement.value || '';
 
-                // 합계 입력필드인 경우 원화 표기 추가
-                if (inputElement.placeholder?.includes('₩') ||
-                    inputElement.name?.includes('total') ||
-                    inputElement.className?.includes('total')) {
-                    if (displayValue && displayValue !== '₩0') {
-                        displayValue = `₩${displayValue}`;
-                    }
-                }
+                // 입력 필드에 이미 원화 표기가 있으므로 추가 처리 불필요
             }
         } else if (input.tagName === 'TEXTAREA') {
             const textareaElement = input as HTMLTextAreaElement;
@@ -87,7 +80,8 @@ const convertInputsToText = (element: HTMLElement): void => {
 
         // 계약금 입력창인 경우 잔금, 합계와 같은 스타일 적용
         const isDownPayment = input.getAttribute('placeholder')?.includes('₩0') &&
-            input.closest('.bg-gradient-to-br.from-blue-50');
+            input.closest('[class*="from-purple-50"]');
+
 
         // 모든 테이블 섹션의 입력폼인지 확인 (골프, 숙박, 픽업)
         const isTableSectionInput = input.closest('table') &&
@@ -100,13 +94,6 @@ const convertInputsToText = (element: HTMLElement): void => {
             input.closest('.flex.justify-between');
 
         if (isDownPayment) {
-            // 계약금 값에 세자리 콤마 적용
-            if (displayValue && displayValue !== '(₩0)' && !displayValue.includes(',')) {
-                const numericValue = displayValue.replace(/[^\d]/g, '');
-                if (numericValue) {
-                    displayValue = `₩${parseInt(numericValue).toLocaleString()}`;
-                }
-            }
             textSpan.textContent = displayValue;
             textSpan.className = 'text-2xl font-bold text-blue-800 py-3 inline-block';
         } else if (isTableSectionInput) {

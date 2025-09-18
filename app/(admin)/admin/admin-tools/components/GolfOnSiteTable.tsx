@@ -79,8 +79,23 @@ export default function GolfOnSiteTable({
     };
 
     const handleTotalChange = (id: string, yenAmount: string) => {
+        // 숫자만 추출
+        const numericValue = yenAmount.replace(/[¥,]/g, '');
+
+        // 빈 값이면 그대로 저장
+        if (numericValue === '') {
+            onUpdate(id, 'total', '');
+            onUpdate(id, 'prepayment', '');
+            return;
+        }
+
+        // 숫자로 변환
+        const yen = parseInt(numericValue) || 0;
+
+        // 엔화 표기와 천단위 콤마 추가
+        const formattedYen = `¥${yen.toLocaleString()}`;
+
         // 엔화 금액을 원화로 변환하여 저장
-        const yen = parseInt(yenAmount.replace(/[¥,]/g, '')) || 0;
         const wonAmount = convertYenToWon(yen);
         const wonFormatted = `₩${wonAmount.toLocaleString()}`;
 

@@ -66,11 +66,25 @@ export default function GolfScheduleTable({
     };
 
     const handleTotalChange = (id: string, total: string) => {
-        onUpdate(id, 'total', total);
+        // 숫자만 추출
+        const numericValue = total.replace(/[₩,]/g, '');
+
+        // 빈 값이면 그대로 저장
+        if (numericValue === '') {
+            onUpdate(id, 'total', '');
+            onUpdate(id, 'prepayment', '');
+            return;
+        }
+
+        // 숫자로 변환
+        const totalAmount = parseInt(numericValue) || 0;
+
+        // 원화 표기와 천단위 콤마 추가
+        const formattedTotal = `₩${totalAmount.toLocaleString()}`;
+        onUpdate(id, 'total', formattedTotal);
 
         // 인원수에 따라 사전결제(1인) 자동 계산
         const people = parseInt(numberOfPeople) || 1;
-        const totalAmount = parseInt(total.replace(/[₩,]/g, '')) || 0;
         const prepaymentPerPerson = Math.floor(totalAmount / people);
 
         onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
