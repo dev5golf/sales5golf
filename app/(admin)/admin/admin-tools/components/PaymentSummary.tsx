@@ -61,24 +61,24 @@ export default function PaymentSummary({
             </div>
 
             {/* 결제 요약 */}
-            <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">결제 요약</h3>
 
                 <div className="space-y-6">
                     {/* 가로 레이아웃: 계약금, 잔금, 합계 */}
                     <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
                             <div className="text-center">
-                                <div className="text-sm font-medium text-blue-700 mb-3">계약금</div>
+                                <div className="text-sm font-medium text-purple-700 mb-3">계약금</div>
                                 <input
                                     type="text"
                                     value={paymentInfo.downPayment}
                                     onChange={(e) => onPaymentChange('downPayment', e.target.value)}
                                     placeholder="₩0"
-                                    className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
+                                    className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
                                 />
                                 <div className="mt-3">
-                                    <label className="block text-xs text-blue-600 mb-1">계약금 납부일</label>
+                                    <label className="block text-xs text-purple-600 mb-1">계약금 납부일</label>
                                     <DatePicker
                                         selected={paymentInfo.downPaymentDate ? new Date(paymentInfo.downPaymentDate) : null}
                                         onChange={(date: Date | null) => {
@@ -97,7 +97,7 @@ export default function PaymentSummary({
                                         dateFormat="yyyy-MM-dd"
                                         locale={ko}
                                         placeholderText="날짜 선택"
-                                        className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center bg-white"
+                                        className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-center bg-white"
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
                                     />
@@ -137,45 +137,42 @@ export default function PaymentSummary({
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
+                        <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
                             <div className="text-center">
-                                <div className="text-sm font-medium text-purple-700 mb-3">합계</div>
-                                <div className="text-2xl font-bold text-purple-800 py-3">{totalAmount}</div>
+                                <div className="text-sm font-medium text-white mb-3">합계</div>
+                                <div className="text-2xl font-bold text-white py-3">{totalAmount}</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* 총비용 강조 */}
-                    <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
-                        <div className="flex justify-between items-center">
-                            <div className="text-white">
-                                <div className="text-lg font-semibold">총비용</div>
-                                <div className="text-sm opacity-90">전체 여행 비용</div>
-                            </div>
-                            <div className="text-3xl font-bold text-white">{totalAmount}</div>
-                        </div>
-                    </div>
                 </div>
 
-                {/* 입금 정보 */}
-                <div className="mt-6 space-y-4">
-                    <div className="bg-white p-4 rounded-lg border">
-                        <div className="text-sm font-medium text-gray-700 mb-3">입금하실 곳:</div>
-                        <div className="space-y-1 text-sm text-gray-600">
-                            <div>은행: {BANK_INFO.BANK_NAME}</div>
-                            <div>계좌번호: {BANK_INFO.ACCOUNT_NUMBER}</div>
-                            <div>예금주: {BANK_INFO.ACCOUNT_HOLDER}</div>
-                        </div>
-                    </div>
-
+                {/* 입금 정보 및 안내사항 */}
+                <div className="mt-6">
                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div className="space-y-1 text-sm text-yellow-800">
-                            {QUOTATION_NOTES.map((note, index) => (
-                                <div key={index} className="flex items-start">
-                                    <span className="text-yellow-600 mr-2">•</span>
-                                    <span>{note}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* 안내사항 */}
+                            <div>
+                                <div className="text-sm font-medium text-yellow-800 mb-3">안내사항:</div>
+                                <div className="space-y-1 text-sm text-yellow-700">
+                                    {QUOTATION_NOTES.map((note, index) => (
+                                        <div key={index} className="flex items-start">
+                                            <span className="text-yellow-600 mr-2">•</span>
+                                            <span>{note}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* 입금하실 곳 */}
+                            <div>
+                                <div className="text-sm font-medium text-yellow-800 mb-3">입금하실 곳:</div>
+                                <div className="space-y-1 text-sm text-yellow-700">
+                                    <div>은행: {BANK_INFO.BANK_NAME}</div>
+                                    <div>계좌번호: {BANK_INFO.ACCOUNT_NUMBER}</div>
+                                    <div>예금주: {BANK_INFO.ACCOUNT_HOLDER}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
