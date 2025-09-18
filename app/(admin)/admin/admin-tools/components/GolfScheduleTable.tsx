@@ -19,6 +19,7 @@ interface GolfScheduleTableProps {
     onRemove: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
+    calculatePrepayment: (total: string, numberOfPeople: number) => string;
 }
 
 export default function GolfScheduleTable({
@@ -27,7 +28,8 @@ export default function GolfScheduleTable({
     onUpdate,
     onRemove,
     numberOfPeople,
-    isFormValid
+    isFormValid,
+    calculatePrepayment
 }: GolfScheduleTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
@@ -72,50 +74,27 @@ export default function GolfScheduleTable({
         // 빈 값이면 그대로 저장
         if (numericValue === '') {
             onUpdate(id, 'total', '');
-            onUpdate(id, 'prepayment', '');
             return;
         }
 
         // 숫자로 변환
         const totalAmount = parseInt(numericValue) || 0;
 
-        // 원화 표기와 천단위 콤마 추가
-        const formattedTotal = `₩${totalAmount.toLocaleString()}`;
+        // 원화 표기만 추가 (천단위 콤마 없음)
+        const formattedTotal = `₩${totalAmount}`;
         onUpdate(id, 'total', formattedTotal);
-
-        // 인원수에 따라 사전결제(1인) 자동 계산
-        const people = parseInt(numberOfPeople) || 1;
-        const prepaymentPerPerson = Math.floor(totalAmount / people);
-
-        onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
     };
 
     // 입력 필드에서 실시간으로 숫자만 허용하는 핸들러
     const handleInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
 
-        // 베트남 로케일에서 .을 ,로 변환 (천단위 구분자로 인식)
-        value = value.replace(/\./g, ',');
-
         // 숫자만 추출
         const numericValue = value.replace(/[^\d]/g, '');
 
-        // 천단위 콤마 추가
-        const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-        // 원화 표기와 함께 저장
-        const finalValue = formatted ? `₩${formatted}` : '';
+        // 원화 표기와 함께 저장 (천단위 콤마 없음)
+        const finalValue = numericValue ? `₩${numericValue}` : '';
         onUpdate(id, 'total', finalValue);
-
-        // 사전결제 계산
-        if (numericValue) {
-            const totalAmount = parseInt(numericValue) || 0;
-            const people = parseInt(numberOfPeople) || 1;
-            const prepaymentPerPerson = Math.floor(totalAmount / people);
-            onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
-        } else {
-            onUpdate(id, 'prepayment', '');
-        }
     };
 
     return (
@@ -249,7 +228,7 @@ export default function GolfScheduleTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <span className="text-lg font-medium text-gray-900">
-                                        {schedule.prepayment ? `₩${schedule.prepayment}` : '-'}
+                                        {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
                                 <td className="px-4 py-4 text-center w-20">
@@ -273,13 +252,13 @@ export default function GolfScheduleTable({
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
-                                    }, 0).toLocaleString()}
+                                    }, 0)}
                                 </td>
                                 <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
-                                        const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
-                                        return sum + prepayment;
-                                    }, 0).toLocaleString()}
+                                        const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
+                                        return sum + parseInt(prepayment) || 0;
+                                    }, 0)}
                                 </td>
                                 <td className="px-4 py-4 w-20"></td>
                             </tr>

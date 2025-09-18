@@ -19,6 +19,7 @@ interface GolfOnSiteTableProps {
     onRemove: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
+    calculatePrepayment: (total: string, numberOfPeople: number) => string;
 }
 
 export default function GolfOnSiteTable({
@@ -27,7 +28,8 @@ export default function GolfOnSiteTable({
     onUpdate,
     onRemove,
     numberOfPeople,
-    isFormValid
+    isFormValid,
+    calculatePrepayment
 }: GolfOnSiteTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
@@ -85,27 +87,17 @@ export default function GolfOnSiteTable({
         // 빈 값이면 그대로 저장
         if (numericValue === '') {
             onUpdate(id, 'total', '');
-            onUpdate(id, 'prepayment', '');
             return;
         }
 
         // 숫자로 변환
         const yen = parseInt(numericValue) || 0;
 
-        // 엔화 표기와 천단위 콤마 추가
-        const formattedYen = `¥${yen.toLocaleString()}`;
-
-        // 엔화 금액을 원화로 변환하여 저장
+        // 엔화 금액을 원화로 변환하여 저장 (천단위 콤마 없음)
         const wonAmount = convertYenToWon(yen);
-        const wonFormatted = `₩${wonAmount.toLocaleString()}`;
+        const wonFormatted = `₩${wonAmount}`;
 
         onUpdate(id, 'total', wonFormatted);
-
-        // 인원수에 따라 사전결제(1인) 자동 계산
-        const people = parseInt(numberOfPeople) || 1;
-        const prepaymentPerPerson = Math.floor(wonAmount / people);
-
-        onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
     };
 
     return (
@@ -251,13 +243,13 @@ export default function GolfOnSiteTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <div className="space-y-1">
-                                        {schedule.prepayment ? (
+                                        {schedule.total ? (
                                             <>
                                                 <div className="text-lg font-medium text-gray-900">
-                                                    ¥{convertWonToYen(parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0).toLocaleString()}
+                                                    ¥{convertWonToYen(parseInt(calculatePrepayment(schedule.total, parseInt(numberOfPeople)))).toLocaleString()}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
-                                                    ₩{schedule.prepayment}
+                                                    ₩{calculatePrepayment(schedule.total, parseInt(numberOfPeople))}
                                                 </div>
                                             </>
                                         ) : (
@@ -302,14 +294,14 @@ export default function GolfOnSiteTable({
                                     <div className="space-y-1">
                                         <div>
                                             ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
-                                                const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
-                                                return sum + prepayment;
+                                                const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
+                                                return sum + parseInt(prepayment) || 0;
                                             }, 0)).toLocaleString()}
                                         </div>
                                         <div className="text-xs font-normal text-orange-700">
                                             ₩{schedules.reduce((sum, schedule) => {
-                                                const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
-                                                return sum + prepayment;
+                                                const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
+                                                return sum + parseInt(prepayment) || 0;
                                             }, 0).toLocaleString()}
                                         </div>
                                     </div>

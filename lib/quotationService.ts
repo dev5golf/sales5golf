@@ -14,7 +14,6 @@ import {
 import { db } from './firebase';
 import {
     QuotationData,
-    TravelDates,
     GolfSchedule,
     AccommodationSchedule,
     PickupSchedule,
@@ -31,7 +30,6 @@ export interface QuotationDocument {
 
     // 견적서 데이터
     quotationData: QuotationData;
-    travelDates: TravelDates;
     golfSchedules: GolfSchedule[];
     golfOnSiteSchedules: GolfSchedule[];
     accommodationSchedules: AccommodationSchedule[];
@@ -53,7 +51,6 @@ export interface QuotationListItem {
 // 견적서 저장
 export const saveQuotation = async (
     quotationData: QuotationData,
-    travelDates: TravelDates,
     golfSchedules: GolfSchedule[],
     golfOnSiteSchedules: GolfSchedule[],
     accommodationSchedules: AccommodationSchedule[],
@@ -72,7 +69,7 @@ export const saveQuotation = async (
 
             const customerName = quotationData.customerName || '고객';
             const destination = quotationData.destination || '여행지';
-            const startDate = travelDates.startDate || '날짜미정';
+            const startDate = quotationData.startDate || '날짜미정';
 
             // 날짜 형식 변환 (YY/MM/DD -> YYYY-MM-DD)
             let formattedDate = startDate;
@@ -106,7 +103,6 @@ export const saveQuotation = async (
             createdBy: 'admin', // TODO: 실제 사용자 ID로 변경
             status: 'draft',
             quotationData,
-            travelDates,
             golfSchedules,
             golfOnSiteSchedules,
             accommodationSchedules,

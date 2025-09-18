@@ -48,7 +48,7 @@ export default function AdminTools() {
     // 변경사항 감지
     useEffect(() => {
         setHasUnsavedChanges(true);
-    }, [quotation.quotationData, quotation.travelDates, quotation.golfSchedules,
+    }, [quotation.quotationData, quotation.golfSchedules,
     quotation.golfOnSiteSchedules, quotation.accommodationSchedules,
     quotation.pickupSchedules, quotation.paymentInfo, quotation.additionalOptions]);
 
@@ -57,7 +57,6 @@ export default function AdminTools() {
         try {
             await storage.saveQuotationData(
                 quotation.quotationData,
-                quotation.travelDates,
                 quotation.golfSchedules,
                 quotation.golfOnSiteSchedules,
                 quotation.accommodationSchedules,
@@ -84,7 +83,6 @@ export default function AdminTools() {
             if (quotationData) {
                 // 모든 상태를 불러온 견적서 데이터로 복원
                 quotation.setQuotationDataData(quotationData.quotationData);
-                quotation.setTravelDatesData(quotationData.travelDates);
                 quotation.setGolfSchedulesData(quotationData.golfSchedules);
                 quotation.setGolfOnSiteSchedulesData(quotationData.golfOnSiteSchedules);
                 quotation.setAccommodationSchedulesData(quotationData.accommodationSchedules);
@@ -110,12 +108,9 @@ export default function AdminTools() {
             customerName: '',
             destination: '',
             travelPeriod: '',
-            numberOfPeople: ''
-        });
-
-        quotation.setTravelDatesData({
             startDate: '',
-            endDate: ''
+            endDate: '',
+            numberOfPeople: ''
         });
 
         quotation.setGolfSchedulesData([]);
@@ -183,14 +178,12 @@ export default function AdminTools() {
                 {/* 견적서 폼 */}
                 <QuotationForm
                     quotationData={quotation.quotationData}
-                    travelDates={quotation.travelDates}
                     inclusions={quotation.generateInclusions()}
                     pricePerPerson={quotation.calculatePricePerPerson()}
                     golfSchedules={quotation.golfSchedules}
                     accommodationSchedules={quotation.accommodationSchedules}
                     pickupSchedules={quotation.pickupSchedules}
                     onQuotationChange={quotation.updateQuotationData}
-                    onTravelDateChange={quotation.updateTravelDates}
                 />
 
                 {/* 골프 일정 테이블 */}
@@ -201,6 +194,7 @@ export default function AdminTools() {
                     onRemove={quotation.removeGolfSchedule}
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
+                    calculatePrepayment={quotation.calculatePrepayment}
                 />
 
                 {/* 골프(현장결제) 일정 테이블 - 일본 선택 시에만 표시 */}
@@ -212,6 +206,7 @@ export default function AdminTools() {
                         onRemove={quotation.removeGolfOnSiteSchedule}
                         numberOfPeople={quotation.quotationData.numberOfPeople}
                         isFormValid={quotation.isFormValid()}
+                        calculatePrepayment={quotation.calculatePrepayment}
                     />
                 )}
 
@@ -223,6 +218,7 @@ export default function AdminTools() {
                     onRemove={quotation.removeAccommodationSchedule}
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
+                    calculatePrepayment={quotation.calculatePrepayment}
                 />
 
                 {/* 픽업 일정 테이블 */}
@@ -233,6 +229,7 @@ export default function AdminTools() {
                     onRemove={quotation.removePickupSchedule}
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
+                    calculatePrepayment={quotation.calculatePrepayment}
                 />
 
                 {/* 결제 요약 */}
@@ -245,7 +242,7 @@ export default function AdminTools() {
                     downPayment={quotation.paymentInfo.downPayment}
                     balance={quotation.calculateBalance()}
                     balanceDueDate={quotation.paymentInfo.balanceDueDate}
-                    totalAmount={`₩${quotation.calculateTotalAmount().toLocaleString()}`}
+                    totalAmount={`₩${quotation.calculateTotalAmount()}`}
                 />
             </div>
 

@@ -16,6 +16,7 @@ interface AccommodationTableProps {
     onRemove: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
+    calculatePrepayment: (total: string, numberOfPeople: number) => string;
 }
 
 export default function AccommodationTable({
@@ -24,7 +25,8 @@ export default function AccommodationTable({
     onUpdate,
     onRemove,
     numberOfPeople,
-    isFormValid
+    isFormValid,
+    calculatePrepayment
 }: AccommodationTableProps) {
     // 마지막 선택한 날짜 범위를 기억하는 상태
     const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
@@ -43,22 +45,15 @@ export default function AccommodationTable({
         // 빈 값이면 그대로 저장
         if (numericValue === '') {
             onUpdate(id, 'total', '');
-            onUpdate(id, 'prepayment', '');
             return;
         }
 
         // 숫자로 변환
         const totalAmount = parseInt(numericValue) || 0;
 
-        // 원화 표기와 천단위 콤마 추가
-        const formattedTotal = `₩${totalAmount.toLocaleString()}`;
+        // 원화 표기만 추가 (천단위 콤마 없음)
+        const formattedTotal = `₩${totalAmount}`;
         onUpdate(id, 'total', formattedTotal);
-
-        // 인원수에 따라 사전결제(1인) 자동 계산
-        const people = parseInt(numberOfPeople) || 1;
-        const prepaymentPerPerson = Math.floor(totalAmount / people);
-
-        onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
     };
 
     return (
@@ -212,7 +207,7 @@ export default function AccommodationTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <span className="text-lg font-medium text-gray-900">
-                                        {schedule.prepayment ? `₩${schedule.prepayment}` : '-'}
+                                        {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
                                 <td className="px-4 py-4 text-center w-20">
@@ -236,13 +231,13 @@ export default function AccommodationTable({
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
-                                    }, 0).toLocaleString()}
+                                    }, 0)}
                                 </td>
                                 <td className="px-4 py-4 text-lg font-bold text-green-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
-                                        const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
-                                        return sum + prepayment;
-                                    }, 0).toLocaleString()}
+                                        const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
+                                        return sum + parseInt(prepayment) || 0;
+                                    }, 0)}
                                 </td>
                                 <td className="px-4 py-4 w-20"></td>
                             </tr>

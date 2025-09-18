@@ -76,6 +76,16 @@ const convertInputsToText = (element: HTMLElement): void => {
         }
 
         const textSpan = document.createElement('span');
+
+        // 원화 표기가 있으면 천단위 콤마 추가
+        if (displayValue.includes('₩')) {
+            const numericValue = displayValue.replace(/[₩,]/g, '');
+            if (numericValue && !isNaN(parseInt(numericValue))) {
+                const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                displayValue = `₩${formatted}`;
+            }
+        }
+
         textSpan.textContent = displayValue;
 
         // 계약금 입력창인 경우 잔금, 합계와 같은 스타일 적용
@@ -95,7 +105,7 @@ const convertInputsToText = (element: HTMLElement): void => {
 
         if (isDownPayment) {
             textSpan.textContent = displayValue;
-            textSpan.className = 'text-2xl font-bold text-blue-800 py-3 inline-block';
+            textSpan.className = 'text-2xl font-bold text-purple-700 py-3 inline-block';
         } else if (isTableSectionInput) {
             // 모든 테이블 섹션 입력폼은 가운데 정렬 적용 (골프, 숙박, 픽업)
             textSpan.className = 'inline-block text-center w-full';
@@ -416,6 +426,20 @@ const scaleTextSize = (element: HTMLElement): void => {
 
     textElements.forEach(el => {
         const htmlElement = el as HTMLElement;
+
+        // 원화 표기가 있는 텍스트에 천단위 콤마 추가 (숫자만 있는 경우만)
+        if (el.textContent && el.textContent.includes('₩')) {
+            const text = el.textContent;
+            // ₩ 뒤에 숫자만 있는지 확인 (한글, 영문 등이 포함된 경우 제외)
+            const match = text.match(/^₩(\d+(?:,\d{3})*)$/);
+            if (match) {
+                const numericValue = match[1].replace(/,/g, '');
+                if (numericValue && !isNaN(parseInt(numericValue))) {
+                    const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    el.textContent = `₩${formatted}`;
+                }
+            }
+        }
 
         // 로그 출력
         console.log('Element:', el.tagName, 'Classes:', el.className, 'Text:', el.textContent?.trim().substring(0, 20));

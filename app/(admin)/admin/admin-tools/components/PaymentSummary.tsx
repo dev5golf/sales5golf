@@ -48,8 +48,8 @@ export default function PaymentSummary({
         // 숫자로 변환
         const amount = parseInt(numericValue) || 0;
 
-        // 원화 표기와 천단위 콤마 추가
-        const formattedAmount = `₩${amount.toLocaleString()}`;
+        // 원화 표기만 추가 (천단위 콤마 없음)
+        const formattedAmount = `₩${amount}`;
         onPaymentChange('downPayment', formattedAmount);
     };
 

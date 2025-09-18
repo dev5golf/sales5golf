@@ -13,7 +13,6 @@ import {
 export type { QuotationListItem, QuotationDocument };
 import {
     QuotationData,
-    TravelDates,
     GolfSchedule,
     AccommodationSchedule,
     PickupSchedule,
@@ -29,7 +28,6 @@ export const useQuotationStorage = () => {
     // 견적서 저장
     const saveQuotationData = useCallback(async (
         quotationData: QuotationData,
-        travelDates: TravelDates,
         golfSchedules: GolfSchedule[],
         golfOnSiteSchedules: GolfSchedule[],
         accommodationSchedules: AccommodationSchedule[],
@@ -44,7 +42,6 @@ export const useQuotationStorage = () => {
         try {
             const quotationId = await saveQuotation(
                 quotationData,
-                travelDates,
                 golfSchedules,
                 golfOnSiteSchedules,
                 accommodationSchedules,

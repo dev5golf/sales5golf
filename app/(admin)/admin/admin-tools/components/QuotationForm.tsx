@@ -3,32 +3,28 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { QuotationData, TravelDates, GolfSchedule, AccommodationSchedule, PickupSchedule } from '../../../../../hooks/useQuotationData';
+import { QuotationData, GolfSchedule, AccommodationSchedule, PickupSchedule } from '../../../../../hooks/useQuotationData';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
 interface QuotationFormProps {
     quotationData: QuotationData;
-    travelDates: TravelDates;
     inclusions: string;
     pricePerPerson: string;
     golfSchedules: GolfSchedule[];
     accommodationSchedules: AccommodationSchedule[];
     pickupSchedules: PickupSchedule[];
     onQuotationChange: (field: keyof QuotationData, value: string) => void;
-    onTravelDateChange: (field: keyof TravelDates, value: string) => void;
 }
 
 export default function QuotationForm({
     quotationData,
-    travelDates,
     inclusions,
     pricePerPerson,
     golfSchedules,
     accommodationSchedules,
     pickupSchedules,
-    onQuotationChange,
-    onTravelDateChange
+    onQuotationChange
 }: QuotationFormProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
@@ -87,9 +83,9 @@ export default function QuotationForm({
                             </label>
                             <DatePicker
                                 selected={(() => {
-                                    if (!travelDates.startDate) return null;
-                                    if (travelDates.startDate.includes('/')) {
-                                        const [year, month, day] = travelDates.startDate.split('/');
+                                    if (!quotationData.startDate) return null;
+                                    if (quotationData.startDate.includes('/')) {
+                                        const [year, month, day] = quotationData.startDate.split('/');
                                         const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
                                         return new Date(fullYear, parseInt(month) - 1, parseInt(day));
                                     }
@@ -102,9 +98,9 @@ export default function QuotationForm({
                                         const month = String(date.getMonth() + 1).padStart(2, '0');
                                         const day = String(date.getDate()).padStart(2, '0');
                                         const formattedDate = `${year}/${month}/${day}`;
-                                        onTravelDateChange('startDate', formattedDate);
+                                        onQuotationChange('startDate', formattedDate);
                                     } else {
-                                        onTravelDateChange('startDate', '');
+                                        onQuotationChange('startDate', '');
                                     }
                                 }}
                                 dateFormat="yy/MM/dd"
@@ -122,9 +118,9 @@ export default function QuotationForm({
                             </label>
                             <DatePicker
                                 selected={(() => {
-                                    if (!travelDates.endDate) return null;
-                                    if (travelDates.endDate.includes('/')) {
-                                        const [year, month, day] = travelDates.endDate.split('/');
+                                    if (!quotationData.endDate) return null;
+                                    if (quotationData.endDate.includes('/')) {
+                                        const [year, month, day] = quotationData.endDate.split('/');
                                         const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
                                         return new Date(fullYear, parseInt(month) - 1, parseInt(day));
                                     }
@@ -137,9 +133,9 @@ export default function QuotationForm({
                                         const month = String(date.getMonth() + 1).padStart(2, '0');
                                         const day = String(date.getDate()).padStart(2, '0');
                                         const formattedDate = `${year}/${month}/${day}`;
-                                        onTravelDateChange('endDate', formattedDate);
+                                        onQuotationChange('endDate', formattedDate);
                                     } else {
-                                        onTravelDateChange('endDate', '');
+                                        onQuotationChange('endDate', '');
                                     }
                                 }}
                                 dateFormat="yy/MM/dd"
