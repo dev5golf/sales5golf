@@ -2,7 +2,7 @@ export const INCLUSION_OPTIONS = ['그린피', '캐디피', '카트비', '식사
 
 export const VEHICLE_TYPES = ['승용차', 'SUV', '밴', '대형버스'] as const;
 
-export const DESTINATION_OPTIONS = ['호텔 > 공항', '골프장 <> 공항', '호텔 > 골프장 > 공항', '공항 > 호텔', '일일렌탈 10시간', '일일렌탈 12시간', '편도이동'] as const;
+export const DESTINATION_OPTIONS = ['공항 > 숙소', '숙소 <> 골프장', '숙소 > 골프장 > 공항', '숙소 > 공항', '일일렌탈 10시간', '일일렌탈 12시간', '편도이동'] as const;
 
 export const ROOM_TYPES = ['스탠다드', '슈페리어', '디럭스', '스위트'] as const;
 
