@@ -98,12 +98,12 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-                <DialogHeader>
+            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                     <DialogTitle>저장된 견적서 목록</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col flex-1 min-h-0">
                     {error && (
                         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
                             {error}
@@ -111,7 +111,7 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
                     )}
 
                     {/* 검색 및 필터 섹션 */}
-                    <div className="mb-4 space-y-3">
+                    <div className="mb-4 space-y-3 flex-shrink-0">
                         <div className="flex gap-3">
                             <div className="flex-1">
                                 <input
@@ -144,7 +144,7 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
                             <div className="text-gray-500">로딩 중...</div>
                         </div>
                     ) : (
-                        <div className="flex-1 overflow-auto">
+                        <div className="flex-1 overflow-y-auto min-h-0">
                             {filteredQuotations.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
                                     {quotationList.length === 0
@@ -153,7 +153,7 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
                                     }
                                 </div>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="space-y-2 pr-2">
                                     {filteredQuotations.map((quotation) => (
                                         <div
                                             key={quotation.id}
@@ -202,7 +202,7 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-2 pt-4 border-t">
+                    <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
                         <Button variant="outline" onClick={onClose}>
                             취소
                         </Button>

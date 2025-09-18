@@ -213,6 +213,7 @@ export default function GolfScheduleTable({
                                         <option value="">선택</option>
                                         <option value="오전">오전</option>
                                         <option value="오후">오후</option>
+                                        <option value="야간">야간</option>
                                     </select>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
