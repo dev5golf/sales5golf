@@ -9,6 +9,8 @@ export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null 
     // DOM 복제
     const clonedElement = element.cloneNode(true) as HTMLElement;
 
+    // 선택박스 상태 복원
+    restoreSelectStates(element, clonedElement);
 
     // 입력 필드를 텍스트로 변환
     convertInputsToText(clonedElement);
@@ -38,18 +40,48 @@ export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null 
 };
 
 /**
+ * 선택박스 상태 복원
+ */
+const restoreSelectStates = (originalElement: HTMLElement, clonedElement: HTMLElement): void => {
+    const originalSelects = originalElement.querySelectorAll('select');
+    const clonedSelects = clonedElement.querySelectorAll('select');
+
+    originalSelects.forEach((originalSelect, index) => {
+        const clonedSelect = clonedSelects[index] as HTMLSelectElement;
+        if (clonedSelect && originalSelect instanceof HTMLSelectElement) {
+            // 원본의 선택된 값을 복제본에 적용 (가장 안전한 방법)
+            clonedSelect.value = originalSelect.value;
+        }
+    });
+};
+
+/**
  * 입력 필드를 텍스트로 변환
  */
 const convertInputsToText = (element: HTMLElement): void => {
     const inputs = element.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
+    inputs.forEach((input, index) => {
         const htmlInput = input as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
         let displayValue = '';
 
         if (input.tagName === 'SELECT') {
             const selectElement = input as HTMLSelectElement;
+
             const selectedOption = selectElement.options[selectElement.selectedIndex];
-            displayValue = selectedOption ? selectedOption.textContent || selectedOption.value : '';
+
+
+            // 실제 값이 선택된 경우만 표시 (value가 있고, placeholder가 아닌 경우)
+            if (selectElement.value && selectElement.value.trim() !== '') {
+                displayValue = selectElement.value;
+            } else if (selectedOption && selectedOption.textContent &&
+                !selectedOption.textContent.includes('선택') &&
+                !selectedOption.textContent.includes('선택하세요')) {
+                displayValue = selectedOption.textContent;
+            } else {
+                // placeholder 옵션이 선택된 경우 빈 값으로 처리
+                displayValue = '';
+            }
+
         } else if (input.tagName === 'INPUT') {
             const inputElement = input as HTMLInputElement;
             if (inputElement.type === 'checkbox') {
@@ -74,6 +106,7 @@ const convertInputsToText = (element: HTMLElement): void => {
             const placeholder = input.getAttribute('placeholder');
             displayValue = placeholder ? `(${placeholder})` : '';
         }
+
 
         const textSpan = document.createElement('span');
 
