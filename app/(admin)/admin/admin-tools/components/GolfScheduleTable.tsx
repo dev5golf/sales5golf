@@ -90,6 +90,34 @@ export default function GolfScheduleTable({
         onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
     };
 
+    // 입력 필드에서 실시간으로 숫자만 허용하는 핸들러
+    const handleInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        // 베트남 로케일에서 .을 ,로 변환 (천단위 구분자로 인식)
+        value = value.replace(/\./g, ',');
+
+        // 숫자만 추출
+        const numericValue = value.replace(/[^\d]/g, '');
+
+        // 천단위 콤마 추가
+        const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        // 원화 표기와 함께 저장
+        const finalValue = formatted ? `₩${formatted}` : '';
+        onUpdate(id, 'total', finalValue);
+
+        // 사전결제 계산
+        if (numericValue) {
+            const totalAmount = parseInt(numericValue) || 0;
+            const people = parseInt(numberOfPeople) || 1;
+            const prepaymentPerPerson = Math.floor(totalAmount / people);
+            onUpdate(id, 'prepayment', prepaymentPerPerson.toLocaleString());
+        } else {
+            onUpdate(id, 'prepayment', '');
+        }
+    };
+
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
@@ -211,8 +239,10 @@ export default function GolfScheduleTable({
                                 <td className="px-4 py-4 w-32 text-center">
                                     <input
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={schedule.total}
-                                        onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                        onChange={(e) => handleInputChange(schedule.id, e)}
                                         placeholder="₩0"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
