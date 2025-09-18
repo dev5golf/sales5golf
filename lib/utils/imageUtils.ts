@@ -31,6 +31,9 @@ export const createCleanPreviewDOM = (element: HTMLElement): HTMLElement | null 
     // 테이블 레이아웃 최적화 (Tailwind 클래스 기반)
     optimizeTableLayout(clonedElement);
 
+    // 텍스트 크기 1.3배 확대
+    scaleTextSize(clonedElement);
+
     return clonedElement;
 };
 
@@ -370,6 +373,95 @@ const optimizeTableLayout = (element: HTMLElement): void => {
             const cellElement = cell as HTMLTableCellElement;
             cellElement.classList.add('px-3', 'py-2', 'align-middle');
         });
+    });
+};
+
+/**
+ * Tailwind 클래스에서 폰트 크기 추출
+ */
+const extractFontSizeFromClasses = (element: Element): string | null => {
+    const className = element.className;
+
+    // Tailwind 폰트 크기 클래스 매핑
+    const fontSizeMap: { [key: string]: string } = {
+        'text-xs': '0.75rem',    // 12px
+        'text-sm': '0.875rem',   // 14px
+        'text-base': '1rem',     // 16px
+        'text-lg': '1.125rem',   // 18px
+        'text-xl': '1.25rem',    // 20px
+        'text-2xl': '1.5rem',    // 24px
+        'text-3xl': '1.875rem',  // 30px
+        'text-4xl': '2.25rem',   // 36px
+        'text-5xl': '3rem',      // 48px
+        'text-6xl': '3.75rem',   // 60px
+        'text-7xl': '4.5rem',    // 72px
+        'text-8xl': '6rem',      // 96px
+        'text-9xl': '8rem',      // 128px
+    };
+
+    // 클래스에서 폰트 크기 찾기
+    for (const [tailwindClass, fontSize] of Object.entries(fontSizeMap)) {
+        if (className.includes(tailwindClass)) {
+            console.log(`Found Tailwind class: ${tailwindClass} -> ${fontSize}`);
+            return fontSize;
+        }
+    }
+
+    // 부모 요소에서 폰트 크기 찾기 (상속)
+    const parentElement = element.parentElement;
+    if (parentElement) {
+        const parentFontSize = extractFontSizeFromClasses(parentElement);
+        if (parentFontSize) {
+            console.log(`Inherited from parent: ${parentFontSize}`);
+            return parentFontSize;
+        }
+    }
+
+    return null;
+};
+
+/**
+ * 텍스트 크기를 1.2배로 확대
+ */
+const scaleTextSize = (element: HTMLElement): void => {
+    // 모든 텍스트 요소를 찾아서 크기 확대
+    const textElements = element.querySelectorAll('*');
+
+    textElements.forEach(el => {
+        const htmlElement = el as HTMLElement;
+
+        // 로그 출력
+        console.log('Element:', el.tagName, 'Classes:', el.className, 'Text:', el.textContent?.trim().substring(0, 20));
+
+        // Tailwind 클래스에서 폰트 크기 추출
+        let fontSize = extractFontSizeFromClasses(el);
+
+        // 폰트 크기가 없으면 기본값 사용
+        if (!fontSize) {
+            fontSize = '1rem';
+            console.log('Using default fontSize: 1rem');
+        }
+
+        console.log('Final fontSize to process:', fontSize);
+
+        // rem 단위인 경우 처리
+        if (fontSize.includes('rem')) {
+            const remValue = parseFloat(fontSize);
+            const newRemValue = remValue * 1.2;
+            htmlElement.style.fontSize = `${newRemValue}rem`;
+            console.log('Rem scaled:', remValue, '->', newRemValue);
+        }
+        // px 단위인 경우 처리
+        else if (fontSize.includes('px')) {
+            const pxValue = parseFloat(fontSize);
+            const newPxValue = pxValue * 1.2;
+            htmlElement.style.fontSize = `${newPxValue}px`;
+            console.log('Px scaled:', pxValue, '->', newPxValue);
+        }
+        else {
+            console.log('Unsupported unit, applying default 1.2rem:', fontSize);
+            htmlElement.style.fontSize = '1.2rem';
+        }
     });
 };
 

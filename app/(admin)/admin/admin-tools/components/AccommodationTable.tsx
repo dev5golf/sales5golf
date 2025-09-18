@@ -193,11 +193,11 @@ export default function AccommodationTable({
                                         value={schedule.total}
                                         onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                         placeholder="₩0"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <span className="text-sm font-medium text-gray-900">
+                                    <span className="text-lg font-medium text-gray-900">
                                         {schedule.prepayment ? `₩${schedule.prepayment}` : '-'}
                                     </span>
                                 </td>
@@ -218,13 +218,13 @@ export default function AccommodationTable({
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-green-50 to-green-100 border-t-2 border-green-200">
                                 <td colSpan={6} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-sm font-bold text-green-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-green-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0).toLocaleString()}
                                 </td>
-                                <td className="px-4 py-4 text-sm font-bold text-green-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-green-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0;
                                         return sum + prepayment;

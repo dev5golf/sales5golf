@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { QuotationData, TravelDates } from '../../../../../hooks/useQuotationData';
+import { QuotationData, TravelDates, GolfSchedule, AccommodationSchedule, PickupSchedule } from '../../../../../hooks/useQuotationData';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -12,6 +12,9 @@ interface QuotationFormProps {
     travelDates: TravelDates;
     inclusions: string;
     pricePerPerson: string;
+    golfSchedules: GolfSchedule[];
+    accommodationSchedules: AccommodationSchedule[];
+    pickupSchedules: PickupSchedule[];
     onQuotationChange: (field: keyof QuotationData, value: string) => void;
     onTravelDateChange: (field: keyof TravelDates, value: string) => void;
 }
@@ -21,11 +24,19 @@ export default function QuotationForm({
     travelDates,
     inclusions,
     pricePerPerson,
+    golfSchedules,
+    accommodationSchedules,
+    pickupSchedules,
     onQuotationChange,
     onTravelDateChange
 }: QuotationFormProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
+    // 골프, 숙박, 픽업 일정이 있는지 확인
+    const hasGolfSchedules = golfSchedules && golfSchedules.length > 0;
+    const hasAccommodationSchedules = accommodationSchedules && accommodationSchedules.length > 0;
+    const hasPickupSchedules = pickupSchedules && pickupSchedules.length > 0;
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
@@ -170,6 +181,23 @@ export default function QuotationForm({
                             일정을 추가하면 포함사항이 자동으로 표시됩니다.
                         </div>
                     )}
+
+                    {/* 골프/숙박/픽업 포함사항 안내 문구 */}
+                    {(hasGolfSchedules || hasAccommodationSchedules || hasPickupSchedules) && (
+                        <div className="pt-3 border-t border-gray-200">
+                            <div className="text-xs text-gray-600 italic">
+                                {(() => {
+                                    const sections = [];
+                                    if (hasGolfSchedules) sections.push('골프');
+                                    if (hasAccommodationSchedules) sections.push('숙박');
+                                    if (hasPickupSchedules) sections.push('픽업');
+
+                                    return `* ${sections.join(', ')} 상세 포함사항은 하단 참고부탁드립니다.`;
+                                })()}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="pt-3 border-t border-blue-200">
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-700">1인당 요금</span>

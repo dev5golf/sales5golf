@@ -227,7 +227,7 @@ export default function GolfOnSiteTable({
                                             })()}
                                             onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                             placeholder="¥0"
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                         />
                                         <div className="text-xs text-gray-500">
                                             {schedule.total || '₩0'}
@@ -238,7 +238,7 @@ export default function GolfOnSiteTable({
                                     <div className="space-y-1">
                                         {schedule.prepayment ? (
                                             <>
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className="text-lg font-medium text-gray-900">
                                                     ¥{convertWonToYen(parseInt(schedule.prepayment.replace(/[₩,]/g, '')) || 0).toLocaleString()}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
@@ -246,7 +246,7 @@ export default function GolfOnSiteTable({
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="text-sm font-medium text-gray-900">-</div>
+                                            <div className="text-lg font-medium text-gray-900">-</div>
                                         )}
                                     </div>
                                 </td>
@@ -267,7 +267,7 @@ export default function GolfOnSiteTable({
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-200">
                                 <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-sm font-bold text-orange-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
                                     <div className="space-y-1">
                                         <div>
                                             ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
@@ -283,7 +283,7 @@ export default function GolfOnSiteTable({
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 text-sm font-bold text-orange-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
                                     <div className="space-y-1">
                                         <div>
                                             ¥{convertWonToYen(schedules.reduce((sum, schedule) => {

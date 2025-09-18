@@ -186,6 +186,9 @@ export default function AdminTools() {
                     travelDates={quotation.travelDates}
                     inclusions={quotation.generateInclusions()}
                     pricePerPerson={quotation.calculatePricePerPerson()}
+                    golfSchedules={quotation.golfSchedules}
+                    accommodationSchedules={quotation.accommodationSchedules}
+                    pickupSchedules={quotation.pickupSchedules}
                     onQuotationChange={quotation.updateQuotationData}
                     onTravelDateChange={quotation.updateTravelDates}
                 />
