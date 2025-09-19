@@ -120,7 +120,9 @@ export const useQuotationData = () => {
             holes: '18',
             inclusions: [],
             teeOff: '',
-            total: ''
+            teeOffDirectInput: 'false',
+            total: '',
+            isEstimatedAmount: 'false'
         };
         setGolfOnSiteSchedules(prev => [...prev, newSchedule]);
     };
