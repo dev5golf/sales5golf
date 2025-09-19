@@ -107,6 +107,10 @@ const convertInputsToText = (element: HTMLElement): void => {
             displayValue = placeholder ? `(${placeholder})` : '';
         }
 
+        // textarea의 경우 줄바꿈을 HTML로 변환
+        if (input.tagName === 'TEXTAREA' && displayValue.includes('\n')) {
+            displayValue = displayValue.replace(/\n/g, '<br>');
+        }
 
         const textSpan = document.createElement('span');
 
@@ -119,7 +123,12 @@ const convertInputsToText = (element: HTMLElement): void => {
             }
         }
 
-        textSpan.textContent = displayValue;
+        // textarea의 경우 innerHTML 사용 (줄바꿈 태그 지원)
+        if (input.tagName === 'TEXTAREA' && displayValue.includes('<br>')) {
+            textSpan.innerHTML = displayValue;
+        } else {
+            textSpan.textContent = displayValue;
+        }
 
         // 계약금 입력창인 경우 잔금, 합계와 같은 스타일 적용
         const isDownPayment = input.getAttribute('placeholder')?.includes('₩0') &&
@@ -305,13 +314,34 @@ const processCheckboxes = (element: HTMLElement): void => {
         }
     });
 
-    // 픽업 테이블의 "동일" 체크박스 제거 (체크 상태와 관계없이)
+    // 픽업 테이블의 "동일" 체크박스, 직접입력 체크박스 제거 (체크 상태와 관계없이)
     const pickupCheckboxes = element.querySelectorAll('input[type="checkbox"]');
     pickupCheckboxes.forEach(checkbox => {
         const label = checkbox.closest('label');
-        if (label && label.textContent?.includes('동일')) {
-            // "동일" 체크박스가 포함된 라벨 전체 제거
+        if (label && (label.textContent?.includes('동일') ||
+            label.textContent?.includes('직접입력'))) {
+            // "동일", "직접입력" 체크박스가 포함된 라벨 전체 제거
             label.remove();
+        }
+    });
+
+    // 예상금액 체크박스 처리
+    const estimatedAmountCheckboxes = element.querySelectorAll('input[type="checkbox"]');
+    estimatedAmountCheckboxes.forEach(checkbox => {
+        const label = checkbox.closest('label');
+        if (label && label.textContent?.includes('예상금액')) {
+            const htmlCheckbox = checkbox as HTMLInputElement;
+            const container = label.closest('div') || label.parentElement;
+            if (container) {
+                if (htmlCheckbox.checked) {
+                    // 체크된 경우: "(예상금액)" 텍스트만 표시
+                    container.textContent = '(예상금액)';
+                    container.className = 'flex items-center justify-center text-xs';
+                } else {
+                    // 체크되지 않은 경우: 요소 제거
+                    container.remove();
+                }
+            }
         }
     });
 
@@ -321,6 +351,12 @@ const processCheckboxes = (element: HTMLElement): void => {
         const htmlCheckbox = checkbox as HTMLInputElement;
         const container = checkbox.closest('div') || checkbox.parentElement;
         if (container) {
+            // 예상금액 체크박스는 이미 처리했으므로 스킵
+            const label = checkbox.closest('label');
+            if (label && label.textContent?.includes('예상금액')) {
+                return;
+            }
+
             if (htmlCheckbox.checked) {
                 // 체크된 경우: 라벨 텍스트만 표시
                 const label = container.querySelector('label') || checkbox.nextElementSibling;
