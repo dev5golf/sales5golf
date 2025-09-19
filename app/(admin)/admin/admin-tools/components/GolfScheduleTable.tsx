@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
@@ -33,6 +33,10 @@ export default function GolfScheduleTable({
 }: GolfScheduleTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+    // 각 스케줄별 직접입력 모드 상태
+    const [directInputMode, setDirectInputMode] = useState<{ [key: string]: boolean }>({});
+    // 각 스케줄별 예상금액 체크박스 상태
+    const [estimatedAmountMode, setEstimatedAmountMode] = useState<{ [key: string]: boolean }>({});
 
     const handleAddClick = () => {
         if (!isFormValid) {
@@ -96,6 +100,43 @@ export default function GolfScheduleTable({
         const finalValue = numericValue ? `₩${numericValue}` : '';
         onUpdate(id, 'total', finalValue);
     };
+
+    // 직접입력 모드 토글 핸들러
+    const handleDirectInputToggle = (id: string) => {
+        const newValue = !directInputMode[id];
+        setDirectInputMode(prev => ({
+            ...prev,
+            [id]: newValue
+        }));
+        // DB에도 저장
+        onUpdate(id, 'teeOffDirectInput', newValue.toString());
+    };
+
+    // 예상금액 모드 토글 핸들러
+    const handleEstimatedAmountToggle = (id: string) => {
+        const newValue = !estimatedAmountMode[id];
+        setEstimatedAmountMode(prev => ({
+            ...prev,
+            [id]: newValue
+        }));
+        // DB에도 저장
+        onUpdate(id, 'isEstimatedAmount', newValue.toString());
+    };
+
+    // schedules가 변경될 때 체크박스 상태 복원
+    useEffect(() => {
+        const newDirectInputMode: { [key: string]: boolean } = {};
+        const newEstimatedAmountMode: { [key: string]: boolean } = {};
+
+        schedules.forEach(schedule => {
+            // 문자열을 boolean으로 변환
+            newDirectInputMode[schedule.id] = schedule.teeOffDirectInput === 'true';
+            newEstimatedAmountMode[schedule.id] = schedule.isEstimatedAmount === 'true';
+        });
+
+        setDirectInputMode(newDirectInputMode);
+        setEstimatedAmountMode(newEstimatedAmountMode);
+    }, [schedules]);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -205,27 +246,69 @@ export default function GolfScheduleTable({
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <select
-                                        value={schedule.teeOff}
-                                        onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    >
-                                        <option value="">선택</option>
-                                        <option value="오전">오전</option>
-                                        <option value="오후">오후</option>
-                                        <option value="야간">야간</option>
-                                    </select>
+                                    <div className="space-y-2">
+                                        {/* 직접입력 체크박스 */}
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={directInputMode[schedule.id] || false}
+                                                    onChange={() => handleDirectInputToggle(schedule.id)}
+                                                    className="mr-1 w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <span className="text-gray-600">직접입력</span>
+                                            </label>
+                                        </div>
+
+                                        {/* 조건부 렌더링: 직접입력 모드일 때 입력폼, 아니면 선택박스 */}
+                                        {directInputMode[schedule.id] ? (
+                                            <input
+                                                type="text"
+                                                value={schedule.teeOff}
+                                                onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
+                                                placeholder="직접 입력"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            />
+                                        ) : (
+                                            <select
+                                                value={schedule.teeOff}
+                                                onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            >
+                                                <option value="">선택</option>
+                                                <option value="오전">오전</option>
+                                                <option value="오후">오후</option>
+                                                <option value="야간">야간</option>
+                                            </select>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        value={schedule.total}
-                                        onChange={(e) => handleInputChange(schedule.id, e)}
-                                        placeholder="₩0"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    />
+                                    <div className="space-y-2">
+                                        {/* 예상금액 체크박스 */}
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={estimatedAmountMode[schedule.id] || false}
+                                                    onChange={() => handleEstimatedAmountToggle(schedule.id)}
+                                                    className="mr-1 w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                />
+                                                <span className="text-gray-600">(예상금액)</span>
+                                            </label>
+                                        </div>
+
+                                        {/* 합계 입력폼 */}
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.total}
+                                            onChange={(e) => handleInputChange(schedule.id, e)}
+                                            placeholder="₩0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        />
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <span className="text-lg font-medium text-gray-900">
@@ -248,7 +331,9 @@ export default function GolfScheduleTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200">
-                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
+                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">
+                                    총 합계(KRW){schedules.some(schedule => estimatedAmountMode[schedule.id]) && <span className="text-blue-600 ml-1">(예상금액)</span>}
+                                </td>
                                 <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;

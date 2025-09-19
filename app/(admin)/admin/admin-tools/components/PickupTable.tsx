@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
@@ -31,6 +31,8 @@ export default function PickupTable({
 }: PickupTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+    // 각 스케줄별 직접입력 모드 상태 (행선지, 차종)
+    const [directInputMode, setDirectInputMode] = useState<{ [key: string]: { destination: boolean; vehicleType: boolean } }>({});
 
     const handleAddClick = () => {
         if (!isFormValid) {
@@ -56,6 +58,36 @@ export default function PickupTable({
         const formattedTotal = `₩${totalAmount}`;
         onUpdate(id, 'total', formattedTotal);
     };
+
+    // 직접입력 모드 토글 핸들러
+    const handleDirectInputToggle = (id: string, field: 'destination' | 'vehicleType') => {
+        const newValue = !directInputMode[id]?.[field];
+        setDirectInputMode(prev => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                [field]: newValue
+            }
+        }));
+        // DB에도 저장
+        const dbField = field === 'destination' ? 'destinationDirectInput' : 'vehicleTypeDirectInput';
+        onUpdate(id, dbField, newValue.toString());
+    };
+
+    // schedules가 변경될 때 체크박스 상태 복원
+    useEffect(() => {
+        const newDirectInputMode: { [key: string]: { destination: boolean; vehicleType: boolean } } = {};
+
+        schedules.forEach(schedule => {
+            newDirectInputMode[schedule.id] = {
+                // 문자열을 boolean으로 변환
+                destination: schedule.destinationDirectInput === 'true',
+                vehicleType: schedule.vehicleTypeDirectInput === 'true'
+            };
+        });
+
+        setDirectInputMode(newDirectInputMode);
+    }, [schedules]);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -130,16 +162,42 @@ export default function PickupTable({
                                     />
                                 </td>
                                 <td className="px-4 py-4 w-40 text-center">
-                                    <select
-                                        value={schedule.destination}
-                                        onChange={(e) => onUpdate(schedule.id, 'destination', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                    >
-                                        <option value="">선택하세요</option>
-                                        {DESTINATION_OPTIONS.map((dest) => (
-                                            <option key={dest} value={dest}>{dest}</option>
-                                        ))}
-                                    </select>
+                                    <div className="space-y-2">
+                                        {/* 직접입력 체크박스 */}
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={directInputMode[schedule.id]?.destination || false}
+                                                    onChange={() => handleDirectInputToggle(schedule.id, 'destination')}
+                                                    className="mr-1 w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                />
+                                                <span className="text-gray-600">직접입력</span>
+                                            </label>
+                                        </div>
+
+                                        {/* 조건부 렌더링: 직접입력 모드일 때 입력폼, 아니면 선택박스 */}
+                                        {directInputMode[schedule.id]?.destination ? (
+                                            <input
+                                                type="text"
+                                                value={schedule.destination}
+                                                onChange={(e) => onUpdate(schedule.id, 'destination', e.target.value)}
+                                                placeholder="직접 입력"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            />
+                                        ) : (
+                                            <select
+                                                value={schedule.destination}
+                                                onChange={(e) => onUpdate(schedule.id, 'destination', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            >
+                                                <option value="">선택하세요</option>
+                                                {DESTINATION_OPTIONS.map((dest) => (
+                                                    <option key={dest} value={dest}>{dest}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-48 text-center">
                                     <div className="space-y-2">
@@ -199,16 +257,42 @@ export default function PickupTable({
                                     />
                                 </td>
                                 <td className="px-4 py-4 w-24 text-center">
-                                    <select
-                                        value={schedule.vehicleType}
-                                        onChange={(e) => onUpdate(schedule.id, 'vehicleType', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                    >
-                                        <option value="">선택하세요</option>
-                                        {VEHICLE_TYPES.map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </select>
+                                    <div className="space-y-2">
+                                        {/* 직접입력 체크박스 */}
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={directInputMode[schedule.id]?.vehicleType || false}
+                                                    onChange={() => handleDirectInputToggle(schedule.id, 'vehicleType')}
+                                                    className="mr-1 w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                />
+                                                <span className="text-gray-600">직접입력</span>
+                                            </label>
+                                        </div>
+
+                                        {/* 조건부 렌더링: 직접입력 모드일 때 입력폼, 아니면 선택박스 */}
+                                        {directInputMode[schedule.id]?.vehicleType ? (
+                                            <input
+                                                type="text"
+                                                value={schedule.vehicleType}
+                                                onChange={(e) => onUpdate(schedule.id, 'vehicleType', e.target.value)}
+                                                placeholder="직접 입력"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            />
+                                        ) : (
+                                            <select
+                                                value={schedule.vehicleType}
+                                                onChange={(e) => onUpdate(schedule.id, 'vehicleType', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            >
+                                                <option value="">선택하세요</option>
+                                                {VEHICLE_TYPES.map((type) => (
+                                                    <option key={type} value={type}>{type}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <input

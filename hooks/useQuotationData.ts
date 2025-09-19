@@ -16,7 +16,9 @@ export interface GolfSchedule {
     holes: string;
     inclusions: string[];
     teeOff: string;
+    teeOffDirectInput: string;
     total: string;
+    isEstimatedAmount: string;
 }
 
 export interface AccommodationSchedule {
@@ -34,11 +36,13 @@ export interface PickupSchedule {
     id: string;
     date: string;
     destination: string;
+    destinationDirectInput: string;
     pickupLocation: string;
     dropoffLocation: string;
     people: string;
     vehicles: string;
     vehicleType: string;
+    vehicleTypeDirectInput: string;
     region: string;
     total: string;
 }
@@ -87,7 +91,9 @@ export const useQuotationData = () => {
             holes: '18',
             inclusions: [],
             teeOff: '',
-            total: ''
+            teeOffDirectInput: 'false',
+            total: '',
+            isEstimatedAmount: 'false'
         };
         setGolfSchedules(prev => [...prev, newSchedule]);
     };
@@ -166,11 +172,13 @@ export const useQuotationData = () => {
             id: Date.now().toString(),
             date: '',
             destination: '',
+            destinationDirectInput: 'false',
             pickupLocation: '',
             dropoffLocation: '',
             people: '',
             vehicles: '',
             vehicleType: '',
+            vehicleTypeDirectInput: 'false',
             region: '',
             total: ''
         };
