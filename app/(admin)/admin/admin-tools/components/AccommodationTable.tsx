@@ -31,6 +31,11 @@ export default function AccommodationTable({
     // 마지막 선택한 날짜 범위를 기억하는 상태
     const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
 
+    // 날짜 유효성 검사 함수
+    const isValidDate = (date: Date): boolean => {
+        return date instanceof Date && !isNaN(date.getTime());
+    };
+
     const handleAddClick = () => {
         if (!isFormValid) {
             alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
@@ -99,9 +104,9 @@ export default function AccommodationTable({
                                             if (schedule.date.includes('-')) {
                                                 const [startDateStr] = schedule.date.split('-');
                                                 const [year, month, day] = startDateStr.split('/');
-                                                const currentYear = new Date().getFullYear();
                                                 const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                return isValidDate(date) ? date : null;
                                             }
                                             return null;
                                         })()}
@@ -111,7 +116,8 @@ export default function AccommodationTable({
                                                 const [startDateStr] = schedule.date.split('-');
                                                 const [year, month, day] = startDateStr.split('/');
                                                 const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                return isValidDate(date) ? date : lastSelectedDateRange[0];
                                             }
                                             return lastSelectedDateRange[0];
                                         })()}
@@ -119,9 +125,23 @@ export default function AccommodationTable({
                                             if (!schedule.date) return lastSelectedDateRange[1];
                                             if (schedule.date.includes('-')) {
                                                 const [, endDateStr] = schedule.date.split('-');
-                                                const [year, month, day] = endDateStr.split('/');
-                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                const parts = endDateStr.split('/');
+
+                                                if (parts.length === 2) {
+                                                    // 기존 형식: "10/16" - 시작 날짜의 연도 사용
+                                                    const [startDateStr] = schedule.date.split('-');
+                                                    const [startYear] = startDateStr.split('/');
+                                                    const [month, day] = parts;
+                                                    const fullYear = parseInt(startYear) < 50 ? 2000 + parseInt(startYear) : 1900 + parseInt(startYear);
+                                                    const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                    return isValidDate(date) ? date : lastSelectedDateRange[1];
+                                                } else if (parts.length === 3) {
+                                                    // 새 형식: "25/10/16" - 연도 포함
+                                                    const [year, month, day] = parts;
+                                                    const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                    const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                    return isValidDate(date) ? date : lastSelectedDateRange[1];
+                                                }
                                             }
                                             return lastSelectedDateRange[1];
                                         })()}
