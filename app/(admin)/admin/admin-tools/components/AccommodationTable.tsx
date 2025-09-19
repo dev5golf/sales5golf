@@ -119,9 +119,9 @@ export default function AccommodationTable({
                                             if (!schedule.date) return lastSelectedDateRange[1];
                                             if (schedule.date.includes('-')) {
                                                 const [, endDateStr] = schedule.date.split('-');
-                                                const [month, day] = endDateStr.split('/');
-                                                const currentYear = new Date().getFullYear();
-                                                return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                                const [year, month, day] = endDateStr.split('/');
+                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                return new Date(fullYear, parseInt(month) - 1, parseInt(day));
                                             }
                                             return lastSelectedDateRange[1];
                                         })()}
@@ -134,10 +134,11 @@ export default function AccommodationTable({
                                                 const startYear = start.getFullYear().toString().slice(-2);
                                                 const startMonth = String(start.getMonth() + 1).padStart(2, '0');
                                                 const startDay = String(start.getDate()).padStart(2, '0');
+                                                const endYear = end.getFullYear().toString().slice(-2);
                                                 const endMonth = String(end.getMonth() + 1).padStart(2, '0');
                                                 const endDay = String(end.getDate()).padStart(2, '0');
 
-                                                const formattedDate = `${startYear}/${startMonth}/${startDay}-${endMonth}/${endDay}`;
+                                                const formattedDate = `${startYear}/${startMonth}/${startDay}-${endYear}/${endMonth}/${endDay}`;
                                                 onUpdate(schedule.id, 'date', formattedDate);
                                             } else {
                                                 onUpdate(schedule.id, 'date', '');
