@@ -19,6 +19,7 @@ import {
     PickupSchedule,
     PaymentInfo
 } from '@/hooks/useQuotationData';
+import { FlightSchedule, RentalCarSchedule } from '@/types';
 
 export interface QuotationDocument {
     id: string;
@@ -27,6 +28,7 @@ export interface QuotationDocument {
     updatedAt: Timestamp;
     createdBy: string;
     status: 'draft' | 'completed';
+    regionType: 'basic' | 'japan'; // 지역 타입만 저장
 
     // 견적서 데이터
     quotationData: QuotationData;
@@ -34,6 +36,9 @@ export interface QuotationDocument {
     golfOnSiteSchedules: GolfSchedule[];
     accommodationSchedules: AccommodationSchedule[];
     pickupSchedules: PickupSchedule[];
+    flightSchedules: FlightSchedule[];
+    rentalCarSchedules: RentalCarSchedule[];
+    rentalCarOnSiteSchedules: RentalCarSchedule[];
     paymentInfo: PaymentInfo;
     additionalOptions: string;
 }
@@ -55,8 +60,12 @@ export const saveQuotation = async (
     golfOnSiteSchedules: GolfSchedule[],
     accommodationSchedules: AccommodationSchedule[],
     pickupSchedules: PickupSchedule[],
+    flightSchedules: FlightSchedule[],
+    rentalCarSchedules: RentalCarSchedule[],
+    rentalCarOnSiteSchedules: RentalCarSchedule[],
     paymentInfo: PaymentInfo,
     additionalOptions: string,
+    regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
     quotationId?: string,
     title?: string
 ): Promise<string> => {
@@ -102,11 +111,15 @@ export const saveQuotation = async (
             updatedAt: now,
             createdBy: 'admin', // TODO: 실제 사용자 ID로 변경
             status: 'draft',
+            regionType, // 지역 타입만 저장
             quotationData,
             golfSchedules,
             golfOnSiteSchedules,
             accommodationSchedules,
             pickupSchedules,
+            flightSchedules,
+            rentalCarSchedules,
+            rentalCarOnSiteSchedules,
             paymentInfo,
             additionalOptions
         };
@@ -152,9 +165,14 @@ export const getQuotation = async (quotationId: string): Promise<QuotationDocume
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
+            const data = docSnap.data();
             return {
                 id: docSnap.id,
-                ...docSnap.data()
+                ...data,
+                regionType: data.regionType || 'basic', // 기존 견적서에 regionType이 없는 경우 'basic'으로 설정
+                flightSchedules: data.flightSchedules || [], // 기존 견적서에 flightSchedules가 없는 경우 빈 배열로 설정
+                rentalCarSchedules: data.rentalCarSchedules || [], // 기존 견적서에 rentalCarSchedules가 없는 경우 빈 배열로 설정
+                rentalCarOnSiteSchedules: data.rentalCarOnSiteSchedules || [] // 기존 견적서에 rentalCarOnSiteSchedules가 없는 경우 빈 배열로 설정
             } as QuotationDocument;
         } else {
             return null;

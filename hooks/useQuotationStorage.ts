@@ -18,6 +18,7 @@ import {
     PickupSchedule,
     PaymentInfo
 } from './useQuotationData';
+import { FlightSchedule, RentalCarSchedule } from '../types';
 
 export const useQuotationStorage = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -32,8 +33,12 @@ export const useQuotationStorage = () => {
         golfOnSiteSchedules: GolfSchedule[],
         accommodationSchedules: AccommodationSchedule[],
         pickupSchedules: PickupSchedule[],
+        flightSchedules: FlightSchedule[],
+        rentalCarSchedules: RentalCarSchedule[],
+        rentalCarOnSiteSchedules: RentalCarSchedule[],
         paymentInfo: PaymentInfo,
         additionalOptions: string,
+        regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
         title?: string
     ): Promise<string> => {
         setIsLoading(true);
@@ -46,8 +51,12 @@ export const useQuotationStorage = () => {
                 golfOnSiteSchedules,
                 accommodationSchedules,
                 pickupSchedules,
+                flightSchedules,
+                rentalCarSchedules,
+                rentalCarOnSiteSchedules,
                 paymentInfo,
                 additionalOptions,
+                regionType, // 지역 타입만 저장
                 currentQuotationId || undefined,
                 title
             );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
@@ -20,6 +20,7 @@ interface GolfOnSiteTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
+    exchangeRate?: number; // 환율 추가
 }
 
 export default function GolfOnSiteTable({
@@ -29,13 +30,13 @@ export default function GolfOnSiteTable({
     onRemove,
     numberOfPeople,
     isFormValid,
-    calculatePrepayment
+    calculatePrepayment,
+    exchangeRate = 8.5 // 환율 기본값 8.5
 }: GolfOnSiteTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
-
-    // 환율 (1엔 = 8.5원으로 설정, 실제로는 API에서 가져올 수 있음)
-    const exchangeRate = 8.5;
+    // 각 스케줄별 직접입력 모드 상태 (티오프)
+    const [directInputMode, setDirectInputMode] = useState<{ [key: string]: boolean }>({});
 
     // 엔화를 원화로 변환하는 함수
     const convertYenToWon = (yenAmount: number): number => {
@@ -80,6 +81,17 @@ export default function GolfOnSiteTable({
         onUpdate(id, 'inclusions', inclusions);
     };
 
+    // 직접입력 모드 토글 핸들러
+    const handleDirectInputToggle = (id: string) => {
+        const newValue = !directInputMode[id];
+        setDirectInputMode(prev => ({
+            ...prev,
+            [id]: newValue
+        }));
+        // DB에도 저장
+        onUpdate(id, 'teeOffDirectInput', newValue.toString());
+    };
+
     const handleTotalChange = (id: string, yenAmount: string) => {
         // 숫자만 추출
         const numericValue = yenAmount.replace(/[¥,]/g, '');
@@ -87,11 +99,15 @@ export default function GolfOnSiteTable({
         // 빈 값이면 그대로 저장
         if (numericValue === '') {
             onUpdate(id, 'total', '');
+            onUpdate(id, 'yenAmount', '');
             return;
         }
 
         // 숫자로 변환
         const yen = parseInt(numericValue) || 0;
+
+        // 엔화 금액을 별도로 저장
+        onUpdate(id, 'yenAmount', yen.toString());
 
         // 엔화 금액을 원화로 변환하여 저장 (천단위 콤마 없음)
         const wonAmount = convertYenToWon(yen);
@@ -99,6 +115,33 @@ export default function GolfOnSiteTable({
 
         onUpdate(id, 'total', wonFormatted);
     };
+
+    // schedules가 변경될 때 체크박스 상태 복원
+    useEffect(() => {
+        const newDirectInputMode: { [key: string]: boolean } = {};
+
+        schedules.forEach(schedule => {
+            newDirectInputMode[schedule.id] = schedule.teeOffDirectInput === 'true';
+        });
+
+        setDirectInputMode(newDirectInputMode);
+    }, [schedules]);
+
+    // 환율이 변경될 때 원화 금액만 다시 계산
+    useEffect(() => {
+        schedules.forEach(schedule => {
+            if (schedule.yenAmount) {
+                const yenAmount = parseInt(schedule.yenAmount);
+                const wonAmount = convertYenToWon(yenAmount);
+                const wonFormatted = `₩${wonAmount}`;
+
+                // 원화 금액만 업데이트 (엔화는 그대로 유지)
+                if (schedule.total !== wonFormatted) {
+                    onUpdate(schedule.id, 'total', wonFormatted);
+                }
+            }
+        });
+    }, [exchangeRate, schedules, onUpdate, convertYenToWon]);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -212,26 +255,48 @@ export default function GolfOnSiteTable({
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
-                                    <select
-                                        value={schedule.teeOff}
-                                        onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                    >
-                                        <option value="">선택</option>
-                                        <option value="오전">오전</option>
-                                        <option value="오후">오후</option>
-                                    </select>
+                                    <div className="space-y-2">
+                                        {/* 직접입력 체크박스 */}
+                                        <div className="flex items-center justify-center">
+                                            <label className="flex items-center text-xs cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={directInputMode[schedule.id] || false}
+                                                    onChange={() => handleDirectInputToggle(schedule.id)}
+                                                    className="mr-1 w-3 h-3 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                                />
+                                                <span className="text-gray-600">직접입력</span>
+                                            </label>
+                                        </div>
+
+                                        {/* 조건부 렌더링: 직접입력 모드일 때 입력폼, 아니면 선택박스 */}
+                                        {directInputMode[schedule.id] ? (
+                                            <input
+                                                type="text"
+                                                value={schedule.teeOff}
+                                                onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
+                                                placeholder="직접 입력"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            />
+                                        ) : (
+                                            <select
+                                                value={schedule.teeOff}
+                                                onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            >
+                                                <option value="">선택</option>
+                                                <option value="오전">오전</option>
+                                                <option value="오후">오후</option>
+                                                <option value="야간">야간</option>
+                                            </select>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <div className="space-y-1">
                                         <input
                                             type="text"
-                                            value={(() => {
-                                                // 저장된 원화 금액을 엔화로 역변환하여 표시
-                                                const wonAmount = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                                                const yenAmount = convertWonToYen(wonAmount);
-                                                return yenAmount > 0 ? `¥${yenAmount.toLocaleString()}` : '';
-                                            })()}
+                                            value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
                                             onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                             placeholder="¥0"
                                             className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
@@ -243,10 +308,10 @@ export default function GolfOnSiteTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     <div className="space-y-1">
-                                        {schedule.total ? (
+                                        {schedule.yenAmount ? (
                                             <>
                                                 <div className="text-lg font-medium text-gray-900">
-                                                    ¥{convertWonToYen(parseInt(calculatePrepayment(schedule.total, parseInt(numberOfPeople)))).toLocaleString()}
+                                                    ¥{Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
                                                     ₩{calculatePrepayment(schedule.total, parseInt(numberOfPeople))}
@@ -277,32 +342,32 @@ export default function GolfOnSiteTable({
                                 <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
                                     <div className="space-y-1">
                                         <div>
-                                            ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
-                                                const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                                                return sum + total;
-                                            }, 0)).toLocaleString()}
+                                            ¥{schedules.reduce((sum, schedule) => {
+                                                const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                                return sum + yenAmount;
+                                            }, 0)}
                                         </div>
                                         <div className="text-xs font-normal text-orange-700">
                                             ₩{schedules.reduce((sum, schedule) => {
                                                 const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                                 return sum + total;
-                                            }, 0).toLocaleString()}
+                                            }, 0)}
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
                                     <div className="space-y-1">
                                         <div>
-                                            ¥{convertWonToYen(schedules.reduce((sum, schedule) => {
-                                                const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
-                                                return sum + parseInt(prepayment) || 0;
-                                            }, 0)).toLocaleString()}
+                                            ¥{Math.round(schedules.reduce((sum, schedule) => {
+                                                const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                                return sum + yenAmount;
+                                            }, 0) / parseInt(numberOfPeople))}
                                         </div>
                                         <div className="text-xs font-normal text-orange-700">
                                             ₩{schedules.reduce((sum, schedule) => {
                                                 const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                                 return sum + parseInt(prepayment) || 0;
-                                            }, 0).toLocaleString()}
+                                            }, 0)}
                                         </div>
                                     </div>
                                 </td>

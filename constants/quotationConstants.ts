@@ -10,6 +10,29 @@ export const MEAL_OPTIONS = ['조식', '중식', '석식', '전식'] as const;
 
 export const TEE_OFF_TIMES = ['오전', '오후', '새벽'] as const;
 
+// 렌트카 관련 상수
+export const RENTAL_CAR_PICKUP_LOCATIONS = [
+    '후쿠오카공항', '간사이공항', '구마모토공항', '하네다공항', '신치토세공항'
+] as const;
+
+export const RENTAL_CAR_RETURN_LOCATIONS = [
+    '상동'
+] as const;
+
+export const RENTAL_CAR_TYPES = [
+    '컴팩트카', '승용차', 'SUV', '미니밴', '하이에스(승합차)'
+] as const;
+
+export const INSURANCE_OPTIONS = ['유', '무'] as const;
+
+// 렌트카 픽업시간 옵션 (08:00부터 20:00까지 30분 단위)
+export const RENTAL_CAR_PICKUP_TIMES = [
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+] as const;
+
 export const PAYMENT_TERMS = {
     DOWN_PAYMENT_PERCENTAGE: 30,
     BALANCE_DUE_DAYS: 7

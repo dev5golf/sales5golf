@@ -18,6 +18,13 @@ interface PaymentSummaryProps {
     balance: string;
     balanceDueDate: string;
     totalAmount: string;
+    // 현장결제 관련 props
+    golfOnSiteTotal?: string;
+    rentalCarOnSiteTotal?: string;
+    golfOnSiteYenTotal?: number; // 골프 현장결제 엔화 총합계
+    rentalCarOnSiteYenTotal?: number; // 렌트카 현장결제 엔화 총합계
+    isJapanRegion?: boolean;
+    exchangeRate?: number; // 환율 추가
 }
 
 export default function PaymentSummary({
@@ -29,10 +36,33 @@ export default function PaymentSummary({
     downPayment,
     balance,
     balanceDueDate,
-    totalAmount
+    totalAmount,
+    golfOnSiteTotal = '₩0',
+    rentalCarOnSiteTotal = '₩0',
+    golfOnSiteYenTotal = 0,
+    rentalCarOnSiteYenTotal = 0,
+    isJapanRegion = false,
+    exchangeRate = 8.5 // 환율 기본값 8.5
 }: PaymentSummaryProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+
+    // 현장결제 총비용 계산 (원화)
+    const calculateOnSiteTotal = () => {
+        const golfTotal = parseInt(golfOnSiteTotal.replace(/[₩,]/g, '')) || 0;
+        const rentalCarTotal = parseInt(rentalCarOnSiteTotal.replace(/[₩,]/g, '')) || 0;
+        return golfTotal + rentalCarTotal;
+    };
+
+    // 현장결제 총비용 계산 (엔화)
+    const calculateOnSiteYenTotal = () => {
+        return golfOnSiteYenTotal + rentalCarOnSiteYenTotal;
+    };
+
+    // 원화를 엔화로 변환하는 함수
+    const convertWonToYen = (wonAmount: number): number => {
+        return Math.round(wonAmount / exchangeRate);
+    };
 
     // 계약금 입력 처리
     const handleDownPaymentChange = (value: string) => {
@@ -166,6 +196,74 @@ export default function PaymentSummary({
                     </div>
 
                 </div>
+
+                {/* 현장결제 총비용 - 일본 지역일 때만 표시 */}
+                {isJapanRegion && (
+                    <div className="mt-6">
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                                <h3 className="text-xl font-semibold text-gray-900">현장결제 총비용</h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* 골프(현장결제) - 잠시 숨김 */}
+                                <div className="bg-white p-4 rounded-lg border border-green-200 hidden">
+                                    <div className="text-sm font-medium text-gray-600 mb-2">골프(현장결제)</div>
+                                    <div className="text-lg font-bold text-green-700">
+                                        {golfOnSiteTotal !== '₩0' ? (
+                                            <div className="space-y-1">
+                                                <div>¥{convertWonToYen(parseInt(golfOnSiteTotal.replace(/[₩,]/g, '')))}</div>
+                                                <div className="text-xs font-normal text-gray-500">{golfOnSiteTotal}</div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400">-</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 렌트카(현장결제) - 잠시 숨김 */}
+                                <div className="bg-white p-4 rounded-lg border border-green-200 hidden">
+                                    <div className="text-sm font-medium text-gray-600 mb-2">렌트카(현장결제)</div>
+                                    <div className="text-lg font-bold text-green-700">
+                                        {rentalCarOnSiteTotal !== '₩0' ? (
+                                            <div className="space-y-1">
+                                                <div>¥{convertWonToYen(parseInt(rentalCarOnSiteTotal.replace(/[₩,]/g, '')))}</div>
+                                                <div className="text-xs font-normal text-gray-500">{rentalCarOnSiteTotal}</div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400">-</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 현장결제 총합계 */}
+                                <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-lg border-2 border-green-300 md:col-span-3">
+                                    <div className="text-center">
+                                        <div className="text-sm font-medium text-gray-600 mb-2">현장결제 총합계</div>
+                                        <div className="text-2xl font-bold text-green-800">
+                                            {calculateOnSiteYenTotal() > 0 ? (
+                                                <div className="space-y-1">
+                                                    <div>¥{calculateOnSiteYenTotal()}</div>
+                                                    <div className="text-sm font-normal text-green-600">₩{calculateOnSiteTotal()}</div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-gray-400">-</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <div className="text-sm text-yellow-800">
+                                    <span className="font-medium">※ 현장결제 안내:</span> 위 금액은 현지에서 엔화로 직접 결제하시는 항목입니다.
+                                    환율 변동에 따라 실제 결제 금액이 달라질 수 있습니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 입금 정보 및 안내사항 */}
                 <div className="mt-6">

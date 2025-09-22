@@ -162,3 +162,36 @@ export interface UserFormData {
     courseId?: string;
     isActive: boolean;
 }
+
+// 항공 일정 타입
+export interface FlightSchedule {
+    id: string;
+    date: string;
+    flightSchedule: string;
+    people: string;
+    airline: string;
+    flightNumber: string;
+    baggage: string;
+    duration: string;
+    total: string;
+}
+
+// 렌트카 일정 타입
+export interface RentalCarSchedule {
+    id: string;
+    date: string;
+    pickupLocation: string;
+    pickupTime: string; // 픽업시간 추가
+    returnLocation: string;
+    people: string;
+    rentalDays: string;
+    carType: string;
+    insurance: string;
+    total: string;
+    // 직접입력 모드 필드들
+    pickupLocationDirectInput?: string;
+    returnLocationDirectInput?: string;
+    carTypeDirectInput?: string;
+    // 환율 관련 필드들
+    yenAmount?: string; // 엔화 금액 (현장결제용)
+}

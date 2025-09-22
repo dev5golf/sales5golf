@@ -14,6 +14,8 @@ import GolfScheduleTable from './components/GolfScheduleTable';
 import GolfOnSiteTable from './components/GolfOnSiteTable';
 import AccommodationTable from './components/AccommodationTable';
 import PickupTable from './components/PickupTable';
+import FlightTable from './components/FlightTable';
+import RentalCarTable from './components/RentalCarTable';
 import PaymentSummary from './components/PaymentSummary';
 import PreviewModal from './components/PreviewModal';
 import QuotationListModal from './components/QuotationListModal';
@@ -30,6 +32,10 @@ export default function AdminTools() {
     // 기본/일본 선택 상태
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
 
+    // 환율 상태 (1엔 = ?원)
+    const [exchangeRate, setExchangeRate] = useState<number>(9);
+    const [isLoading, setIsLoading] = useState(false);
+
     // 모달 상태
     const [isQuotationListOpen, setIsQuotationListOpen] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -45,12 +51,20 @@ export default function AdminTools() {
     //     return () => clearInterval(interval);
     // }, [hasUnsavedChanges, quotation.isFormValid()]);
 
-    // 변경사항 감지
+    // 변경사항 감지 (환율 제외)
     useEffect(() => {
         setHasUnsavedChanges(true);
     }, [quotation.quotationData, quotation.golfSchedules,
     quotation.golfOnSiteSchedules, quotation.accommodationSchedules,
-    quotation.pickupSchedules, quotation.paymentInfo, quotation.additionalOptions]);
+    quotation.pickupSchedules, quotation.flightSchedules, quotation.rentalCarSchedules,
+    quotation.rentalCarOnSiteSchedules, quotation.paymentInfo, quotation.additionalOptions]);
+
+    // 일본 지역 선택 시 자동으로 환율 가져오기
+    useEffect(() => {
+        if (regionType === 'japan') {
+            fetchExchangeRate();
+        }
+    }, [regionType]);
 
     // 견적서 저장
     const handleSaveQuotation = async () => {
@@ -61,8 +75,12 @@ export default function AdminTools() {
                 quotation.golfOnSiteSchedules,
                 quotation.accommodationSchedules,
                 quotation.pickupSchedules,
+                quotation.flightSchedules,
+                quotation.rentalCarSchedules,
+                quotation.rentalCarOnSiteSchedules,
                 quotation.paymentInfo,
-                quotation.additionalOptions
+                quotation.additionalOptions,
+                regionType // 지역 타입만 저장
             );
             setHasUnsavedChanges(false);
 
@@ -73,6 +91,23 @@ export default function AdminTools() {
             }, 2000); // 2초 후 자동으로 사라짐
         } catch (error) {
             console.error('저장 실패:', error);
+        }
+    };
+
+    // 환율 가져오기
+    const fetchExchangeRate = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/exchange-rate');
+            const data = await response.json();
+
+            if (data.rate) {
+                setExchangeRate(data.rate);
+            }
+        } catch (error) {
+            console.error('환율 가져오기 실패:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -87,8 +122,20 @@ export default function AdminTools() {
                 quotation.setGolfOnSiteSchedulesData(quotationData.golfOnSiteSchedules);
                 quotation.setAccommodationSchedulesData(quotationData.accommodationSchedules);
                 quotation.setPickupSchedulesData(quotationData.pickupSchedules);
+                quotation.setFlightSchedulesData(quotationData.flightSchedules || []);
+                quotation.setRentalCarSchedulesData(quotationData.rentalCarSchedules || []);
+                quotation.setRentalCarOnSiteSchedulesData(quotationData.rentalCarOnSiteSchedules || []);
                 quotation.setPaymentInfoData(quotationData.paymentInfo);
                 quotation.setAdditionalOptions(quotationData.additionalOptions);
+
+                // 지역 타입 복원 (기존 데이터 호환성을 위해 기본값 'basic' 사용)
+                const loadedRegionType = quotationData.regionType || 'basic';
+                setRegionType(loadedRegionType);
+
+                // 일본 지역이면 자동으로 최신 환율 가져오기
+                if (loadedRegionType === 'japan') {
+                    fetchExchangeRate();
+                }
 
                 setHasUnsavedChanges(false);
             }
@@ -117,6 +164,9 @@ export default function AdminTools() {
         quotation.setGolfOnSiteSchedulesData([]);
         quotation.setAccommodationSchedulesData([]);
         quotation.setPickupSchedulesData([]);
+        quotation.setFlightSchedulesData([]);
+        quotation.setRentalCarSchedulesData([]);
+        quotation.setRentalCarOnSiteSchedulesData([]);
 
         quotation.setPaymentInfoData({
             downPayment: '',
@@ -154,7 +204,7 @@ export default function AdminTools() {
             <QuotationHeader />
 
             {/* 지역 선택 */}
-            <div className="hidden bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900"></h1>
@@ -168,6 +218,25 @@ export default function AdminTools() {
                                 <option value="basic">기본</option>
                                 <option value="japan">일본</option>
                             </select>
+
+                            {/* 일본 선택 시 환율 입력 폼 */}
+                            {regionType === 'japan' && (
+                                <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-300">
+                                    <label className="text-sm font-medium text-gray-700">환율:</label>
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-sm text-gray-600">1엔 =</span>
+                                        <input
+                                            type="number"
+                                            value={exchangeRate}
+                                            readOnly
+                                            step="0.01"
+                                            min="0"
+                                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center bg-gray-100 cursor-not-allowed"
+                                        />
+                                        <span className="text-sm text-gray-600">원</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -207,6 +276,7 @@ export default function AdminTools() {
                         numberOfPeople={quotation.quotationData.numberOfPeople}
                         isFormValid={quotation.isFormValid()}
                         calculatePrepayment={quotation.calculatePrepayment}
+                        exchangeRate={exchangeRate}
                     />
                 )}
 
@@ -232,6 +302,48 @@ export default function AdminTools() {
                     calculatePrepayment={quotation.calculatePrepayment}
                 />
 
+                {/* 항공 일정 테이블 */}
+                <FlightTable
+                    schedules={quotation.flightSchedules}
+                    onAdd={quotation.addFlightSchedule}
+                    onUpdate={quotation.updateFlightSchedule}
+                    onRemove={quotation.removeFlightSchedule}
+                    numberOfPeople={quotation.quotationData.numberOfPeople}
+                    isFormValid={quotation.isFormValid()}
+                    calculatePrepayment={quotation.calculatePrepayment}
+                />
+
+                {/* 렌트카 일정 테이블들 - 일본 선택 시에만 표시 */}
+                {regionType === 'japan' && (
+                    <>
+                        {/* 렌트카(사전결제) 일정 테이블 */}
+                        <RentalCarTable
+                            schedules={quotation.rentalCarSchedules}
+                            onAdd={quotation.addRentalCarSchedule}
+                            onUpdate={quotation.updateRentalCarSchedule}
+                            onRemove={quotation.removeRentalCarSchedule}
+                            numberOfPeople={quotation.quotationData.numberOfPeople}
+                            isFormValid={quotation.isFormValid()}
+                            calculatePrepayment={quotation.calculatePrepayment}
+                            isOnSite={false}
+                            exchangeRate={exchangeRate}
+                        />
+
+                        {/* 렌트카(현장결제) 일정 테이블 */}
+                        <RentalCarTable
+                            schedules={quotation.rentalCarOnSiteSchedules}
+                            onAdd={quotation.addRentalCarOnSiteSchedule}
+                            onUpdate={quotation.updateRentalCarOnSiteSchedule}
+                            onRemove={quotation.removeRentalCarOnSiteSchedule}
+                            numberOfPeople={quotation.quotationData.numberOfPeople}
+                            isFormValid={quotation.isFormValid()}
+                            calculatePrepayment={quotation.calculatePrepayment}
+                            isOnSite={true}
+                            exchangeRate={exchangeRate}
+                        />
+                    </>
+                )}
+
                 {/* 결제 요약 */}
                 <PaymentSummary
                     paymentInfo={quotation.paymentInfo}
@@ -243,6 +355,24 @@ export default function AdminTools() {
                     balance={quotation.calculateBalance()}
                     balanceDueDate={quotation.paymentInfo.balanceDueDate}
                     totalAmount={`₩${quotation.calculateTotalAmount()}`}
+                    golfOnSiteTotal={`₩${quotation.golfOnSiteSchedules.reduce((sum, schedule) => {
+                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        return sum + total;
+                    }, 0)}`}
+                    rentalCarOnSiteTotal={`₩${quotation.rentalCarOnSiteSchedules.reduce((sum, schedule) => {
+                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+                        return sum + total;
+                    }, 0)}`}
+                    golfOnSiteYenTotal={quotation.golfOnSiteSchedules.reduce((sum, schedule) => {
+                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                        return sum + yenAmount;
+                    }, 0)}
+                    rentalCarOnSiteYenTotal={quotation.rentalCarOnSiteSchedules.reduce((sum, schedule) => {
+                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                        return sum + yenAmount;
+                    }, 0)}
+                    isJapanRegion={regionType === 'japan'}
+                    exchangeRate={exchangeRate}
                 />
             </div>
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FlightSchedule, RentalCarSchedule } from '../types';
 
 export interface QuotationData {
     customerName: string;
@@ -19,6 +20,7 @@ export interface GolfSchedule {
     teeOffDirectInput: string;
     total: string;
     isEstimatedAmount: string;
+    yenAmount?: string; // 엔화 금액 추가 (현장결제용)
 }
 
 export interface AccommodationSchedule {
@@ -67,6 +69,9 @@ export const useQuotationData = () => {
     const [golfOnSiteSchedules, setGolfOnSiteSchedules] = useState<GolfSchedule[]>([]);
     const [accommodationSchedules, setAccommodationSchedules] = useState<AccommodationSchedule[]>([]);
     const [pickupSchedules, setPickupSchedules] = useState<PickupSchedule[]>([]);
+    const [flightSchedules, setFlightSchedules] = useState<FlightSchedule[]>([]);
+    const [rentalCarSchedules, setRentalCarSchedules] = useState<RentalCarSchedule[]>([]);
+    const [rentalCarOnSiteSchedules, setRentalCarOnSiteSchedules] = useState<RentalCarSchedule[]>([]);
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
         downPayment: '',
         downPaymentDate: '',
@@ -201,7 +206,96 @@ export const useQuotationData = () => {
         setPickupSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
-    // 총 사전결제 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업)
+    const addFlightSchedule = () => {
+        const newSchedule: FlightSchedule = {
+            id: Date.now().toString(),
+            date: '',
+            flightSchedule: '',
+            people: '',
+            airline: '',
+            flightNumber: '',
+            baggage: '',
+            duration: '',
+            total: ''
+        };
+        setFlightSchedules(prev => [...prev, newSchedule]);
+    };
+
+    const updateFlightSchedule = (id: string, field: keyof FlightSchedule, value: string) => {
+        setFlightSchedules(prev =>
+            prev.map(schedule =>
+                schedule.id === id
+                    ? { ...schedule, [field]: value }
+                    : schedule
+            )
+        );
+    };
+
+    const removeFlightSchedule = (id: string) => {
+        setFlightSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    const addRentalCarSchedule = () => {
+        const newSchedule: RentalCarSchedule = {
+            id: Date.now().toString(),
+            date: '',
+            pickupLocation: '',
+            pickupTime: '', // 픽업시간 추가
+            returnLocation: '',
+            people: '',
+            rentalDays: '',
+            carType: '',
+            insurance: '',
+            total: ''
+        };
+        setRentalCarSchedules(prev => [...prev, newSchedule]);
+    };
+
+    const updateRentalCarSchedule = (id: string, field: keyof RentalCarSchedule, value: string) => {
+        setRentalCarSchedules(prev =>
+            prev.map(schedule =>
+                schedule.id === id
+                    ? { ...schedule, [field]: value }
+                    : schedule
+            )
+        );
+    };
+
+    const removeRentalCarSchedule = (id: string) => {
+        setRentalCarSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    const addRentalCarOnSiteSchedule = () => {
+        const newSchedule: RentalCarSchedule = {
+            id: Date.now().toString(),
+            date: '',
+            pickupLocation: '',
+            pickupTime: '', // 픽업시간 추가
+            returnLocation: '',
+            people: '',
+            rentalDays: '',
+            carType: '',
+            insurance: '',
+            total: ''
+        };
+        setRentalCarOnSiteSchedules(prev => [...prev, newSchedule]);
+    };
+
+    const updateRentalCarOnSiteSchedule = (id: string, field: keyof RentalCarSchedule, value: string) => {
+        setRentalCarOnSiteSchedules(prev =>
+            prev.map(schedule =>
+                schedule.id === id
+                    ? { ...schedule, [field]: value }
+                    : schedule
+            )
+        );
+    };
+
+    const removeRentalCarOnSiteSchedule = (id: string) => {
+        setRentalCarOnSiteSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 총 사전결제 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
     const calculateTotalPrepayment = () => {
         const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
 
@@ -225,11 +319,22 @@ export const useQuotationData = () => {
             return sum + parseInt(prepayment) || 0;
         }, 0);
 
-        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal;
+        const flightTotal = (flightSchedules || []).reduce((sum, schedule) => {
+            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
+            return sum + parseInt(prepayment) || 0;
+        }, 0);
+
+        const rentalCarTotal = (rentalCarSchedules || []).reduce((sum, schedule) => {
+            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
+            return sum + parseInt(prepayment) || 0;
+        }, 0);
+
+        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
         return `₩${total}`;
     };
 
-    // 총 합계 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업)
+    // 총 합계 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
+    // 렌트카(현장결제)는 결제 요약에 포함되지 않음
     const calculateTotalAmount = () => {
         const golfTotal = golfSchedules.reduce((sum, schedule) => {
             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
@@ -251,7 +356,17 @@ export const useQuotationData = () => {
             return sum + total;
         }, 0);
 
-        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal;
+        const flightTotal = (flightSchedules || []).reduce((sum, schedule) => {
+            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+            return sum + total;
+        }, 0);
+
+        const rentalCarTotal = (rentalCarSchedules || []).reduce((sum, schedule) => {
+            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+            return sum + total;
+        }, 0);
+
+        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
         return total;
     };
 
@@ -261,6 +376,21 @@ export const useQuotationData = () => {
         const downPayment = parseInt(paymentInfo.downPayment.replace(/[₩,]/g, '')) || 0;
         const balance = totalAmount - downPayment;
         return `₩${balance}`;
+    };
+
+    // 현장결제 총비용 계산 (골프(현장결제) + 렌트카(현장결제))
+    const calculateOnSiteTotal = () => {
+        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
+            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+            return sum + total;
+        }, 0);
+
+        const rentalCarOnSiteTotal = (rentalCarOnSiteSchedules || []).reduce((sum, schedule) => {
+            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
+            return sum + total;
+        }, 0);
+
+        return golfOnSiteTotal + rentalCarOnSiteTotal;
     };
 
 
@@ -354,6 +484,18 @@ export const useQuotationData = () => {
         setPickupSchedules(schedules);
     };
 
+    const setFlightSchedulesData = (schedules: FlightSchedule[]) => {
+        setFlightSchedules(schedules);
+    };
+
+    const setRentalCarSchedulesData = (schedules: RentalCarSchedule[]) => {
+        setRentalCarSchedules(schedules);
+    };
+
+    const setRentalCarOnSiteSchedulesData = (schedules: RentalCarSchedule[]) => {
+        setRentalCarOnSiteSchedules(schedules);
+    };
+
     const setPaymentInfoData = (info: PaymentInfo) => {
         setPaymentInfo(info);
     };
@@ -368,6 +510,9 @@ export const useQuotationData = () => {
         golfOnSiteSchedules,
         accommodationSchedules,
         pickupSchedules,
+        flightSchedules,
+        rentalCarSchedules,
+        rentalCarOnSiteSchedules,
         paymentInfo,
         additionalOptions,
         updateQuotationData,
@@ -384,10 +529,20 @@ export const useQuotationData = () => {
         addPickupSchedule,
         updatePickupSchedule,
         removePickupSchedule,
+        addFlightSchedule,
+        updateFlightSchedule,
+        removeFlightSchedule,
+        addRentalCarSchedule,
+        updateRentalCarSchedule,
+        removeRentalCarSchedule,
+        addRentalCarOnSiteSchedule,
+        updateRentalCarOnSiteSchedule,
+        removeRentalCarOnSiteSchedule,
         setAdditionalOptions,
         calculateTotalPrepayment,
         calculateTotalAmount,
         calculateBalance,
+        calculateOnSiteTotal,
         generateInclusions,
         isFormValid,
         calculatePricePerPerson,
@@ -397,6 +552,9 @@ export const useQuotationData = () => {
         setGolfOnSiteSchedulesData,
         setAccommodationSchedulesData,
         setPickupSchedulesData,
+        setFlightSchedulesData,
+        setRentalCarSchedulesData,
+        setRentalCarOnSiteSchedulesData,
         setPaymentInfoData,
         setQuotationDataData
     };
