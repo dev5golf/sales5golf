@@ -196,7 +196,7 @@ export default function PaymentSummary({
                                 {/* 사전결제(합계) */}
                                 <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
                                     <div className="text-center">
-                                        <div className="text-sm font-medium text-white mb-3">사전결제</div>
+                                        <div className="text-sm font-medium text-white mb-3">사전결제 총비용</div>
                                         <div className="text-3xl font-bold text-white">{totalAmount}</div>
                                     </div>
                                 </div>
@@ -204,7 +204,7 @@ export default function PaymentSummary({
                                 {/* 현장결제 */}
                                 <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-xl shadow-lg">
                                     <div className="text-center">
-                                        <div className="text-sm font-medium text-white mb-3">현장결제</div>
+                                        <div className="text-sm font-medium text-white mb-3">현장결제 총비용</div>
                                         <div className="text-3xl font-bold text-white">
                                             ¥{calculateOnSiteYenTotal()}
                                         </div>
