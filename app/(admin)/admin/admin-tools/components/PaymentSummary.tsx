@@ -230,9 +230,9 @@ export default function PaymentSummary({
                 {/* 입금 정보 및 안내사항 */}
                 <div className="mt-6">
                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
                             {/* 안내사항 */}
-                            <div>
+                            <div className="md:col-span-4">
                                 <div className="text-sm font-medium text-yellow-800 mb-3">안내사항:</div>
                                 <div className="space-y-1 text-sm text-yellow-700">
                                     {QUOTATION_NOTES.map((note, index) => (
