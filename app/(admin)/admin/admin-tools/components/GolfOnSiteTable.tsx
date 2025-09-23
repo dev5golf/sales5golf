@@ -338,7 +338,7 @@ export default function GolfOnSiteTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-200">
-                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
+                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(JPY)</td>
                                 <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
                                     <div className="space-y-1">
                                         <div>
@@ -347,7 +347,7 @@ export default function GolfOnSiteTable({
                                                 return sum + yenAmount;
                                             }, 0)}
                                         </div>
-                                        <div className="text-xs font-normal text-orange-700">
+                                        <div className="text-lg font-bold text-orange-700">
                                             ₩{schedules.reduce((sum, schedule) => {
                                                 const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                                 return sum + total;
@@ -363,7 +363,7 @@ export default function GolfOnSiteTable({
                                                 return sum + yenAmount;
                                             }, 0) / parseInt(numberOfPeople))}
                                         </div>
-                                        <div className="text-xs font-normal text-orange-700">
+                                        <div className="text-lg font-bold text-orange-700">
                                             ₩{schedules.reduce((sum, schedule) => {
                                                 const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                                 return sum + parseInt(prepayment) || 0;

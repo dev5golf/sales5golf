@@ -444,7 +444,7 @@ export default function RentalCarTable({
                                                     return sum + yenAmount;
                                                 }, 0)}
                                             </div>
-                                            <div className="text-xs font-normal text-green-700">
+                                            <div className="text-lg font-bold text-green-700">
                                                 ₩{schedules.reduce((sum, schedule) => {
                                                     const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                                     return sum + total;
@@ -467,7 +467,7 @@ export default function RentalCarTable({
                                                     return sum + yenAmount;
                                                 }, 0) / parseInt(numberOfPeople))}
                                             </div>
-                                            <div className="text-xs font-normal text-green-700">
+                                            <div className="text-lg font-bold text-green-700">
                                                 ₩{schedules.reduce((sum, schedule) => {
                                                     const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                                     return sum + parseInt(prepayment) || 0;
