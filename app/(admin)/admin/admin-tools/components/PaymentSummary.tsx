@@ -116,154 +116,116 @@ export default function PaymentSummary({
 
                 <div className="space-y-6">
                     {/* 가로 레이아웃: 계약금, 잔금, 합계 */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
-                            <div className="text-center">
-                                <div className="text-sm font-medium text-purple-700 mb-3">계약금</div>
-                                <input
-                                    type="text"
-                                    value={paymentInfo.downPayment}
-                                    onChange={(e) => handleDownPaymentChange(e.target.value)}
-                                    placeholder="₩0"
-                                    className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
-                                />
-                                <div className="mt-3">
-                                    <label className="block text-xs text-purple-600 mb-1">계약금 납부일</label>
-                                    <DatePicker
-                                        selected={paymentInfo.downPaymentDate ? new Date(paymentInfo.downPaymentDate) : null}
-                                        onChange={(date: Date | null) => {
-                                            if (date) {
-                                                setLastSelectedDate(date);
-                                                // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
-                                                const year = date.getFullYear();
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
-                                                const formattedDate = `${year}-${month}-${day}`;
-                                                onPaymentChange('downPaymentDate', formattedDate);
-                                            } else {
-                                                onPaymentChange('downPaymentDate', '');
-                                            }
-                                        }}
-                                        dateFormat="yyyy-MM-dd"
-                                        locale={ko}
-                                        placeholderText="날짜 선택"
-                                        className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-center bg-white"
-                                        showPopperArrow={false}
-                                        popperClassName="react-datepicker-popper"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
-                            <div className="text-center">
-                                <div className="text-sm font-medium text-green-700 mb-3">잔금</div>
-                                <div className="text-2xl font-bold text-green-800 py-3">{balance}</div>
-                                <div className="mt-3">
-                                    <label className="block text-xs text-green-600 mb-1">잔금 납부일</label>
-                                    <DatePicker
-                                        selected={paymentInfo.balanceDueDate ? new Date(paymentInfo.balanceDueDate) : null}
-                                        onChange={(date: Date | null) => {
-                                            if (date) {
-                                                setLastSelectedDate(date);
-                                                // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
-                                                const year = date.getFullYear();
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
-                                                const formattedDate = `${year}-${month}-${day}`;
-                                                onPaymentChange('balanceDueDate', formattedDate);
-                                            } else {
-                                                onPaymentChange('balanceDueDate', '');
-                                            }
-                                        }}
-                                        dateFormat="yyyy-MM-dd"
-                                        locale={ko}
-                                        placeholderText="날짜 선택"
-                                        className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm text-center bg-white"
-                                        showPopperArrow={false}
-                                        popperClassName="react-datepicker-popper"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
-                            <div className="text-center">
-                                <div className="text-sm font-medium text-white mb-3">합계</div>
-                                <div className="text-5xl font-bold text-white py-3">{totalAmount}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* 현장결제 총비용 - 일본 지역일 때만 표시 */}
-                {isJapanRegion && (
-                    <div className="mt-6">
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                                <h3 className="text-xl font-semibold text-gray-900">현장결제 총비용</h3>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* 골프(현장결제) - 잠시 숨김 */}
-                                <div className="bg-white p-4 rounded-lg border border-green-200 hidden">
-                                    <div className="text-sm font-medium text-gray-600 mb-2">골프(현장결제)</div>
-                                    <div className="text-lg font-bold text-green-700">
-                                        {golfOnSiteTotal !== '₩0' ? (
-                                            <div className="space-y-1">
-                                                <div>¥{convertWonToYen(parseInt(golfOnSiteTotal.replace(/[₩,]/g, '')))}</div>
-                                                <div className="text-xs font-normal text-gray-500">{golfOnSiteTotal}</div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-400">-</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* 렌트카(현장결제) - 잠시 숨김 */}
-                                <div className="bg-white p-4 rounded-lg border border-green-200 hidden">
-                                    <div className="text-sm font-medium text-gray-600 mb-2">렌트카(현장결제)</div>
-                                    <div className="text-lg font-bold text-green-700">
-                                        {rentalCarOnSiteTotal !== '₩0' ? (
-                                            <div className="space-y-1">
-                                                <div>¥{convertWonToYen(parseInt(rentalCarOnSiteTotal.replace(/[₩,]/g, '')))}</div>
-                                                <div className="text-xs font-normal text-gray-500">{rentalCarOnSiteTotal}</div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-400">-</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* 현장결제 총합계 */}
-                                <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-lg border-2 border-green-300 md:col-span-3">
+                    <div className={`grid gap-4 ${isJapanRegion ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                        {!isJapanRegion && (
+                            <>
+                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 shadow-sm">
                                     <div className="text-center">
-                                        <div className="text-sm font-medium text-gray-600 mb-2">현장결제 총합계</div>
-                                        <div className="text-2xl font-bold text-green-800">
-                                            {calculateOnSiteYenTotal() > 0 ? (
-                                                <div className="space-y-1">
-                                                    <div>¥{calculateOnSiteYenTotal()}</div>
-                                                    <div className="text-sm font-normal text-green-600">₩{calculateOnSiteTotal()}</div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-gray-400">-</div>
-                                            )}
+                                        <div className="text-sm font-medium text-purple-700 mb-3">계약금</div>
+                                        <input
+                                            type="text"
+                                            value={paymentInfo.downPayment}
+                                            onChange={(e) => handleDownPaymentChange(e.target.value)}
+                                            placeholder="₩0"
+                                            className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
+                                        />
+                                        <div className="mt-3">
+                                            <label className="block text-xs text-purple-600 mb-1">계약금 납부일</label>
+                                            <DatePicker
+                                                selected={paymentInfo.downPaymentDate ? new Date(paymentInfo.downPaymentDate) : null}
+                                                onChange={(date: Date | null) => {
+                                                    if (date) {
+                                                        setLastSelectedDate(date);
+                                                        // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
+                                                        const year = date.getFullYear();
+                                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                        const day = String(date.getDate()).padStart(2, '0');
+                                                        const formattedDate = `${year}-${month}-${day}`;
+                                                        onPaymentChange('downPaymentDate', formattedDate);
+                                                    } else {
+                                                        onPaymentChange('downPaymentDate', '');
+                                                    }
+                                                }}
+                                                dateFormat="yyyy-MM-dd"
+                                                locale={ko}
+                                                placeholderText="날짜 선택"
+                                                className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-center bg-white"
+                                                showPopperArrow={false}
+                                                popperClassName="react-datepicker-popper"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
+                                    <div className="text-center">
+                                        <div className="text-sm font-medium text-green-700 mb-3">잔금</div>
+                                        <div className="text-2xl font-bold text-green-800 py-3">{balance}</div>
+                                        <div className="mt-3">
+                                            <label className="block text-xs text-green-600 mb-1">잔금 납부일</label>
+                                            <DatePicker
+                                                selected={paymentInfo.balanceDueDate ? new Date(paymentInfo.balanceDueDate) : null}
+                                                onChange={(date: Date | null) => {
+                                                    if (date) {
+                                                        setLastSelectedDate(date);
+                                                        // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
+                                                        const year = date.getFullYear();
+                                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                        const day = String(date.getDate()).padStart(2, '0');
+                                                        const formattedDate = `${year}-${month}-${day}`;
+                                                        onPaymentChange('balanceDueDate', formattedDate);
+                                                    } else {
+                                                        onPaymentChange('balanceDueDate', '');
+                                                    }
+                                                }}
+                                                dateFormat="yyyy-MM-dd"
+                                                locale={ko}
+                                                placeholderText="날짜 선택"
+                                                className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm text-center bg-white"
+                                                showPopperArrow={false}
+                                                popperClassName="react-datepicker-popper"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {isJapanRegion ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* 사전결제(합계) */}
+                                <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
+                                    <div className="text-center">
+                                        <div className="text-sm font-medium text-white mb-3">사전결제</div>
+                                        <div className="text-3xl font-bold text-white">{totalAmount}</div>
+                                    </div>
+                                </div>
+
+                                {/* 현장결제 */}
+                                <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-xl shadow-lg">
+                                    <div className="text-center">
+                                        <div className="text-sm font-medium text-white mb-3">현장결제</div>
+                                        <div className="text-3xl font-bold text-white">
+                                            ¥{calculateOnSiteYenTotal()}
+                                        </div>
+                                        <div className="text-2xl font-medium text-green-100 mt-1">
+                                            ₩{calculateOnSiteTotal()}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                                <div className="text-sm text-yellow-800">
-                                    <span className="font-medium">※ 현장결제 안내:</span> 위 금액은 현지에서 엔화로 직접 결제하시는 항목입니다.
-                                    환율 변동에 따라 실제 결제 금액이 달라질 수 있습니다.
+                        ) : (
+                            <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
+                                <div className="text-center">
+                                    <div className="text-sm font-medium text-white mb-3">합계</div>
+                                    <div className="text-5xl font-bold text-white py-3">{totalAmount}</div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
-                )}
+
+                </div>
+
 
                 {/* 입금 정보 및 안내사항 */}
                 <div className="mt-6">

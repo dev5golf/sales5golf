@@ -374,18 +374,13 @@ export default function RentalCarTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     {isOnSite ? (
-                                        <div className="space-y-1">
-                                            <input
-                                                type="text"
-                                                value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
-                                                onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
-                                                placeholder="¥0"
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
-                                            />
-                                            <div className="text-xs text-gray-500">
-                                                {schedule.total || '₩0'}
-                                            </div>
-                                        </div>
+                                        <input
+                                            type="text"
+                                            value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
+                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                            placeholder="¥0"
+                                            className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
+                                        />
                                     ) : (
                                         <input
                                             type="text"
@@ -398,18 +393,11 @@ export default function RentalCarTable({
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     {isOnSite ? (
-                                        <div className="space-y-1">
+                                        <div className="text-lg font-medium text-gray-900">
                                             {schedule.yenAmount ? (
-                                                <>
-                                                    <div className="text-lg font-medium text-gray-900">
-                                                        ¥{Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        ₩{calculatePrepayment(schedule.total, parseInt(numberOfPeople))}
-                                                    </div>
-                                                </>
+                                                `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
                                             ) : (
-                                                <div className="text-lg font-medium text-gray-900">-</div>
+                                                '-'
                                             )}
                                         </div>
                                     ) : (
@@ -437,20 +425,10 @@ export default function RentalCarTable({
                                 <td colSpan={8} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계({isOnSite ? 'JPY' : 'KRW'})</td>
                                 <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
                                     {isOnSite ? (
-                                        <div className="space-y-1">
-                                            <div>
-                                                ¥{schedules.reduce((sum, schedule) => {
-                                                    const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-                                                    return sum + yenAmount;
-                                                }, 0)}
-                                            </div>
-                                            <div className="text-lg font-bold text-green-700">
-                                                ₩{schedules.reduce((sum, schedule) => {
-                                                    const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                                                    return sum + total;
-                                                }, 0)}
-                                            </div>
-                                        </div>
+                                        `¥${schedules.reduce((sum, schedule) => {
+                                            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                            return sum + yenAmount;
+                                        }, 0)}`
                                     ) : (
                                         `₩${schedules.reduce((sum, schedule) => {
                                             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
@@ -460,20 +438,10 @@ export default function RentalCarTable({
                                 </td>
                                 <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
                                     {isOnSite ? (
-                                        <div className="space-y-1">
-                                            <div>
-                                                ¥{Math.round(schedules.reduce((sum, schedule) => {
-                                                    const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-                                                    return sum + yenAmount;
-                                                }, 0) / parseInt(numberOfPeople))}
-                                            </div>
-                                            <div className="text-lg font-bold text-green-700">
-                                                ₩{schedules.reduce((sum, schedule) => {
-                                                    const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
-                                                    return sum + parseInt(prepayment) || 0;
-                                                }, 0)}
-                                            </div>
-                                        </div>
+                                        `¥${Math.round(schedules.reduce((sum, schedule) => {
+                                            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                            return sum + yenAmount;
+                                        }, 0) / parseInt(numberOfPeople))}`
                                     ) : (
                                         `₩${schedules.reduce((sum, schedule) => {
                                             const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));

@@ -403,6 +403,11 @@ export const useQuotationData = () => {
             inclusions.push(`골프 ${golfSchedules.length}회`);
         }
 
+        // 골프 현장결제 회수
+        if (golfOnSiteSchedules.length > 0) {
+            inclusions.push(`골프(현장결제) ${golfOnSiteSchedules.length}회`);
+        }
+
         // 숙박 박수 (모든 숙박의 박수 합산)
         const totalNights = accommodationSchedules.reduce((sum, schedule) => {
             const nights = parseInt(schedule.nights) || 0;
@@ -428,6 +433,21 @@ export const useQuotationData = () => {
 
         if (pickupInclusions.length > 0) {
             inclusions.push(pickupInclusions.join(", "));
+        }
+
+        // 렌트카 사전결제 대수
+        if (rentalCarSchedules.length > 0) {
+            inclusions.push(`렌트카(사전결제) ${rentalCarSchedules.length}대`);
+        }
+
+        // 렌트카 현장결제 대수
+        if (rentalCarOnSiteSchedules.length > 0) {
+            inclusions.push(`렌트카(현장결제) ${rentalCarOnSiteSchedules.length}대`);
+        }
+
+        // 항공 (행의 수에 상관없이 그냥 "항공"으로 표기)
+        if (flightSchedules.length > 0) {
+            inclusions.push(`항공`);
         }
 
         return inclusions.join(" / ");
