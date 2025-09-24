@@ -183,6 +183,7 @@ export interface RentalCarSchedule {
     pickupLocation: string;
     pickupTime: string; // 픽업시간 추가
     returnLocation: string;
+    returnTime: string; // 반납시간 추가
     people: string;
     rentalDays: string;
     carType: string;

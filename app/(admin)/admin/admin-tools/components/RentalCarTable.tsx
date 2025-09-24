@@ -6,7 +6,7 @@ import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { RentalCarSchedule } from '../../../../../types';
-import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, INSURANCE_OPTIONS, RENTAL_CAR_PICKUP_TIMES } from '../../../../../constants/quotationConstants';
+import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -33,10 +33,15 @@ export default function RentalCarTable({
     isOnSite = false,
     exchangeRate = 8.5 // 환율 기본값 8.5
 }: RentalCarTableProps) {
-    // 마지막 선택한 날짜를 기억하는 상태
-    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
+    // 마지막 선택한 날짜 범위를 기억하는 상태
+    const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
     // 각 스케줄별 직접입력 모드 상태 (픽업장소, 반납장소, 대표차종)
     const [directInputMode, setDirectInputMode] = useState<{ [key: string]: { pickupLocation: boolean; returnLocation: boolean; carType: boolean } }>({});
+
+    // 날짜 유효성 검사 함수
+    const isValidDate = (date: Date): boolean => {
+        return date instanceof Date && !isNaN(date.getTime());
+    };
 
     // 엔화를 원화로 변환하는 함수
     const convertYenToWon = (yenAmount: number): number => {
@@ -164,14 +169,14 @@ export default function RentalCarTable({
                 <table className="w-full table-fixed">
                     <thead>
                         <tr className={`bg-gradient-to-r ${headerColorClass} border-b border-gray-200`}>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">날짜</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">픽업장소</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">픽업시간</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">픽업시간</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">반납장소</th>
+                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">반납시간</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">인원</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">이용일수</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">대표차종</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">보험유무</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">현장결제(1인)</th>
                             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
@@ -180,37 +185,76 @@ export default function RentalCarTable({
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`${rowHoverClass} transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-48 text-center">
                                     <DatePicker
-                                        key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
                                         selected={(() => {
                                             if (!schedule.date) return null;
-
-                                            // MM/DD 형식인 경우 Date 객체로 변환
-                                            if (schedule.date.includes('/')) {
-                                                const [month, day] = schedule.date.split('/');
-                                                const currentYear = new Date().getFullYear();
-                                                return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                            if (schedule.date.includes('-')) {
+                                                const [startDateStr] = schedule.date.split('-');
+                                                const [year, month, day] = startDateStr.split('/');
+                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                return isValidDate(date) ? date : null;
                                             }
-
                                             return null;
                                         })()}
-                                        openToDate={lastSelectedDate || new Date()}
-                                        onChange={(date: Date | null) => {
-                                            if (date) {
-                                                // 마지막 선택한 날짜 업데이트
-                                                setLastSelectedDate(date);
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
-                                                const formattedDate = `${month}/${day}`;
+                                        startDate={(() => {
+                                            if (!schedule.date) return lastSelectedDateRange[0];
+                                            if (schedule.date.includes('-')) {
+                                                const [startDateStr] = schedule.date.split('-');
+                                                const [year, month, day] = startDateStr.split('/');
+                                                const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                return isValidDate(date) ? date : lastSelectedDateRange[0];
+                                            }
+                                            return lastSelectedDateRange[0];
+                                        })()}
+                                        endDate={(() => {
+                                            if (!schedule.date) return lastSelectedDateRange[1];
+                                            if (schedule.date.includes('-')) {
+                                                const [, endDateStr] = schedule.date.split('-');
+                                                const parts = endDateStr.split('/');
+
+                                                if (parts.length === 2) {
+                                                    // 기존 형식: "10/16" - 시작 날짜의 연도 사용
+                                                    const [startDateStr] = schedule.date.split('-');
+                                                    const [startYear] = startDateStr.split('/');
+                                                    const [month, day] = parts;
+                                                    const fullYear = parseInt(startYear) < 50 ? 2000 + parseInt(startYear) : 1900 + parseInt(startYear);
+                                                    const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                    return isValidDate(date) ? date : lastSelectedDateRange[1];
+                                                } else if (parts.length === 3) {
+                                                    // 새 형식: "25/10/16" - 연도 포함
+                                                    const [year, month, day] = parts;
+                                                    const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                    const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                    return isValidDate(date) ? date : lastSelectedDateRange[1];
+                                                }
+                                            }
+                                            return lastSelectedDateRange[1];
+                                        })()}
+                                        selectsRange
+                                        onChange={(dates: [Date | null, Date | null]) => {
+                                            const [start, end] = dates;
+                                            setLastSelectedDateRange([start, end]);
+
+                                            if (start && end) {
+                                                const startYear = start.getFullYear().toString().slice(-2);
+                                                const startMonth = String(start.getMonth() + 1).padStart(2, '0');
+                                                const startDay = String(start.getDate()).padStart(2, '0');
+                                                const endYear = end.getFullYear().toString().slice(-2);
+                                                const endMonth = String(end.getMonth() + 1).padStart(2, '0');
+                                                const endDay = String(end.getDate()).padStart(2, '0');
+
+                                                const formattedDate = `${startYear}/${startMonth}/${startDay}-${endYear}/${endMonth}/${endDay}`;
                                                 onUpdate(schedule.id, 'date', formattedDate);
                                             } else {
                                                 onUpdate(schedule.id, 'date', '');
                                             }
                                         }}
-                                        dateFormat="MM/dd"
+                                        dateFormat="yy/MM/dd"
                                         locale={ko}
-                                        placeholderText="MM/DD"
+                                        placeholderText="YY/MM/DD-MM/DD"
                                         className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
@@ -254,7 +298,7 @@ export default function RentalCarTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-28 text-center">
                                     <select
                                         value={schedule.pickupTime}
                                         onChange={(e) => onUpdate(schedule.id, 'pickupTime', e.target.value)}
@@ -303,6 +347,18 @@ export default function RentalCarTable({
                                             </select>
                                         )}
                                     </div>
+                                </td>
+                                <td className="px-4 py-4 w-28 text-center">
+                                    <select
+                                        value={(schedule as any).returnTime || ''}
+                                        onChange={(e) => onUpdate(schedule.id, 'returnTime' as keyof RentalCarSchedule, e.target.value)}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
+                                    >
+                                        <option value="">선택하세요</option>
+                                        {RENTAL_CAR_RETURN_TIMES.map((time) => (
+                                            <option key={time} value={time}>{time}</option>
+                                        ))}
+                                    </select>
                                 </td>
                                 <td className="px-4 py-4 w-28 text-center">
                                     <input
@@ -359,18 +415,6 @@ export default function RentalCarTable({
                                             </select>
                                         )}
                                     </div>
-                                </td>
-                                <td className="px-4 py-4 w-24 text-center">
-                                    <select
-                                        value={schedule.insurance}
-                                        onChange={(e) => onUpdate(schedule.id, 'insurance', e.target.value)}
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
-                                    >
-                                        <option value="">선택하세요</option>
-                                        {INSURANCE_OPTIONS.map((option) => (
-                                            <option key={option} value={option}>{option}</option>
-                                        ))}
-                                    </select>
                                 </td>
                                 <td className="px-4 py-4 w-32 text-center">
                                     {isOnSite ? (
