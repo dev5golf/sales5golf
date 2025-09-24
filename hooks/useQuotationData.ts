@@ -273,6 +273,7 @@ export const useQuotationData = () => {
             pickupLocation: '',
             pickupTime: '', // 픽업시간 추가
             returnLocation: '',
+            returnTime: '', // 반납시간 추가
             people: '',
             rentalDays: '',
             carType: '',
