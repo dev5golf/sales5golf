@@ -86,29 +86,6 @@ export default function PaymentSummary({
 
     return (
         <>
-            {/* 안내사항 */}
-            <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">안내사항</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                    {QUOTATION_NOTES.map((note, index) => (
-                        <li key={index} className="flex items-start">
-                            <span className="text-gray-400 mr-2">•</span>
-                            <span>{note}</span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* 추가 선택사항 */}
-            <div className="mt-8 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">추가선택사항</h3>
-                <textarea
-                    value={additionalOptions}
-                    onChange={(e) => onAdditionalOptionsChange(e.target.value)}
-                    placeholder=""
-                    className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                />
-            </div>
 
             {/* 결제 요약 */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -227,23 +204,34 @@ export default function PaymentSummary({
                 </div>
 
 
-                {/* 입금 정보 및 안내사항 */}
+                {/* 추가 선택사항 */}
+                <div className="mt-6 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">추가선택사항</h3>
+                    <textarea
+                        value={additionalOptions}
+                        onChange={(e) => onAdditionalOptionsChange(e.target.value)}
+                        placeholder=""
+                        className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                </div>
+
+                {/* 안내사항 */}
+                <div className="mt-6 p-6 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">안내사항</h3>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                        {QUOTATION_NOTES.map((note, index) => (
+                            <li key={index} className="flex items-start">
+                                <span className="text-gray-400 mr-2">•</span>
+                                <span>{note}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* 입금 정보 */}
                 <div className="mt-6">
                     <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
-                            {/* 안내사항 */}
-                            <div className="md:col-span-4">
-                                <div className="text-sm font-medium text-yellow-800 mb-3">안내사항:</div>
-                                <div className="space-y-1 text-sm text-yellow-700">
-                                    {QUOTATION_NOTES.map((note, index) => (
-                                        <div key={index} className="flex items-start">
-                                            <span className="text-yellow-600 mr-2">•</span>
-                                            <span>{note}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* 입금하실 곳 */}
                             <div>
                                 <div className="text-sm font-medium text-yellow-800 mb-3">입금하실 곳:</div>
