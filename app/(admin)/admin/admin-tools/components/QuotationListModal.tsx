@@ -12,9 +12,10 @@ interface QuotationListModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSelectQuotation: (quotationId: string) => void;
+    currentUserId?: string;
 }
 
-const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationListModalProps) => {
+const QuotationListModal = ({ isOpen, onClose, onSelectQuotation, currentUserId }: QuotationListModalProps) => {
     const {
         quotationList,
         isLoading,
@@ -172,27 +173,31 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation }: QuotationLis
                                                 </div>
 
                                                 <div className="flex items-center gap-2 ml-4">
-                                                    <select
-                                                        value={quotation.status}
-                                                        onChange={(e) => handleStatusChange(quotation.id, e.target.value as any)}
-                                                        className="text-xs px-2 py-1 border border-gray-300 rounded"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <option value="draft">임시저장</option>
-                                                        <option value="completed">완료</option>
-                                                    </select>
+                                                    {quotation.createdBy === currentUserId && (
+                                                        <select
+                                                            value={quotation.status}
+                                                            onChange={(e) => handleStatusChange(quotation.id, e.target.value as any)}
+                                                            className="text-xs px-2 py-1 border border-gray-300 rounded"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <option value="draft">임시저장</option>
+                                                            <option value="completed">완료</option>
+                                                        </select>
+                                                    )}
 
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteQuotation(quotation.id);
-                                                        }}
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                    >
-                                                        삭제
-                                                    </Button>
+                                                    {quotation.createdBy === currentUserId && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteQuotation(quotation.id);
+                                                            }}
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        >
+                                                            삭제
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

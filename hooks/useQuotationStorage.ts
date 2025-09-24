@@ -20,7 +20,7 @@ import {
 } from './useQuotationData';
 import { FlightSchedule, RentalCarSchedule } from '../types';
 
-export const useQuotationStorage = () => {
+export const useQuotationStorage = (currentUserId?: string) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [quotationList, setQuotationList] = useState<QuotationListItem[]>([]);
@@ -58,7 +58,8 @@ export const useQuotationStorage = () => {
                 additionalOptions,
                 regionType, // 지역 타입만 저장
                 currentQuotationId || undefined,
-                title
+                title,
+                currentUserId
             );
 
             setCurrentQuotationId(quotationId);

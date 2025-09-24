@@ -9,10 +9,11 @@ interface UserModalProps {
     isOpen: boolean;
     onClose: () => void;
     user?: User | null;
+    currentUser?: User | null;
     onSave: () => void;
 }
 
-export default function UserModal({ isOpen, onClose, user, onSave }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, user, currentUser, onSave }: UserModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -184,8 +185,13 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!!user} // 수정 모드일 때 비활성화
+                        placeholder={!user ? "이메일은 등록 후 수정할 수 없습니다" : ""}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${!!user ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     />
+                    {user && (
+                        <p className="text-xs text-gray-500 mt-1">이메일은 수정할 수 없습니다.</p>
+                    )}
                 </div>
 
                 {!user && (
@@ -231,7 +237,9 @@ export default function UserModal({ isOpen, onClose, user, onSave }: UserModalPr
                         <option value="user">일반 사용자</option>
                         <option value="course_admin">골프장 관리자</option>
                         <option value="site_admin">사이트 관리자</option>
-                        <option value="super_admin">통합 관리자</option>
+                        {currentUser?.role === 'super_admin' && (
+                            <option value="super_admin">통합 관리자</option>
+                        )}
                     </select>
                 </div>
 

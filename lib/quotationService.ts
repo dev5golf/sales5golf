@@ -51,6 +51,7 @@ export interface QuotationListItem {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     status: 'draft' | 'completed';
+    createdBy: string;
 }
 
 // 견적서 저장
@@ -67,7 +68,8 @@ export const saveQuotation = async (
     additionalOptions: string,
     regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
     quotationId?: string,
-    title?: string
+    title?: string,
+    currentUserId?: string
 ): Promise<string> => {
     try {
         const now = Timestamp.now();
@@ -109,7 +111,7 @@ export const saveQuotation = async (
             title: generateTitle(),
             createdAt: quotationId ? (await getDoc(doc(db, 'quotations', quotationId))).data()?.createdAt || now : now,
             updatedAt: now,
-            createdBy: 'admin', // TODO: 실제 사용자 ID로 변경
+            createdBy: currentUserId || 'admin',
             status: 'draft',
             regionType, // 지역 타입만 저장
             quotationData,

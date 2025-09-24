@@ -93,7 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <span>티타임 관리</span>
                         </Link>
 
-                        {user?.role === 'super_admin' && (
+                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
                             <Link
                                 href="/admin/users"
                                 onClick={() => {

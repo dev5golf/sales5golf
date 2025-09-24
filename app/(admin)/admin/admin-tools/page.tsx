@@ -27,7 +27,7 @@ export default function AdminTools() {
     // 커스텀 훅 사용
     const quotation = useQuotationData();
     const preview = usePreview();
-    const storage = useQuotationStorage();
+    const storage = useQuotationStorage(user?.id);
 
     // 기본/일본 선택 상태
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
@@ -441,6 +441,7 @@ export default function AdminTools() {
                 isOpen={isQuotationListOpen}
                 onClose={() => setIsQuotationListOpen(false)}
                 onSelectQuotation={handleLoadQuotation}
+                currentUserId={user?.id}
             />
 
             {/* 저장 성공 팝업 */}

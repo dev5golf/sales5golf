@@ -30,8 +30,8 @@ export default function UsersPage() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
-    if (!authLoading && currentUser?.role !== 'super_admin') {
+    // 권한 검사 - 수퍼관리자나 사이트관리자가 아니면 아예 렌더링하지 않음
+    if (!authLoading && currentUser?.role !== 'super_admin' && currentUser?.role !== 'site_admin') {
         router.push('/admin/tee-times');
         return null;
     }
@@ -230,8 +230,8 @@ export default function UsersPage() {
                             <TableHead>이름</TableHead>
                             <TableHead>이메일</TableHead>
                             <TableHead>전화번호</TableHead>
-                            <TableHead>역할</TableHead>
-                            <TableHead>골프장</TableHead>
+                            <TableHead className="hidden">역할</TableHead>
+                            <TableHead className="hidden">골프장</TableHead>
                             <TableHead>상태</TableHead>
                             <TableHead>액션</TableHead>
                         </TableRow>
@@ -246,12 +246,12 @@ export default function UsersPage() {
                                 </TableCell>
                                 <TableCell className="text-gray-600">{user.email}</TableCell>
                                 <TableCell className="text-gray-600">{user.phone || '-'}</TableCell>
-                                <TableCell>
+                                <TableCell className="hidden">
                                     <Badge variant={getRoleBadgeVariant(user.role) as any}>
                                         {getRoleDisplayName(user.role)}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-gray-600">{user.courseName || '-'}</TableCell>
+                                <TableCell className="hidden text-gray-600">{user.courseName || '-'}</TableCell>
                                 <TableCell>
                                     <Badge variant={user.isActive ? 'active' : 'inactive'}>
                                         {user.isActive ? '활성' : '비활성'}
@@ -259,25 +259,29 @@ export default function UsersPage() {
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex gap-2">
-                                        <Button
-                                            onClick={() => {
-                                                setSelectedUser(user);
-                                                setShowEditModal(true);
-                                            }}
-                                            size="sm"
-                                            variant="outline"
-                                            title="수정"
-                                        >
-                                            <i className="fas fa-edit"></i>
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleDeleteUser(user.id, user.name)}
-                                            size="sm"
-                                            variant="destructive"
-                                            title="삭제"
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </Button>
+                                        {(isSuperAdmin || (currentUser?.role === 'site_admin' && user.id === currentUser?.id)) && (
+                                            <Button
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setShowEditModal(true);
+                                                }}
+                                                size="sm"
+                                                variant="outline"
+                                                title="수정"
+                                            >
+                                                <i className="fas fa-edit"></i>
+                                            </Button>
+                                        )}
+                                        {isSuperAdmin && (
+                                            <Button
+                                                onClick={() => handleDeleteUser(user.id, user.name)}
+                                                size="sm"
+                                                variant="destructive"
+                                                title="삭제"
+                                            >
+                                                <i className="fas fa-trash"></i>
+                                            </Button>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -330,6 +334,7 @@ export default function UsersPage() {
                     setSelectedUser(null);
                 }}
                 user={null}
+                currentUser={currentUser}
                 onSave={() => {
                     fetchUsers();
                     setShowCreateModal(false);
@@ -345,6 +350,7 @@ export default function UsersPage() {
                     setSelectedUser(null);
                 }}
                 user={selectedUser}
+                currentUser={currentUser}
                 onSave={() => {
                     fetchUsers();
                     setShowEditModal(false);
