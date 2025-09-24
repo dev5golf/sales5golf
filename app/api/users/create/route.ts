@@ -8,9 +8,17 @@ import { join } from 'path';
 // Firebase Admin SDK 초기화
 if (!getApps().length) {
     try {
-        // JSON 파일에서 서비스 계정 키 가져오기
-        const serviceAccountPath = join(process.cwd(), 'firebase-service-account.json');
-        const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+        let serviceAccount;
+
+        // Vercel 환경에서는 환경 변수 사용, 로컬에서는 파일 사용
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+            // Vercel 환경: 환경 변수에서 서비스 계정 키 가져오기
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        } else {
+            // 로컬 환경: JSON 파일에서 서비스 계정 키 가져오기
+            const serviceAccountPath = join(process.cwd(), 'firebase-service-account.json');
+            serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+        }
 
         initializeApp({
             credential: cert(serviceAccount),
