@@ -19,7 +19,7 @@ import {
     PickupSchedule,
     PaymentInfo
 } from '@/hooks/useQuotationData';
-import { FlightSchedule, RentalCarSchedule } from '@/types';
+import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
 
 export interface QuotationDocument {
     id: string;

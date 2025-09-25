@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { RentalCarSchedule } from '../../../../../types';
+import { RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
@@ -424,6 +424,7 @@ export default function RentalCarTable({
                                             onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                             placeholder="¥0"
                                             className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
+                                            translate="no"
                                         />
                                     ) : (
                                         <input
@@ -432,10 +433,11 @@ export default function RentalCarTable({
                                             onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                             placeholder="₩0"
                                             className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
+                                            translate="no"
                                         />
                                     )}
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-32 text-center" translate="no">
                                     {isOnSite ? (
                                         <div className="text-lg font-medium text-gray-900">
                                             {schedule.yenAmount ? (
@@ -467,7 +469,7 @@ export default function RentalCarTable({
                         {schedules.length > 0 && (
                             <tr className={`bg-gradient-to-r ${totalRowClass} border-t-2 border-gray-200`}>
                                 <td colSpan={8} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계({isOnSite ? 'JPY' : 'KRW'})</td>
-                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
+                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`} translate="no">
                                     {isOnSite ? (
                                         `¥${schedules.reduce((sum, schedule) => {
                                             const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
@@ -480,7 +482,7 @@ export default function RentalCarTable({
                                         }, 0)}`
                                     )}
                                 </td>
-                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
+                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`} translate="no">
                                     {isOnSite ? (
                                         `¥${Math.round(schedules.reduce((sum, schedule) => {
                                             const yenAmount = parseInt(schedule.yenAmount || '0') || 0;

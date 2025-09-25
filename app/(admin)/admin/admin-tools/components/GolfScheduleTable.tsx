@@ -5,10 +5,10 @@ import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { GolfSchedule } from '../../../../../hooks/useQuotationData';
+import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
-import { Course } from '../../../../../types';
+import { Course } from '@/types';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -89,17 +89,6 @@ export default function GolfScheduleTable({
         onUpdate(id, 'total', formattedTotal);
     };
 
-    // 입력 필드에서 실시간으로 숫자만 허용하는 핸들러
-    const handleInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 원화 표기와 함께 저장 (천단위 콤마 없음)
-        const finalValue = numericValue ? `₩${numericValue}` : '';
-        onUpdate(id, 'total', finalValue);
-    };
 
     // 직접입력 모드 토글 핸들러
     const handleDirectInputToggle = (id: string) => {
@@ -304,13 +293,14 @@ export default function GolfScheduleTable({
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.total}
-                                            onChange={(e) => handleInputChange(schedule.id, e)}
+                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                             placeholder="₩0"
                                             className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            translate="no"
                                         />
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-32 text-center" translate="no">
                                     <span className="text-lg font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
@@ -334,13 +324,13 @@ export default function GolfScheduleTable({
                                 <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">
                                     총 합계(KRW){schedules.some(schedule => estimatedAmountMode[schedule.id]) && <span className="text-blue-600 ml-1">(예상금액)</span>}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;

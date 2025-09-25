@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { PaymentInfo } from '../../../../../hooks/useQuotationData';
+import { PaymentInfo } from '@/app/(admin)/admin/admin-tools/types';
 import { BANK_INFO, QUOTATION_NOTES } from '../../../../../constants/quotationConstants';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
@@ -105,6 +105,7 @@ export default function PaymentSummary({
                                             onChange={(e) => handleDownPaymentChange(e.target.value)}
                                             placeholder="₩0"
                                             className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold text-gray-800 bg-white"
+                                            translate="no"
                                         />
                                         <div className="mt-3">
                                             <label className="block text-xs text-purple-600 mb-1">계약금 납부일</label>
@@ -137,7 +138,7 @@ export default function PaymentSummary({
                                 <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-green-700 mb-3">잔금</div>
-                                        <div className="text-2xl font-bold text-green-800 py-3">{balance}</div>
+                                        <div className="text-2xl font-bold text-green-800 py-3" translate="no">{balance}</div>
                                         <div className="mt-3">
                                             <label className="block text-xs text-green-600 mb-1">잔금 납부일</label>
                                             <DatePicker
@@ -174,7 +175,7 @@ export default function PaymentSummary({
                                 <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-white mb-3">사전결제 총비용</div>
-                                        <div className="text-3xl font-bold text-white">{totalAmount}</div>
+                                        <div className="text-3xl font-bold text-white" translate="no">{totalAmount}</div>
                                     </div>
                                 </div>
 
@@ -182,10 +183,10 @@ export default function PaymentSummary({
                                 <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-xl shadow-lg">
                                     <div className="text-center">
                                         <div className="text-sm font-medium text-white mb-3">현장결제 총비용</div>
-                                        <div className="text-3xl font-bold text-white">
+                                        <div className="text-3xl font-bold text-white" translate="no">
                                             ¥{calculateOnSiteYenTotal()}
                                         </div>
-                                        <div className="text-2xl font-medium text-green-100 mt-1">
+                                        <div className="text-2xl font-medium text-green-100 mt-1" translate="no">
                                             ₩{calculateOnSiteTotal()}
                                         </div>
                                     </div>
@@ -195,7 +196,7 @@ export default function PaymentSummary({
                             <div className="bg-gradient-to-r from-indigo-500 to-blue-600 p-6 rounded-xl shadow-lg">
                                 <div className="text-center">
                                     <div className="text-sm font-medium text-white mb-3">합계</div>
-                                    <div className="text-5xl font-bold text-white py-3">{totalAmount}</div>
+                                    <div className="text-5xl font-bold text-white py-3" translate="no">{totalAmount}</div>
                                 </div>
                             </div>
                         )}

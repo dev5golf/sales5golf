@@ -4,11 +4,6 @@ export const VEHICLE_TYPES = ['승용차', 'SUV', '밴', '대형버스'] as cons
 
 export const DESTINATION_OPTIONS = ['공항 > 숙소', '숙소 <> 골프장', '숙소 > 골프장 > 공항', '숙소 > 공항', '일일렌탈 10시간', '일일렌탈 12시간', '편도이동'] as const;
 
-export const ROOM_TYPES = ['스탠다드', '슈페리어', '디럭스', '스위트'] as const;
-
-export const MEAL_OPTIONS = ['조식', '중식', '석식', '전식'] as const;
-
-export const TEE_OFF_TIMES = ['오전', '오후', '새벽'] as const;
 
 // 렌트카 관련 상수
 export const RENTAL_CAR_PICKUP_LOCATIONS = [
@@ -23,7 +18,6 @@ export const RENTAL_CAR_TYPES = [
     '컴팩트카', '승용차', 'SUV', '미니밴', '하이에스(승합차)'
 ] as const;
 
-export const INSURANCE_OPTIONS = ['유', '무'] as const;
 
 // 렌트카 픽업시간 옵션 (08:00부터 20:00까지 30분 단위)
 export const RENTAL_CAR_PICKUP_TIMES = [
@@ -41,10 +35,6 @@ export const RENTAL_CAR_RETURN_TIMES = [
     '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
 ] as const;
 
-export const PAYMENT_TERMS = {
-    DOWN_PAYMENT_PERCENTAGE: 30,
-    BALANCE_DUE_DAYS: 7
-} as const;
 
 export const BANK_INFO = {
     BANK_NAME: '우리은행',

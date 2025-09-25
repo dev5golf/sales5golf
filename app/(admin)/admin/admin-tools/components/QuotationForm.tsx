@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { QuotationData, GolfSchedule, AccommodationSchedule, PickupSchedule } from '../../../../../hooks/useQuotationData';
+import { QuotationData, GolfSchedule, AccommodationSchedule, PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -202,7 +202,7 @@ export default function QuotationForm({
                         <div className="pt-3 border-t border-blue-200">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-gray-700">1인당 요금</span>
-                                <span className="text-lg font-bold text-blue-600">{pricePerPerson}</span>
+                                <span className="text-lg font-bold text-blue-600" translate="no">{pricePerPerson}</span>
                             </div>
                         </div>
                     </div>

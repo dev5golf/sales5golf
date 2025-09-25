@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Course } from '../types';
+import { Course } from '@/types';
 
 export const useGolfCourses = () => {
     const [courses, setCourses] = useState<Course[]>([]);

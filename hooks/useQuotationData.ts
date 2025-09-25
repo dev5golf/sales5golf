@@ -1,59 +1,13 @@
 import { useState } from 'react';
-import { FlightSchedule, RentalCarSchedule } from '../types';
-
-export interface QuotationData {
-    customerName: string;
-    destination: string;
-    travelPeriod: string;
-    startDate: string;
-    endDate: string;
-    numberOfPeople: string;
-}
-
-export interface GolfSchedule {
-    id: string;
-    date: string;
-    courseName: string;
-    holes: string;
-    inclusions: string[];
-    teeOff: string;
-    teeOffDirectInput: string;
-    total: string;
-    isEstimatedAmount: string;
-    yenAmount?: string; // 엔화 금액 추가 (현장결제용)
-}
-
-export interface AccommodationSchedule {
-    id: string;
-    date: string;
-    hotelName: string;
-    nights: string;
-    rooms: string;
-    roomType: string;
-    meals: string;
-    total: string;
-}
-
-export interface PickupSchedule {
-    id: string;
-    date: string;
-    destination: string;
-    destinationDirectInput: string;
-    pickupLocation: string;
-    dropoffLocation: string;
-    people: string;
-    vehicles: string;
-    vehicleType: string;
-    vehicleTypeDirectInput: string;
-    region: string;
-    total: string;
-}
-
-export interface PaymentInfo {
-    downPayment: string;
-    downPaymentDate: string;
-    balanceDueDate: string;
-}
+import {
+    FlightSchedule,
+    RentalCarSchedule,
+    QuotationData,
+    GolfSchedule,
+    AccommodationSchedule,
+    PickupSchedule,
+    PaymentInfo
+} from '@/app/(admin)/admin/admin-tools/types';
 
 export const useQuotationData = () => {
     const [quotationData, setQuotationData] = useState<QuotationData>({
@@ -335,15 +289,10 @@ export const useQuotationData = () => {
         return `₩${total}`;
     };
 
-    // 총 합계 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
-    // 렌트카(현장결제)는 결제 요약에 포함되지 않음
+    // 총 합계 금액 계산 (사전결제 항목만: 골프 + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
+    // 현장결제 항목(골프 현장결제, 렌트카 현장결제)은 별도로 처리
     const calculateTotalAmount = () => {
         const golfTotal = golfSchedules.reduce((sum, schedule) => {
-            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-            return sum + total;
-        }, 0);
-
-        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
             return sum + total;
         }, 0);
@@ -368,7 +317,7 @@ export const useQuotationData = () => {
             return sum + total;
         }, 0);
 
-        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
+        const total = golfTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
         return total;
     };
 

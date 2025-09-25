@@ -150,22 +150,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <span>골프장 관리</span>
                                 </Link>
 
-                                <Link
-                                    href="/admin/translations"
-                                    onClick={() => {
-                                        // 모바일에서만 사이드바 닫기
-                                        if (window.innerWidth < 375) {
-                                            setSidebarOpen(false);
-                                        }
-                                    }}
-                                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/translations')
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                                        }`}
-                                >
-                                    <Globe className="h-5 w-5" />
-                                    <span>번역 관리</span>
-                                </Link>
                             </>
                         )}
 

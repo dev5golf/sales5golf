@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { GolfSchedule } from '../../../../../hooks/useQuotationData';
+import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '../../../../../types';
@@ -299,9 +299,10 @@ export default function GolfOnSiteTable({
                                         onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                         placeholder="¥0"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                        translate="no"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-32 text-center" translate="no">
                                     <div className="text-lg font-medium text-gray-900">
                                         {schedule.yenAmount ? (
                                             `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
@@ -327,13 +328,13 @@ export default function GolfOnSiteTable({
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-200">
                                 <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(JPY)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center" translate="no">
                                     ¥{schedules.reduce((sum, schedule) => {
                                         const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
                                         return sum + yenAmount;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center" translate="no">
                                     ¥{Math.round(schedules.reduce((sum, schedule) => {
                                         const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
                                         return sum + yenAmount;

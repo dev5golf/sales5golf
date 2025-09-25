@@ -1,6 +1,16 @@
 "use client";
 import { useState } from 'react';
-import { TeeTime, CalendarProps } from '../../../../../types';
+import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
+
+/**
+ * 캘린더 컴포넌트 Props
+ * 달력 표시와 날짜 클릭 이벤트를 처리하는 인터페이스
+ */
+interface CalendarProps {
+    currentMonth: Date;
+    onDateClick: (date: string) => void;
+    teeTimes: TeeTime[];
+}
 
 export default function Calendar({ currentMonth, onDateClick, teeTimes }: CalendarProps) {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);

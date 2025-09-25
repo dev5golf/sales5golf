@@ -1,11 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useLanguage } from '../../contexts/SimpleLanguageContext';
-import SimpleLanguageSwitcher from '../../components/SimpleLanguageSwitcher';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
-    const { t } = useLanguage();
 
     return (
         <>
@@ -16,14 +13,13 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                     </div>
                     <nav className="nav">
                         <ul className="nav-list">
-                            <li><Link href="/" className="nav-link">{t('nav.home')}</Link></li>
-                            <li><Link href="/list" className="nav-link">{t('nav.courses')}</Link></li>
+                            <li><Link href="/" className="nav-link">홈</Link></li>
+                            <li><Link href="/list" className="nav-link">골프장</Link></li>
                         </ul>
                     </nav>
                     <div className="user-actions">
-                        <SimpleLanguageSwitcher />
-                        <button className="btn btn-secondary">{t('btn.signin')}</button>
-                        <button className="btn btn-primary">{t('btn.join')}</button>
+                        <button className="btn btn-secondary">로그인</button>
+                        <button className="btn btn-primary">회원가입</button>
                     </div>
                 </div>
             </header>

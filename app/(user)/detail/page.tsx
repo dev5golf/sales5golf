@@ -3,7 +3,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Course, TeeTime } from '../../../types';
+import { Course } from '@/types';
+import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
 import {
     formatTime,
     formatRelativeDate,

@@ -1,6 +1,20 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { TeeTime, TeeTimeModalProps } from '../../../../../types';
+import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
+
+/**
+ * 티타임 모달 컴포넌트 Props
+ * 티타임 생성/수정/삭제 기능을 담는 인터페이스
+ */
+interface TeeTimeModalProps {
+    date: string;
+    onSave: (teeTimeData: Omit<TeeTime, 'id' | 'courseId' | 'courseName'>) => void;
+    onClose: () => void;
+    existingTeeTimes: TeeTime[];
+    onUpdate: (id: string, updatedData: Partial<TeeTime>) => void;
+    onDelete: (id: string) => void;
+    courseName?: string;
+}
 
 export default function TeeTimeModal({
     date,
@@ -197,8 +211,8 @@ export default function TeeTimeModal({
                                         <div className="flex gap-2">
                                             <button
                                                 className={`px-3 py-1 text-sm border rounded-md transition-colors ${isDatePast
-                                                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                                                        : 'border-blue-300 text-blue-600 hover:bg-blue-50'
+                                                    ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                                    : 'border-blue-300 text-blue-600 hover:bg-blue-50'
                                                     }`}
                                                 onClick={() => handleEdit(teeTime)}
                                                 disabled={isDatePast}
@@ -208,8 +222,8 @@ export default function TeeTimeModal({
                                             </button>
                                             <button
                                                 className={`px-3 py-1 text-sm border rounded-md transition-colors ${isDatePast
-                                                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                                                        : 'border-red-300 text-red-600 hover:bg-red-50'
+                                                    ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                                    : 'border-red-300 text-red-600 hover:bg-red-50'
                                                     }`}
                                                 onClick={() => handleDelete(teeTime.id)}
                                                 disabled={isDatePast}
@@ -338,8 +352,8 @@ export default function TeeTimeModal({
                             <button
                                 type="submit"
                                 className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDatePast
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700'
                                     }`}
                                 disabled={isDatePast}
                             >

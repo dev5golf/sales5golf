@@ -1,19 +1,67 @@
-// 공통 타입 정의
+/**
+ * 공통 타입 정의
+ * 여러 기능에서 공통으로 사용되는 타입들만 정의
+ */
 
-export interface TeeTime {
-    id: string;
-    date: string;
-    time: string;
-    availableSlots: number;
-    agentPrice: number;
-    note: string;
-    courseId: string;
-    courseName?: string;
-    createdAt?: any;
-    updatedAt?: any;
-    createdBy?: string | null;
+// ==========================================
+// API 응답 타입들
+// ==========================================
+
+/**
+ * API 응답 공통 구조
+ * 모든 API 응답의 성공/실패 상태와 데이터를 담는 제네릭 인터페이스
+ */
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    message?: string;
 }
 
+// ==========================================
+// 공통 유틸리티 타입들
+// ==========================================
+
+/**
+ * 폼 제출 상태를 나타내는 타입
+ */
+export type FormStatus = 'idle' | 'loading' | 'success' | 'error';
+
+/**
+ * 페이지네이션 정보를 담는 타입
+ */
+export interface PaginationInfo {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+}
+
+/**
+ * 정렬 옵션을 담는 타입
+ */
+export interface SortOption {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
+/**
+ * 필터 옵션을 담는 타입
+ */
+export interface FilterOption {
+    field: string;
+    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt' | 'gte' | 'lte';
+    value: any;
+}
+
+// ==========================================
+// 골프장 관련 타입들 (공통 사용)
+// ==========================================
+
+/**
+ * 골프장 데이터 구조
+ * 골프장의 기본 정보, 위치, 연락처, 시설, 포함사항 등을 담는 인터페이스
+ */
 export interface Course {
     id: string;
     name: string;
@@ -39,22 +87,10 @@ export interface Course {
     createdBy: string | null;
 }
 
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    phone?: string;
-    profileImage?: string;
-    role: 'user' | 'course_admin' | 'super_admin' | 'site_admin';
-    courseId?: string;
-    courseName?: string;
-    createdAt: any;
-    updatedAt: any;
-    lastLoginAt?: any;
-    isActive: boolean;
-    isEmailVerified: boolean;
-}
-
+/**
+ * 국가 데이터 구조
+ * 국가 정보와 활성화 상태를 담는 인터페이스
+ */
 export interface Country {
     id: string;
     name: string;
@@ -64,6 +100,10 @@ export interface Country {
     createdBy: string | null;
 }
 
+/**
+ * 도/주 데이터 구조
+ * 국가 하위의 도/주 정보를 담는 인터페이스
+ */
 export interface Province {
     id: string;
     name: string;
@@ -75,6 +115,10 @@ export interface Province {
     createdBy: string | null;
 }
 
+/**
+ * 도시 데이터 구조
+ * 도/주 하위의 도시 정보를 담는 인터페이스
+ */
 export interface City {
     id: string;
     name: string;
@@ -88,6 +132,10 @@ export interface City {
     createdBy: string | null;
 }
 
+/**
+ * 지역 데이터 구조
+ * 국가-도/주-도시의 계층 구조를 담는 인터페이스
+ */
 export interface Region {
     id: string;
     name: string;
@@ -103,40 +151,10 @@ export interface Region {
     createdBy: string | null;
 }
 
-// 컴포넌트 Props 타입들
-export interface CalendarProps {
-    currentMonth: Date;
-    onDateClick: (date: string) => void;
-    teeTimes: TeeTime[];
-}
-
-export interface TeeTimeModalProps {
-    date: string;
-    onSave: (teeTimeData: Omit<TeeTime, 'id' | 'courseId' | 'courseName'>) => void;
-    onClose: () => void;
-    existingTeeTimes: TeeTime[];
-    onUpdate: (id: string, updatedData: Partial<TeeTime>) => void;
-    onDelete: (id: string) => void;
-    courseName?: string;
-}
-
-// API 응답 타입들
-export interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: string;
-    message?: string;
-}
-
-// 폼 데이터 타입들
-export interface TeeTimeFormData {
-    hour: string;
-    minute: string;
-    availableSlots: string;
-    agentPrice: string;
-    note: string;
-}
-
+/**
+ * 골프장 폼 데이터 구조
+ * 골프장 생성/수정 폼에서 사용하는 데이터 인터페이스
+ */
 export interface CourseFormData {
     name: string;
     address: string;
@@ -152,47 +170,4 @@ export interface CourseFormData {
     facilities: string[];
     adminIds: string[];
     isActive: boolean;
-}
-
-export interface UserFormData {
-    email: string;
-    name: string;
-    phone?: string;
-    role: 'user' | 'course_admin' | 'super_admin' | 'site_admin';
-    courseId?: string;
-    isActive: boolean;
-}
-
-// 항공 일정 타입
-export interface FlightSchedule {
-    id: string;
-    date: string;
-    flightSchedule: string;
-    people: string;
-    airline: string;
-    flightNumber: string;
-    baggage: string;
-    duration: string;
-    total: string;
-}
-
-// 렌트카 일정 타입
-export interface RentalCarSchedule {
-    id: string;
-    date: string;
-    pickupLocation: string;
-    pickupTime: string; // 픽업시간 추가
-    returnLocation: string;
-    returnTime: string; // 반납시간 추가
-    people: string;
-    rentalDays: string;
-    carType: string;
-    insurance: string;
-    total: string;
-    // 직접입력 모드 필드들
-    pickupLocationDirectInput?: string;
-    returnLocationDirectInput?: string;
-    carTypeDirectInput?: string;
-    // 환율 관련 필드들
-    yenAmount?: string; // 엔화 금액 (현장결제용)
 }

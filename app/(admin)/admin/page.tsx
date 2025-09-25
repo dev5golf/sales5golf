@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import { db } from '../../../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { TeeTime } from '../../../types';
+import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
 
 export default function AdminDashboard() {
     const { user, loading } = useAuth();

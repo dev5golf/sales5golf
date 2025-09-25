@@ -9,7 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { User } from '../types';
+import { User } from '@/app/(admin)/admin/users/types';
 
 interface AuthContextType {
     firebaseUser: FirebaseUser | null;  // Firebase Auth User

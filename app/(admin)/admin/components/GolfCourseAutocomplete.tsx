@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../../../lib/firebase';
-import { Course } from '../../../../types';
+import { db } from '@/lib/firebase';
+import { Course } from '@/types';
 
 interface GolfCourseAutocompleteProps {
     value: string;

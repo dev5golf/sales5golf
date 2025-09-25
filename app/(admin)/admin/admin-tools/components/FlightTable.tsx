@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { FlightSchedule } from '../../../../../types';
+import { FlightSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -191,9 +191,10 @@ export default function FlightTable({
                                         onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
                                         placeholder="₩0"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        translate="no"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-4 py-4 w-32 text-center" translate="no">
                                     <span className="text-lg font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
@@ -215,13 +216,13 @@ export default function FlightTable({
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200">
                                 <td colSpan={7} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;

@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { User } from '../../../../types';
-import { db } from '../../../../lib/firebase';
+import { User } from '@/app/(admin)/admin/users/types';
+import { db } from '@/lib/firebase';
 import { doc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import Modal from './Modal';
+import Modal from '@/app/(admin)/admin/components/Modal';
 
 interface UserModalProps {
     isOpen: boolean;

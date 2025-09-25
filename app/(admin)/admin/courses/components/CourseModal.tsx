@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Course, Country, Province, City } from '../../../../types';
-import { db } from '../../../../lib/firebase';
+import { Course, Country, Province, City } from '@/types';
+import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import Modal from './Modal';
+import Modal from '@/app/(admin)/admin/components/Modal';
 
 interface CourseModalProps {
     isOpen: boolean;
