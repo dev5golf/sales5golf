@@ -17,6 +17,7 @@ import PickupTable from './components/PickupTable';
 import FlightTable from './components/FlightTable';
 import RentalCarTable from './components/RentalCarTable';
 import PaymentSummary from './components/PaymentSummary';
+import AdditionalInfoSection from './components/AdditionalInfoSection';
 import PreviewModal from './components/PreviewModal';
 import QuotationListModal from './components/QuotationListModal';
 
@@ -348,8 +349,6 @@ export default function AdminTools() {
                 <PaymentSummary
                     paymentInfo={quotation.paymentInfo}
                     onPaymentChange={quotation.updatePaymentInfo}
-                    additionalOptions={quotation.additionalOptions}
-                    onAdditionalOptionsChange={quotation.setAdditionalOptions}
                     totalPrepayment={quotation.calculateTotalPrepayment()}
                     downPayment={quotation.paymentInfo.downPayment}
                     balance={quotation.calculateBalance()}
@@ -373,6 +372,12 @@ export default function AdminTools() {
                     }, 0)}
                     isJapanRegion={regionType === 'japan'}
                     exchangeRate={exchangeRate}
+                />
+
+                {/* 추가 정보 섹션 */}
+                <AdditionalInfoSection
+                    additionalOptions={quotation.additionalOptions}
+                    onAdditionalOptionsChange={quotation.setAdditionalOptions}
                 />
             </div>
 
