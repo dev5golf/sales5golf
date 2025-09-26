@@ -80,24 +80,24 @@ export default function AccommodationTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">호텔명</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">박수</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">객실수</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">객실타입</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">식사포함여부</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-48">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">호텔명</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">박수</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">객실수</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-24">객실타입</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-24">식사포함여부</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-green-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-48 text-center">
+                                <td className="px-1 py-1 text-lg w-48 text-center">
                                     <DatePicker
                                         selected={(() => {
                                             if (!schedule.date) return null;
@@ -172,7 +172,7 @@ export default function AccommodationTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 text-center">
+                                <td className="px-1 py-1 text-lg text-center">
                                     <input
                                         type="text"
                                         value={schedule.hotelName}
@@ -181,7 +181,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.nights}
@@ -190,7 +190,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.rooms}
@@ -199,7 +199,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-24 text-center">
+                                <td className="px-1 py-1 text-lg w-24 text-center">
                                     <input
                                         type="text"
                                         value={schedule.roomType}
@@ -208,7 +208,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-24 text-center">
+                                <td className="px-1 py-1 text-lg w-24 text-center">
                                     <input
                                         type="text"
                                         value={schedule.meals}
@@ -217,7 +217,7 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.total}
@@ -226,12 +226,12 @@ export default function AccommodationTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <span className="text-lg font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -247,20 +247,20 @@ export default function AccommodationTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-green-50 to-green-100 border-t-2 border-green-200">
-                                <td colSpan={6} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-green-900 w-32 text-center">
+                                <td colSpan={6} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(KRW)</td>
+                                <td className="px-1 py-1 text-xl font-bold text-green-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-green-900 w-32 text-center">
+                                <td className="px-1 py-1 text-xl font-bold text-green-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>

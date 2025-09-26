@@ -52,7 +52,7 @@ export default function QuotationForm({
                 <div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-lg font-medium text-gray-700 mb-2">
                                 고객명
                             </label>
                             <input
@@ -60,12 +60,12 @@ export default function QuotationForm({
                                 value={quotationData.customerName}
                                 onChange={(e) => onQuotationChange('customerName', e.target.value)}
                                 placeholder="고객명을 입력하세요"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-lg font-medium text-gray-700 mb-2">
                                 여행지
                             </label>
                             <input
@@ -73,12 +73,12 @@ export default function QuotationForm({
                                 value={quotationData.destination}
                                 onChange={(e) => onQuotationChange('destination', e.target.value)}
                                 placeholder="태국/치앙마이"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-lg font-medium text-gray-700 mb-2">
                                 여행기간 시작일
                             </label>
                             <DatePicker
@@ -106,14 +106,14 @@ export default function QuotationForm({
                                 dateFormat="yy/MM/dd"
                                 locale={ko}
                                 placeholderText="YY/MM/DD"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                                 showPopperArrow={false}
                                 popperClassName="react-datepicker-popper"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-lg font-medium text-gray-700 mb-2">
                                 여행기간 종료일
                             </label>
                             <DatePicker
@@ -141,14 +141,14 @@ export default function QuotationForm({
                                 dateFormat="yy/MM/dd"
                                 locale={ko}
                                 placeholderText="YY/MM/DD"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                                 showPopperArrow={false}
                                 popperClassName="react-datepicker-popper"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-lg font-medium text-gray-700 mb-2">
                                 인원
                             </label>
                             <input
@@ -157,7 +157,7 @@ export default function QuotationForm({
                                 onChange={(e) => onQuotationChange('numberOfPeople', e.target.value)}
                                 placeholder="인원수를 입력하세요"
                                 min="1"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                             />
                         </div>
                     </div>
@@ -174,11 +174,11 @@ export default function QuotationForm({
                             inclusions.split(' / ').map((inclusion, index) => (
                                 <div key={index} className="flex items-center text-gray-700">
                                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-3"></div>
-                                    <span className="text-sm">{inclusion}</span>
+                                    <span className="text-lg">{inclusion}</span>
                                 </div>
                             ))
                         ) : (
-                            <div className="text-gray-500 text-sm italic">
+                            <div className="text-gray-500 text-lg italic">
                                 일정을 추가하면 포함사항이 자동으로 표시됩니다.
                             </div>
                         )}
@@ -186,7 +186,7 @@ export default function QuotationForm({
                         {/* 골프/숙박/픽업 포함사항 안내 문구 */}
                         {(hasGolfSchedules || hasAccommodationSchedules || hasPickupSchedules) && (
                             <div className="pt-3 border-t border-gray-200">
-                                <div className="text-xs text-gray-600 italic">
+                                <div className="text-base text-gray-600 italic">
                                     {(() => {
                                         const sections = [];
                                         if (hasGolfSchedules) sections.push('골프');
@@ -201,8 +201,8 @@ export default function QuotationForm({
 
                         <div className="pt-3 border-t border-blue-200">
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-700">1인당 요금</span>
-                                <span className="text-lg font-bold text-blue-600">{pricePerPerson}</span>
+                                <span className="text-lg font-medium text-gray-700">1인당 요금</span>
+                                <span className="text-xl font-bold text-blue-600">{pricePerPerson}</span>
                             </div>
                         </div>
                     </div>

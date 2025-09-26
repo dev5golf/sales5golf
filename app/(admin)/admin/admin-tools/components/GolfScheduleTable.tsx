@@ -157,23 +157,23 @@ export default function GolfScheduleTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">골프장명</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">홀수(H)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">포함사항</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">TEE-OFF</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">골프장명</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">홀수(H)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">포함사항</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">TEE-OFF</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 w-32 text-center text-lg">
                                     <DatePicker
                                         key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
                                         selected={(() => {
@@ -209,7 +209,7 @@ export default function GolfScheduleTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 text-center">
+                                <td className="px-1 py-1 text-center text-lg">
                                     <GolfCourseAutocomplete
                                         value={schedule.courseName}
                                         onChange={(value) => onUpdate(schedule.id, 'courseName', value)}
@@ -218,7 +218,7 @@ export default function GolfScheduleTable({
                                         className="w-full"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 w-28 text-center text-lg">
                                     <input
                                         type="number"
                                         value={schedule.holes}
@@ -230,7 +230,7 @@ export default function GolfScheduleTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 text-center">
+                                <td className="px-1 py-1 text-center text-lg">
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {INCLUSION_OPTIONS.map((option) => (
                                             <label key={option} className="flex items-center text-sm cursor-pointer">
@@ -245,7 +245,7 @@ export default function GolfScheduleTable({
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 w-32 text-center text-lg">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -283,7 +283,7 @@ export default function GolfScheduleTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 w-32 text-center text-lg">
                                     <div className="space-y-2">
                                         {/* 예상금액 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -310,12 +310,12 @@ export default function GolfScheduleTable({
                                         />
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
-                                    <span className="text-lg font-medium text-gray-900">
+                                <td className="px-1 py-1 w-32 text-center text-lg">
+                                    <span className="font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-center w-20 text-lg">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -331,22 +331,22 @@ export default function GolfScheduleTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200">
-                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">
+                                <td colSpan={5} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">
                                     총 합계(KRW){schedules.some(schedule => estimatedAmountMode[schedule.id]) && <span className="text-blue-600 ml-1">(예상금액)</span>}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-1 py-1 text-xl font-bold text-blue-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center">
+                                <td className="px-1 py-1 text-xl font-bold text-blue-900 w-32 text-center">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>

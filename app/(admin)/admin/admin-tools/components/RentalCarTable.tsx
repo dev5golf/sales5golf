@@ -166,26 +166,26 @@ export default function RentalCarTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className={`bg-gradient-to-r ${headerColorClass} border-b border-gray-200`}>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">픽업장소</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">픽업시간</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">반납장소</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">반납시간</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">인원</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">이용일수</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">대표차종</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">현장결제(1인)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-48">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">픽업장소</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">픽업시간</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">반납장소</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">반납시간</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">인원</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">이용일수</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">대표차종</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">현장결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`${rowHoverClass} transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-48 text-center">
+                                <td className="px-1 py-1 text-lg w-48 text-center">
                                     <DatePicker
                                         selected={(() => {
                                             if (!schedule.date) return null;
@@ -260,7 +260,7 @@ export default function RentalCarTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-40 text-center">
+                                <td className="px-1 py-1 text-lg w-40 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -298,7 +298,7 @@ export default function RentalCarTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <select
                                         value={schedule.pickupTime}
                                         onChange={(e) => onUpdate(schedule.id, 'pickupTime', e.target.value)}
@@ -310,7 +310,7 @@ export default function RentalCarTable({
                                         ))}
                                     </select>
                                 </td>
-                                <td className="px-4 py-4 w-40 text-center">
+                                <td className="px-1 py-1 text-lg w-40 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -348,7 +348,7 @@ export default function RentalCarTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <select
                                         value={(schedule as any).returnTime || ''}
                                         onChange={(e) => onUpdate(schedule.id, 'returnTime' as keyof RentalCarSchedule, e.target.value)}
@@ -360,7 +360,7 @@ export default function RentalCarTable({
                                         ))}
                                     </select>
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.people}
@@ -369,7 +369,7 @@ export default function RentalCarTable({
                                         className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.rentalDays}
@@ -378,7 +378,7 @@ export default function RentalCarTable({
                                         className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -416,7 +416,7 @@ export default function RentalCarTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     {isOnSite ? (
                                         <input
                                             type="text"
@@ -435,7 +435,7 @@ export default function RentalCarTable({
                                         />
                                     )}
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     {isOnSite ? (
                                         <div className="text-lg font-medium text-gray-900">
                                             {schedule.yenAmount ? (
@@ -450,7 +450,7 @@ export default function RentalCarTable({
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -466,8 +466,8 @@ export default function RentalCarTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className={`bg-gradient-to-r ${totalRowClass} border-t-2 border-gray-200`}>
-                                <td colSpan={8} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계({isOnSite ? 'JPY' : 'KRW'})</td>
-                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
+                                <td colSpan={8} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계({isOnSite ? 'JPY' : 'KRW'})</td>
+                                <td className={`px-1 py-1 text-xl font-bold ${totalTextClass} w-32 text-center`}>
                                     {isOnSite ? (
                                         `¥${schedules.reduce((sum, schedule) => {
                                             const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
@@ -480,7 +480,7 @@ export default function RentalCarTable({
                                         }, 0)}`
                                     )}
                                 </td>
-                                <td className={`px-4 py-4 text-lg font-bold ${totalTextClass} w-32 text-center`}>
+                                <td className={`px-1 py-1 text-xl font-bold ${totalTextClass} w-32 text-center`}>
                                     {isOnSite ? (
                                         `¥${Math.round(schedules.reduce((sum, schedule) => {
                                             const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
@@ -493,7 +493,7 @@ export default function RentalCarTable({
                                         }, 0)}`
                                     )}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>
