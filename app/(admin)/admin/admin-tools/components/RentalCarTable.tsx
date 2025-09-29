@@ -178,7 +178,9 @@ export default function RentalCarTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">이용일수</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">대표차종</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">현장결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">
+                                {isOnSite ? '현장결제(1인)' : '사전결제(1인)'}
+                            </th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
@@ -439,13 +441,13 @@ export default function RentalCarTable({
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
                                     {isOnSite ? (
-                                        <div className="text-lg font-medium text-gray-900">
+                                        <span className="text-lg font-medium text-gray-900">
                                             {schedule.yenAmount ? (
                                                 `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
                                             ) : (
                                                 '-'
                                             )}
-                                        </div>
+                                        </span>
                                     ) : (
                                         <span className="text-lg font-medium text-gray-900">
                                             {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
