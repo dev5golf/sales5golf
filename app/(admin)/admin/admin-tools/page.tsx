@@ -254,6 +254,11 @@ export default function AdminTools() {
                     accommodationSchedules={quotation.accommodationSchedules}
                     pickupSchedules={quotation.pickupSchedules}
                     onQuotationChange={quotation.updateQuotationData}
+                    isJapanRegion={regionType === 'japan'}
+                    golfOnSiteSchedules={quotation.golfOnSiteSchedules}
+                    rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
+                    numberOfPeople={quotation.quotationData.numberOfPeople}
+                    exchangeRate={exchangeRate}
                 />
 
                 {/* 골프 일정 테이블 */}
