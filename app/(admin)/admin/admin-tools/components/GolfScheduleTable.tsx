@@ -285,6 +285,17 @@ export default function GolfScheduleTable({
                                 </td>
                                 <td className="px-1 py-1 w-32 text-center text-lg">
                                     <div className="space-y-2">
+                                        {/* 합계 입력폼 */}
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.total}
+                                            onChange={(e) => handleInputChange(schedule.id, e)}
+                                            placeholder="₩0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        />
+
                                         {/* 예상금액 체크박스 */}
                                         <div className="flex items-center justify-center">
                                             <label className="flex items-center text-xs cursor-pointer">
@@ -297,17 +308,6 @@ export default function GolfScheduleTable({
                                                 <span className="text-gray-600">(예상금액)</span>
                                             </label>
                                         </div>
-
-                                        {/* 합계 입력폼 */}
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={schedule.total}
-                                            onChange={(e) => handleInputChange(schedule.id, e)}
-                                            placeholder="₩0"
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        />
                                     </div>
                                 </td>
                                 <td className="px-1 py-1 w-32 text-center text-lg">

@@ -40,19 +40,19 @@ export default function AdditionalInfoSection({
             </div>
             {/* 추가 선택사항 */}
             <div className="mt-6 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">추가선택사항</h3>
+                <h3 className="text-2xl font-semibold text-gray-800 mb-4">추가선택사항</h3>
                 <textarea
                     value={additionalOptions}
                     onChange={(e) => onAdditionalOptionsChange(e.target.value)}
                     placeholder=""
-                    className="w-full h-32 px-2 py-2 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full h-32 px-2 py-2 text-2xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
             </div>
 
             {/* 안내사항 */}
             <div className="mt-6 p-6 bg-gray-50 rounded-lg">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">안내사항</h3>
-                <ul className="space-y-2 text-lg text-gray-600">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-4">안내사항</h3>
+                <ul className="space-y-2 text-2xl text-gray-600">
                     {QUOTATION_NOTES.map((note, index) => (
                         <li key={index} className="flex items-start">
                             <span className="text-gray-400 mr-2">•</span>
@@ -68,8 +68,8 @@ export default function AdditionalInfoSection({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* 입금하실 곳 */}
                         <div>
-                            <div className="text-lg font-medium text-yellow-800 mb-3">입금하실 곳:</div>
-                            <div className="space-y-1 text-lg text-yellow-700">
+                            <div className="text-2xl font-medium text-yellow-800 mb-3">입금하실 곳:</div>
+                            <div className="space-y-1 text-2xl text-yellow-700">
                                 <div>은행: {BANK_INFO.BANK_NAME}</div>
                                 <div>계좌번호: {BANK_INFO.ACCOUNT_NUMBER}</div>
                                 <div>예금주: {BANK_INFO.ACCOUNT_HOLDER}</div>

@@ -308,9 +308,16 @@ const convertInputsToText = (element: HTMLElement): void => {
             input.closest('.space-y-3') ||
             input.closest('.flex.justify-between');
 
+        // 추가선택사항 textarea인지 확인 (추가정보 섹션 내부)
+        const isAdditionalInfoTextarea = input.tagName === 'TEXTAREA' &&
+            input.closest('.additional-info-section');
+
         if (isDownPayment) {
             textSpan.textContent = displayValue;
             textSpan.className = 'text-3xl font-bold text-purple-700 py-3 inline-block';
+        } else if (isAdditionalInfoTextarea) {
+            // 추가선택사항 textarea는 원래 크기 유지
+            textSpan.className = 'inline-block text-2xl';
         } else if (isTableSectionInput) {
             // 모든 테이블 섹션 입력폼은 가운데 정렬과 텍스트 크기 적용 (골프, 숙박, 픽업)
             textSpan.className = 'inline-block text-center w-full text-lg';
@@ -556,6 +563,7 @@ export const createAdditionalInfoImage = async (element: HTMLElement): Promise<s
 
         // 입력 필드를 텍스트로 변환
         convertInputsToText(clonedElement);
+        scaleTextSize(clonedElement);
 
         // 임시로 DOM에 추가하여 렌더링 준비
         const tempContainer = document.createElement('div');
