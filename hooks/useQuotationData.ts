@@ -335,15 +335,10 @@ export const useQuotationData = () => {
         return `₩${total}`;
     };
 
-    // 총 합계 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
-    // 렌트카(현장결제)는 결제 요약에 포함되지 않음
+    // 총 합계 금액 계산 (골프 + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
+    // 현장결제 항목들(골프 현장결제, 렌트카 현장결제)은 제외
     const calculateTotalAmount = () => {
         const golfTotal = golfSchedules.reduce((sum, schedule) => {
-            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-            return sum + total;
-        }, 0);
-
-        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
             const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
             return sum + total;
         }, 0);
@@ -368,7 +363,7 @@ export const useQuotationData = () => {
             return sum + total;
         }, 0);
 
-        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
+        const total = golfTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
         return total;
     };
 
