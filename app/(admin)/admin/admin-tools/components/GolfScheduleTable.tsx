@@ -20,6 +20,8 @@ interface GolfScheduleTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
+    isJapanRegion?: boolean;
+    calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 
 export default function GolfScheduleTable({
@@ -29,7 +31,9 @@ export default function GolfScheduleTable({
     onRemove,
     numberOfPeople,
     isFormValid,
-    calculatePrepayment
+    calculatePrepayment,
+    isJapanRegion = false,
+    calculateTotalFromPerPerson
 }: GolfScheduleTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
@@ -83,6 +87,22 @@ export default function GolfScheduleTable({
         onUpdate(id, 'total', finalValue);
     };
 
+    // 일본 지역일 때 사전결제(1인) 입력 시 합계 자동 계산 핸들러
+    const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        // 숫자만 추출
+        const numericValue = value.replace(/[^\d]/g, '');
+
+        if (numericValue && calculateTotalFromPerPerson) {
+            // 1인당 요금으로부터 총액 계산
+            const perPersonValue = `₩${numericValue}`;
+            const totalValue = calculateTotalFromPerPerson(perPersonValue, parseInt(numberOfPeople));
+            onUpdate(id, 'total', totalValue);
+        } else {
+            onUpdate(id, 'total', '');
+        }
+    };
 
     // 직접입력 모드 토글 핸들러
     const handleDirectInputToggle = (id: string) => {
@@ -146,8 +166,8 @@ export default function GolfScheduleTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">골프장명</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">홀수(H)</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">포함사항</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">TEE-OFF</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">포함사항</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">TEE-OFF</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
@@ -268,16 +288,22 @@ export default function GolfScheduleTable({
                                 </td>
                                 <td className="px-1 py-1 w-32 text-center text-lg">
                                     <div className="space-y-2">
-                                        {/* 합계 입력폼 */}
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={schedule.total}
-                                            onChange={(e) => handleInputChange(schedule.id, e)}
-                                            placeholder="₩0"
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        />
+                                        {/* 합계 표시 */}
+                                        {isJapanRegion ? (
+                                            <div className="text-lg font-medium text-gray-900" translate="no">
+                                                {schedule.total || '-'}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                value={schedule.total}
+                                                onChange={(e) => handleInputChange(schedule.id, e)}
+                                                placeholder="₩0"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            />
+                                        )}
 
                                         {/* 예상금액 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -294,9 +320,21 @@ export default function GolfScheduleTable({
                                     </div>
                                 </td>
                                 <td className="px-1 py-1 w-32 text-center text-lg" translate="no">
-                                    <span className="font-medium text-gray-900">
-                                        {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
-                                    </span>
+                                    {isJapanRegion ? (
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : ''}
+                                            onChange={(e) => handlePerPersonInputChange(schedule.id, e)}
+                                            placeholder="₩0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        />
+                                    ) : (
+                                        <span className="font-medium text-gray-900">
+                                            {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
+                                        </span>
+                                    )}
                                 </td>
                                 <td className="px-1 py-1 text-center w-20 text-lg">
                                     <Button

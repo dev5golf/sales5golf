@@ -21,6 +21,8 @@ interface GolfOnSiteTableProps {
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
     exchangeRate?: number; // 환율 추가
+    isJapanRegion?: boolean;
+    calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 
 export default function GolfOnSiteTable({
@@ -31,7 +33,9 @@ export default function GolfOnSiteTable({
     numberOfPeople,
     isFormValid,
     calculatePrepayment,
-    exchangeRate = 8.5 // 환율 기본값 8.5
+    exchangeRate = 8.5, // 환율 기본값 8.5
+    isJapanRegion = false,
+    calculateTotalFromPerPerson
 }: GolfOnSiteTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
@@ -116,6 +120,29 @@ export default function GolfOnSiteTable({
         onUpdate(id, 'total', wonFormatted);
     };
 
+    // 일본 지역일 때 현장결제(1인) 입력 시 합계 자동 계산 핸들러
+    const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        // 숫자만 추출 (엔화 입력)
+        const numericValue = value.replace(/[^\d]/g, '');
+
+        if (numericValue) {
+            // 1인당 엔화 요금을 총 엔화 금액으로 계산
+            const perPersonYen = parseInt(numericValue);
+            const totalYen = perPersonYen * parseInt(numberOfPeople);
+
+            // 총 엔화 금액을 원화로 변환 (내부 저장용)
+            const totalWon = Math.round(totalYen * exchangeRate);
+
+            onUpdate(id, 'yenAmount', totalYen.toString());
+            onUpdate(id, 'total', `₩${totalWon}`);
+        } else {
+            onUpdate(id, 'total', '');
+            onUpdate(id, 'yenAmount', '');
+        }
+    };
+
     // schedules가 변경될 때 체크박스 상태 복원
     useEffect(() => {
         const newDirectInputMode: { [key: string]: boolean } = {};
@@ -168,8 +195,8 @@ export default function GolfOnSiteTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">골프장명</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">홀수(H)</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">포함사항</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">TEE-OFF</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">포함사항</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">TEE-OFF</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">
                                 합계
                             </th>
@@ -293,23 +320,41 @@ export default function GolfOnSiteTable({
                                     </div>
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center">
-                                    <input
-                                        type="text"
-                                        value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
-                                        onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
-                                        placeholder="¥0"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                        translate="no"
-                                    />
+                                    {isJapanRegion ? (
+                                        <div className="text-lg font-medium text-gray-900" translate="no">
+                                            {schedule.yenAmount ? `¥${schedule.yenAmount}` : '-'}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
+                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                            placeholder="¥0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                            translate="no"
+                                        />
+                                    )}
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
-                                    <div className="font-medium text-gray-900">
-                                        {schedule.yenAmount ? (
-                                            `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
-                                        ) : (
-                                            '-'
-                                        )}
-                                    </div>
+                                    {isJapanRegion ? (
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.yenAmount ? `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}` : ''}
+                                            onChange={(e) => handlePerPersonInputChange(schedule.id, e)}
+                                            placeholder="¥0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                        />
+                                    ) : (
+                                        <div className="font-medium text-gray-900">
+                                            {schedule.yenAmount ? (
+                                                `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </div>
+                                    )}
                                 </td>
                                 <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button

@@ -438,6 +438,13 @@ export const useQuotationData = () => {
         return prepaymentPerPerson.toString();
     };
 
+    // 1인당 요금으로부터 총액 계산 (일본 골프 테이블용)
+    const calculateTotalFromPerPerson = (perPersonAmount: string, numberOfPeople: number): string => {
+        const amount = parseInt(perPersonAmount.replace(/[₩,]/g, '')) || 0;
+        const total = amount * numberOfPeople;
+        return `₩${total}`;
+    };
+
     // 일정 데이터 직접 설정 함수들 (저장/불러오기용)
     const setGolfSchedulesData = (schedules: GolfSchedule[]) => {
         setGolfSchedules(schedules);
@@ -518,6 +525,7 @@ export const useQuotationData = () => {
         isFormValid,
         calculatePricePerPerson,
         calculatePrepayment,
+        calculateTotalFromPerPerson,
         // 저장/불러오기용 setter 함수들
         setGolfSchedulesData,
         setGolfOnSiteSchedulesData,

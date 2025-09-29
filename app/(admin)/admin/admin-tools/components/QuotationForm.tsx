@@ -243,7 +243,7 @@ export default function QuotationForm({
                             {isJapanRegion && (
                                 <div className="flex items-center justify-between mt-2">
                                     <span className="text-lg font-medium text-gray-700">1인당 요금(현장결제)</span>
-                                    <span className="text-xl font-bold text-green-600">{calculateOnSitePricePerPerson()}</span>
+                                    <span className="text-xl font-bold text-green-600" translate="no">{calculateOnSitePricePerPerson()}</span>
                                 </div>
                             )}
                         </div>

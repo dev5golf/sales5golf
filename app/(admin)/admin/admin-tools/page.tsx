@@ -270,6 +270,8 @@ export default function AdminTools() {
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                     calculatePrepayment={quotation.calculatePrepayment}
+                    isJapanRegion={regionType === 'japan'}
+                    calculateTotalFromPerPerson={quotation.calculateTotalFromPerPerson}
                 />
 
                 {/* 골프(현장결제) 일정 테이블 - 일본 선택 시에만 표시 */}
@@ -283,6 +285,8 @@ export default function AdminTools() {
                         isFormValid={quotation.isFormValid()}
                         calculatePrepayment={quotation.calculatePrepayment}
                         exchangeRate={exchangeRate}
+                        isJapanRegion={regionType === 'japan'}
+                        calculateTotalFromPerPerson={quotation.calculateTotalFromPerPerson}
                     />
                 )}
 
