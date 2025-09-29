@@ -162,27 +162,27 @@ export default function GolfOnSiteTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">골프장명</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">홀수(H)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700">포함사항</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">TEE-OFF</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">골프장명</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">홀수(H)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700">포함사항</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">TEE-OFF</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">
                                 합계
                             </th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">
                                 현장결제(1인)
                             </th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-orange-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <DatePicker
                                         key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
                                         selected={(() => {
@@ -218,7 +218,7 @@ export default function GolfOnSiteTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 text-center">
+                                <td className="px-1 py-1 text-lg text-center">
                                     <GolfCourseAutocomplete
                                         value={schedule.courseName}
                                         onChange={(value) => onUpdate(schedule.id, 'courseName', value)}
@@ -227,7 +227,7 @@ export default function GolfOnSiteTable({
                                         className="w-full"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.holes}
@@ -239,7 +239,7 @@ export default function GolfOnSiteTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 text-center">
+                                <td className="px-1 py-1 text-lg text-center">
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {INCLUSION_OPTIONS.map((option) => (
                                             <label key={option} className="flex items-center text-sm cursor-pointer">
@@ -254,7 +254,7 @@ export default function GolfOnSiteTable({
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function GolfOnSiteTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
@@ -302,8 +302,8 @@ export default function GolfOnSiteTable({
                                         translate="no"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center" translate="no">
-                                    <div className="text-lg font-medium text-gray-900">
+                                <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
+                                    <div className="font-medium text-gray-900">
                                         {schedule.yenAmount ? (
                                             `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
                                         ) : (
@@ -311,7 +311,7 @@ export default function GolfOnSiteTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -327,20 +327,20 @@ export default function GolfOnSiteTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-200">
-                                <td colSpan={5} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(JPY)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center" translate="no">
+                                <td colSpan={5} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(JPY)</td>
+                                <td className="px-1 py-1 text-xl font-bold text-orange-900 w-32 text-center" translate="no">
                                     ¥{schedules.reduce((sum, schedule) => {
                                         const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
                                         return sum + yenAmount;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-orange-900 w-32 text-center" translate="no">
+                                <td className="px-1 py-1 text-xl font-bold text-orange-900 w-32 text-center" translate="no">
                                     ¥{Math.round(schedules.reduce((sum, schedule) => {
                                         const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
                                         return sum + yenAmount;
                                     }, 0) / parseInt(numberOfPeople))}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>

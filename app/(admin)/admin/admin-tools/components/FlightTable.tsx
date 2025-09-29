@@ -76,25 +76,25 @@ export default function FlightTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">항공일정</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">인원</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">항공사</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">항공편명</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">수화물</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">소요시간</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">항공일정</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">인원</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">항공사</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">항공편명</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">수화물</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">소요시간</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <DatePicker
                                         key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
                                         selected={(() => {
@@ -130,7 +130,7 @@ export default function FlightTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-40 text-center">
+                                <td className="px-1 py-1 text-lg w-40 text-center">
                                     <input
                                         type="text"
                                         value={schedule.flightSchedule}
@@ -139,7 +139,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.people}
@@ -148,7 +148,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.airline}
@@ -157,7 +157,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.flightNumber}
@@ -166,7 +166,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="text"
                                         value={schedule.baggage}
@@ -175,7 +175,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="text"
                                         value={schedule.duration}
@@ -184,7 +184,7 @@ export default function FlightTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.total}
@@ -194,12 +194,12 @@ export default function FlightTable({
                                         translate="no"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center" translate="no">
+                                <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
                                     <span className="text-lg font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -215,20 +215,20 @@ export default function FlightTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-t-2 border-blue-200">
-                                <td colSpan={7} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
+                                <td colSpan={7} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(KRW)</td>
+                                <td className="px-1 py-1 text-xl font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-blue-900 w-32 text-center" translate="no">
+                                <td className="px-1 py-1 text-xl font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>

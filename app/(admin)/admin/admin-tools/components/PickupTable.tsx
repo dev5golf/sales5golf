@@ -108,24 +108,24 @@ export default function PickupTable({
             </div>
 
             <div className="w-full h-auto rounded-lg border border-gray-200">
-                <table className="w-full table-fixed">
+                <table className="w-full table-auto">
                     <thead>
                         <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">날짜</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-40">행선지</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-48">탑승지/하차장소</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">인원</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-28">차량수</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-24">차종</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-32">사전결제(1인)</th>
-                            <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-20">삭제</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">날짜</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">행선지</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-48">탑승지/하차장소</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">인원</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">차량수</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-24">차종</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
                             <tr key={schedule.id} className={`hover:bg-purple-50/50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <DatePicker
                                         key={`${schedule.id}-${lastSelectedDate?.getTime() || 'empty'}`}
                                         selected={(() => {
@@ -161,7 +161,7 @@ export default function PickupTable({
                                         popperClassName="react-datepicker-popper"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-40 text-center">
+                                <td className="px-1 py-1 text-lg w-40 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -199,7 +199,7 @@ export default function PickupTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-48 text-center">
+                                <td className="px-1 py-1 text-lg w-48 text-center">
                                     <div className="space-y-2">
                                         <div>
                                             <input
@@ -238,7 +238,7 @@ export default function PickupTable({
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.people}
@@ -247,7 +247,7 @@ export default function PickupTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-28 text-center">
+                                <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="number"
                                         value={schedule.vehicles}
@@ -256,7 +256,7 @@ export default function PickupTable({
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-24 text-center">
+                                <td className="px-1 py-1 text-lg w-24 text-center">
                                     <div className="space-y-2">
                                         {/* 직접입력 체크박스 */}
                                         <div className="flex items-center justify-center">
@@ -294,7 +294,7 @@ export default function PickupTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center">
+                                <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
                                         value={schedule.total}
@@ -304,12 +304,12 @@ export default function PickupTable({
                                         translate="no"
                                     />
                                 </td>
-                                <td className="px-4 py-4 w-32 text-center" translate="no">
+                                <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
                                     <span className="text-lg font-medium text-gray-900">
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-4 text-center w-20">
+                                <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
@@ -325,20 +325,20 @@ export default function PickupTable({
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
                             <tr className="bg-gradient-to-r from-purple-50 to-purple-100 border-t-2 border-purple-200">
-                                <td colSpan={6} className="px-4 py-4 text-sm font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className="px-4 py-4 text-lg font-bold text-purple-900 w-32 text-center" translate="no">
+                                <td colSpan={6} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(KRW)</td>
+                                <td className="px-1 py-1 text-xl font-bold text-purple-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
                                         return sum + total;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 text-lg font-bold text-purple-900 w-32 text-center" translate="no">
+                                <td className="px-1 py-1 text-xl font-bold text-purple-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
                                         const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
-                                <td className="px-4 py-4 w-20"></td>
+                                <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}
                     </tbody>
