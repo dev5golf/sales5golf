@@ -8,7 +8,6 @@ import { usePreview } from '../../../../hooks/usePreview';
 import { useQuotationStorage } from '../../../../hooks/useQuotationStorage';
 import { Button } from '../../../../components/ui/button';
 import { Download, Eye, Save, FolderOpen, Plus } from 'lucide-react';
-import QuotationHeader from './components/QuotationHeader';
 import QuotationForm from './components/QuotationForm';
 import GolfScheduleTable from './components/GolfScheduleTable';
 import GolfOnSiteTable from './components/GolfOnSiteTable';
@@ -202,7 +201,12 @@ export default function AdminTools() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* 헤더 */}
-            <QuotationHeader />
+            <div className="mb-8 p-6 bg-white rounded-lg shadow-sm">
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-800">관리자 도구</h1>
+                    <p className="text-gray-600 mt-1">편의 기능</p>
+                </div>
+            </div>
 
             {/* 지역 선택 */}
             <div className="bg-white border-b border-gray-200 px-6 py-4">
