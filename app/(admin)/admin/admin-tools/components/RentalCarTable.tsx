@@ -7,6 +7,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
+import { createAddClickHandler } from '../../../../../utils/tableUtils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -53,13 +54,7 @@ export default function RentalCarTable({
         return Math.round(wonAmount / exchangeRate);
     };
 
-    const handleAddClick = () => {
-        if (!isFormValid) {
-            alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
-            return;
-        }
-        onAdd();
-    };
+    const handleAddClick = createAddClickHandler(isFormValid, onAdd);
 
     // 직접입력 모드 토글 핸들러
     const handleDirectInputToggle = (id: string, field: 'pickupLocation' | 'returnLocation' | 'carType') => {
@@ -76,9 +71,11 @@ export default function RentalCarTable({
         onUpdate(id, dbField as keyof RentalCarSchedule, newValue.toString());
     };
 
-    const handleTotalChange = (id: string, total: string) => {
+    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
         // 숫자만 추출
-        const numericValue = total.replace(/[₩,¥]/g, '');
+        const numericValue = value.replace(/[^\d]/g, '');
 
         // 빈 값이면 그대로 저장
         if (numericValue === '') {
@@ -422,8 +419,10 @@ export default function RentalCarTable({
                                     {isOnSite ? (
                                         <input
                                             type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
-                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                            onChange={(e) => handleTotalChange(schedule.id, e)}
                                             placeholder="¥0"
                                             className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
                                             translate="no"
@@ -431,8 +430,10 @@ export default function RentalCarTable({
                                     ) : (
                                         <input
                                             type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             value={schedule.total}
-                                            onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                            onChange={(e) => handleTotalChange(schedule.id, e)}
                                             placeholder="₩0"
                                             className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent transition-all`}
                                             translate="no"

@@ -9,6 +9,7 @@ import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '@/types';
+import { createAddClickHandler } from '../../../../../utils/tableUtils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -42,13 +43,7 @@ export default function GolfScheduleTable({
     // 각 스케줄별 예상금액 체크박스 상태
     const [estimatedAmountMode, setEstimatedAmountMode] = useState<{ [key: string]: boolean }>({});
 
-    const handleAddClick = () => {
-        if (!isFormValid) {
-            alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
-            return;
-        }
-        onAdd();
-    };
+    const handleAddClick = createAddClickHandler(isFormValid, onAdd);
     const handleInclusionChange = (id: string, inclusion: string, checked: boolean) => {
         const schedule = schedules.find(s => s.id === id);
         if (!schedule) return;
@@ -76,7 +71,7 @@ export default function GolfScheduleTable({
     };
 
     // 입력 필드에서 실시간으로 숫자만 허용하는 핸들러
-    const handleInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
 
         // 숫자만 추출
@@ -299,7 +294,7 @@ export default function GolfScheduleTable({
                                                 inputMode="numeric"
                                                 pattern="[0-9]*"
                                                 value={schedule.total}
-                                                onChange={(e) => handleInputChange(schedule.id, e)}
+                                                onChange={(e) => handleTotalChange(schedule.id, e)}
                                                 placeholder="₩0"
                                                 className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             />

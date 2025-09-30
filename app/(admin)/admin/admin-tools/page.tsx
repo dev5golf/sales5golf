@@ -253,16 +253,14 @@ export default function AdminTools() {
                 <QuotationForm
                     quotationData={quotation.quotationData}
                     inclusions={quotation.generateInclusions()}
-                    pricePerPerson={quotation.calculatePricePerPerson()}
+                    totalAmount={quotation.calculateTotalAmount()}
                     golfSchedules={quotation.golfSchedules}
                     accommodationSchedules={quotation.accommodationSchedules}
                     pickupSchedules={quotation.pickupSchedules}
                     onQuotationChange={quotation.updateQuotationData}
                     isJapanRegion={regionType === 'japan'}
-                    golfOnSiteSchedules={quotation.golfOnSiteSchedules}
-                    rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
-                    numberOfPeople={quotation.quotationData.numberOfPeople}
                     exchangeRate={exchangeRate}
+                    onSiteYenTotal={quotation.calculateOnSiteYenTotal()}
                 />
 
                 {/* 골프 일정 테이블 */}
@@ -362,27 +360,9 @@ export default function AdminTools() {
                 <PaymentSummary
                     paymentInfo={quotation.paymentInfo}
                     onPaymentChange={quotation.updatePaymentInfo}
-                    totalPrepayment={quotation.calculateTotalPrepayment()}
-                    downPayment={quotation.paymentInfo.downPayment}
                     balance={quotation.calculateBalance()}
-                    balanceDueDate={quotation.paymentInfo.balanceDueDate}
                     totalAmount={`₩${quotation.calculateTotalAmount()}`}
-                    golfOnSiteTotal={`₩${quotation.golfOnSiteSchedules.reduce((sum, schedule) => {
-                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                        return sum + total;
-                    }, 0)}`}
-                    rentalCarOnSiteTotal={`₩${quotation.rentalCarOnSiteSchedules.reduce((sum, schedule) => {
-                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                        return sum + total;
-                    }, 0)}`}
-                    golfOnSiteYenTotal={quotation.golfOnSiteSchedules.reduce((sum, schedule) => {
-                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-                        return sum + yenAmount;
-                    }, 0)}
-                    rentalCarOnSiteYenTotal={quotation.rentalCarOnSiteSchedules.reduce((sum, schedule) => {
-                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-                        return sum + yenAmount;
-                    }, 0)}
+                    onSiteYenTotal={quotation.calculateOnSiteYenTotal()}
                     isJapanRegion={regionType === 'japan'}
                     exchangeRate={exchangeRate}
                 />

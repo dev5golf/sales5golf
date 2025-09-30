@@ -11,16 +11,10 @@ import '@/styles/vendor/react-datepicker.css';
 interface PaymentSummaryProps {
     paymentInfo: PaymentInfo;
     onPaymentChange: (field: keyof PaymentInfo, value: string) => void;
-    totalPrepayment: string;
-    downPayment: string;
     balance: string;
-    balanceDueDate: string;
     totalAmount: string;
     // 현장결제 관련 props
-    golfOnSiteTotal?: string;
-    rentalCarOnSiteTotal?: string;
-    golfOnSiteYenTotal?: number; // 골프 현장결제 엔화 총합계
-    rentalCarOnSiteYenTotal?: number; // 렌트카 현장결제 엔화 총합계
+    onSiteYenTotal?: number; // 현장결제 총비용 (엔화)
     isJapanRegion?: boolean;
     exchangeRate?: number; // 환율 추가
 }
@@ -28,37 +22,12 @@ interface PaymentSummaryProps {
 export default function PaymentSummary({
     paymentInfo,
     onPaymentChange,
-    totalPrepayment,
-    downPayment,
     balance,
-    balanceDueDate,
     totalAmount,
-    golfOnSiteTotal = '₩0',
-    rentalCarOnSiteTotal = '₩0',
-    golfOnSiteYenTotal = 0,
-    rentalCarOnSiteYenTotal = 0,
+    onSiteYenTotal = 0,
     isJapanRegion = false,
     exchangeRate = 8.5 // 환율 기본값 8.5
 }: PaymentSummaryProps) {
-    // 마지막 선택한 날짜를 기억하는 상태
-    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
-
-    // 현장결제 총비용 계산 (원화)
-    const calculateOnSiteTotal = () => {
-        const golfTotal = parseInt(golfOnSiteTotal.replace(/[₩,]/g, '')) || 0;
-        const rentalCarTotal = parseInt(rentalCarOnSiteTotal.replace(/[₩,]/g, '')) || 0;
-        return golfTotal + rentalCarTotal;
-    };
-
-    // 현장결제 총비용 계산 (엔화)
-    const calculateOnSiteYenTotal = () => {
-        return golfOnSiteYenTotal + rentalCarOnSiteYenTotal;
-    };
-
-    // 원화를 엔화로 변환하는 함수
-    const convertWonToYen = (wonAmount: number): number => {
-        return Math.round(wonAmount / exchangeRate);
-    };
 
     // 계약금 입력 처리
     const handleDownPaymentChange = (value: string) => {
@@ -109,7 +78,6 @@ export default function PaymentSummary({
                                                 selected={paymentInfo.downPaymentDate ? new Date(paymentInfo.downPaymentDate) : null}
                                                 onChange={(date: Date | null) => {
                                                     if (date) {
-                                                        setLastSelectedDate(date);
                                                         // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
                                                         const year = date.getFullYear();
                                                         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -141,7 +109,6 @@ export default function PaymentSummary({
                                                 selected={paymentInfo.balanceDueDate ? new Date(paymentInfo.balanceDueDate) : null}
                                                 onChange={(date: Date | null) => {
                                                     if (date) {
-                                                        setLastSelectedDate(date);
                                                         // 로컬 날짜를 YYYY-MM-DD 형식으로 변환 (UTC 변환 방지)
                                                         const year = date.getFullYear();
                                                         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -180,10 +147,10 @@ export default function PaymentSummary({
                                     <div className="text-center">
                                         <div className="text-2xl font-medium text-white mb-3">현장결제 총비용</div>
                                         <div className="text-3xl font-bold text-white" translate="no">
-                                            ¥{calculateOnSiteYenTotal()}
+                                            ¥{onSiteYenTotal}
                                         </div>
                                         <div className="text-2xl font-medium text-green-100 mt-1" translate="no">
-                                            ₩{calculateOnSiteTotal()}
+                                            ₩{Math.round(onSiteYenTotal * exchangeRate)}
                                         </div>
                                     </div>
                                 </div>

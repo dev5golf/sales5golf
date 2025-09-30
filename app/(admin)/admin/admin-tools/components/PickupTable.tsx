@@ -7,6 +7,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
+import { createAddClickHandler } from '../../../../../utils/tableUtils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -34,29 +35,16 @@ export default function PickupTable({
     // 각 스케줄별 직접입력 모드 상태 (행선지, 차종)
     const [directInputMode, setDirectInputMode] = useState<{ [key: string]: { destination: boolean; vehicleType: boolean } }>({});
 
-    const handleAddClick = () => {
-        if (!isFormValid) {
-            alert('먼저 고객명, 여행지, 여행기간, 인원을 모두 입력해주세요.');
-            return;
-        }
-        onAdd();
-    };
-    const handleTotalChange = (id: string, total: string) => {
+    const handleAddClick = createAddClickHandler(isFormValid, onAdd);
+    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
         // 숫자만 추출
-        const numericValue = total.replace(/[₩,]/g, '');
+        const numericValue = value.replace(/[^\d]/g, '');
 
-        // 빈 값이면 그대로 저장
-        if (numericValue === '') {
-            onUpdate(id, 'total', '');
-            return;
-        }
-
-        // 숫자로 변환
-        const totalAmount = parseInt(numericValue) || 0;
-
-        // 원화 표기만 추가 (천단위 콤마 없음)
-        const formattedTotal = `₩${totalAmount}`;
-        onUpdate(id, 'total', formattedTotal);
+        // 원화 표기와 함께 저장 (천단위 콤마 없음)
+        const finalValue = numericValue ? `₩${numericValue}` : '';
+        onUpdate(id, 'total', finalValue);
     };
 
     // 직접입력 모드 토글 핸들러
@@ -297,8 +285,10 @@ export default function PickupTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={schedule.total}
-                                        onChange={(e) => handleTotalChange(schedule.id, e.target.value)}
+                                        onChange={(e) => handleTotalChange(schedule.id, e)}
                                         placeholder="₩0"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                         translate="no"

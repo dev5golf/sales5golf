@@ -10,65 +10,35 @@ import '@/styles/vendor/react-datepicker.css';
 interface QuotationFormProps {
     quotationData: QuotationData;
     inclusions: string;
-    pricePerPerson: string;
+    totalAmount: number;
     golfSchedules: GolfSchedule[];
     accommodationSchedules: AccommodationSchedule[];
     pickupSchedules: PickupSchedule[];
     onQuotationChange: (field: keyof QuotationData, value: string) => void;
     // 일본 지역 관련 props
     isJapanRegion?: boolean;
-    golfOnSiteSchedules?: GolfSchedule[];
-    rentalCarOnSiteSchedules?: any[];
-    numberOfPeople?: string;
     exchangeRate?: number;
+    onSiteYenTotal?: number;
 }
 
 export default function QuotationForm({
     quotationData,
     inclusions,
-    pricePerPerson,
+    totalAmount,
     golfSchedules,
     accommodationSchedules,
     pickupSchedules,
     onQuotationChange,
     isJapanRegion = false,
-    golfOnSiteSchedules = [],
-    rentalCarOnSiteSchedules = [],
-    numberOfPeople = '1',
-    exchangeRate = 8.5
+    exchangeRate = 8.5,
+    onSiteYenTotal = 0
 }: QuotationFormProps) {
-    // 마지막 선택한 날짜를 기억하는 상태
-    const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
     // 골프, 숙박, 픽업 일정이 있는지 확인
     const hasGolfSchedules = golfSchedules && golfSchedules.length > 0;
     const hasAccommodationSchedules = accommodationSchedules && accommodationSchedules.length > 0;
     const hasPickupSchedules = pickupSchedules && pickupSchedules.length > 0;
 
-    // 현장결제 1인당 요금 계산 (일본 지역만)
-    const calculateOnSitePricePerPerson = () => {
-        if (!isJapanRegion) return '¥0';
-
-        const numberOfPeopleNum = parseInt(numberOfPeople) || 1;
-
-        // 골프 현장결제 총합계 (엔화)
-        const golfOnSiteYenTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
-            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-            return sum + yenAmount;
-        }, 0);
-
-        // 렌트카 현장결제 총합계 (엔화)
-        const rentalCarOnSiteYenTotal = rentalCarOnSiteSchedules.reduce((sum, schedule) => {
-            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
-            return sum + yenAmount;
-        }, 0);
-
-        const totalOnSiteYen = golfOnSiteYenTotal + rentalCarOnSiteYenTotal;
-        const pricePerPersonYen = Math.floor(totalOnSiteYen / numberOfPeopleNum);
-        const pricePerPersonWon = Math.round(pricePerPersonYen * exchangeRate);
-
-        return `¥${pricePerPersonYen} (₩${pricePerPersonWon})`;
-    };
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
@@ -129,7 +99,6 @@ export default function QuotationForm({
                                 })()}
                                 onChange={(date: Date | null) => {
                                     if (date) {
-                                        setLastSelectedDate(date);
                                         const year = date.getFullYear().toString().slice(-2);
                                         const month = String(date.getMonth() + 1).padStart(2, '0');
                                         const day = String(date.getDate()).padStart(2, '0');
@@ -164,7 +133,6 @@ export default function QuotationForm({
                                 })()}
                                 onChange={(date: Date | null) => {
                                     if (date) {
-                                        setLastSelectedDate(date);
                                         const year = date.getFullYear().toString().slice(-2);
                                         const month = String(date.getMonth() + 1).padStart(2, '0');
                                         const day = String(date.getDate()).padStart(2, '0');
@@ -238,12 +206,16 @@ export default function QuotationForm({
                         <div className="pt-3 border-t border-blue-200">
                             <div className="flex items-center justify-between">
                                 <span className="text-lg font-medium text-gray-700">1인당 요금(사전결제)</span>
-                                <span className="text-xl font-bold text-blue-600" translate="no">{pricePerPerson}</span>
+                                <span className="text-xl font-bold text-blue-600" translate="no">
+                                    ₩{Math.floor(totalAmount / (parseInt(quotationData.numberOfPeople) || 1))}
+                                </span>
                             </div>
-                            {isJapanRegion && (
+                            {isJapanRegion && onSiteYenTotal > 0 && (
                                 <div className="flex items-center justify-between mt-2">
                                     <span className="text-lg font-medium text-gray-700">1인당 요금(현장결제)</span>
-                                    <span className="text-xl font-bold text-green-600" translate="no">{calculateOnSitePricePerPerson()}</span>
+                                    <span className="text-xl font-bold text-green-600" translate="no">
+                                        ¥{Math.floor(onSiteYenTotal / (parseInt(quotationData.numberOfPeople) || 1))} (₩{Math.round((onSiteYenTotal / (parseInt(quotationData.numberOfPeople) || 1)) * exchangeRate)})
+                                    </span>
                                 </div>
                             )}
                         </div>

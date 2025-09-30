@@ -251,43 +251,6 @@ export const useQuotationData = () => {
         setRentalCarOnSiteSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
-    // 총 사전결제 금액 계산 (골프 + 골프(현장결제) + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
-    const calculateTotalPrepayment = () => {
-        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 1;
-
-        const golfTotal = golfSchedules.reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const accommodationTotal = accommodationSchedules.reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const pickupTotal = pickupSchedules.reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const flightTotal = (flightSchedules || []).reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const rentalCarTotal = (rentalCarSchedules || []).reduce((sum, schedule) => {
-            const prepayment = calculatePrepayment(schedule.total, numberOfPeople);
-            return sum + parseInt(prepayment) || 0;
-        }, 0);
-
-        const total = golfTotal + golfOnSiteTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
-        return `₩${total}`;
-    };
 
     // 총 합계 금액 계산 (사전결제 항목만: 골프 + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
     // 현장결제 항목(골프 현장결제, 렌트카 현장결제)은 별도로 처리
@@ -329,19 +292,20 @@ export const useQuotationData = () => {
         return `₩${balance}`;
     };
 
-    // 현장결제 총비용 계산 (골프(현장결제) + 렌트카(현장결제))
-    const calculateOnSiteTotal = () => {
-        const golfOnSiteTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
-            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-            return sum + total;
+
+    // 현장결제 총비용 계산 (엔화)
+    const calculateOnSiteYenTotal = () => {
+        const golfOnSiteYenTotal = golfOnSiteSchedules.reduce((sum, schedule) => {
+            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+            return sum + yenAmount;
         }, 0);
 
-        const rentalCarOnSiteTotal = (rentalCarOnSiteSchedules || []).reduce((sum, schedule) => {
-            const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-            return sum + total;
+        const rentalCarOnSiteYenTotal = rentalCarOnSiteSchedules.reduce((sum, schedule) => {
+            const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+            return sum + yenAmount;
         }, 0);
 
-        return golfOnSiteTotal + rentalCarOnSiteTotal;
+        return golfOnSiteYenTotal + rentalCarOnSiteYenTotal;
     };
 
 
@@ -416,19 +380,6 @@ export const useQuotationData = () => {
         );
     };
 
-    // 1인당 요금 계산 (전체 총 금액 / 인원)
-    const calculatePricePerPerson = () => {
-        const totalAmount = calculateTotalAmount();
-        const numberOfPeople = parseInt(quotationData.numberOfPeople) || 0;
-
-        if (numberOfPeople === 0) {
-            return '₩0';
-        }
-
-        const pricePerPerson = Math.floor(totalAmount / numberOfPeople);
-
-        return `₩${pricePerPerson}`;
-    };
 
     // 사전결제(1인) 계산 (개별 일정의 총액 / 인원)
     const calculatePrepayment = (total: string, numberOfPeople: number): string => {
@@ -444,6 +395,7 @@ export const useQuotationData = () => {
         const total = amount * numberOfPeople;
         return `₩${total}`;
     };
+
 
     // 일정 데이터 직접 설정 함수들 (저장/불러오기용)
     const setGolfSchedulesData = (schedules: GolfSchedule[]) => {
@@ -517,13 +469,11 @@ export const useQuotationData = () => {
         updateRentalCarOnSiteSchedule,
         removeRentalCarOnSiteSchedule,
         setAdditionalOptions,
-        calculateTotalPrepayment,
         calculateTotalAmount,
         calculateBalance,
-        calculateOnSiteTotal,
+        calculateOnSiteYenTotal,
         generateInclusions,
         isFormValid,
-        calculatePricePerPerson,
         calculatePrepayment,
         calculateTotalFromPerPerson,
         // 저장/불러오기용 setter 함수들
