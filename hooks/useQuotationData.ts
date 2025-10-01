@@ -9,6 +9,17 @@ import {
     PaymentInfo
 } from '@/app/(admin)/admin/admin-tools/types';
 
+// Export types for use in other files
+export type {
+    FlightSchedule,
+    RentalCarSchedule,
+    QuotationData,
+    GolfSchedule,
+    AccommodationSchedule,
+    PickupSchedule,
+    PaymentInfo
+};
+
 export const useQuotationData = () => {
     const [quotationData, setQuotationData] = useState<QuotationData>({
         customerName: '',
