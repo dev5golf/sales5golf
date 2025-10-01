@@ -7,6 +7,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { FlightSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { createAddClickHandler } from '../../../../../utils/tableUtils';
+import { createTotalChangeHandler } from '../../../../../utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -33,17 +34,7 @@ export default function FlightTable({
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-
-    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 원화 표기와 함께 저장 (천단위 콤마 없음)
-        const finalValue = numericValue ? `₩${numericValue}` : '';
-        onUpdate(id, 'total', finalValue);
-    };
+    const handleTotalChange = createTotalChangeHandler(onUpdate);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">

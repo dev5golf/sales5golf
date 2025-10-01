@@ -45,6 +45,19 @@ export function isDatePast(date: string): boolean {
   return targetDate < now;
 }
 
+export function isValidDate(date: Date): boolean {
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+// Currency conversion utilities
+export function convertYenToWon(yenAmount: number, exchangeRate: number): number {
+  return Math.round(yenAmount * exchangeRate);
+}
+
+export function convertWonToYen(wonAmount: number, exchangeRate: number): number {
+  return Math.round(wonAmount / exchangeRate);
+}
+
 // Course type label utility
 export function getTypeLabel(type: string): string {
   switch (type) {

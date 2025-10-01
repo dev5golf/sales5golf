@@ -15,6 +15,7 @@ import AccommodationTable from './components/AccommodationTable';
 import PickupTable from './components/PickupTable';
 import FlightTable from './components/FlightTable';
 import RentalCarTable from './components/RentalCarTable';
+import RentalCarOnsiteTable from './components/RentalCarOnsiteTable';
 import PaymentSummary from './components/PaymentSummary';
 import AdditionalInfoSection from './components/AdditionalInfoSection';
 import PreviewModal from './components/PreviewModal';
@@ -337,12 +338,10 @@ export default function AdminTools() {
                             numberOfPeople={quotation.quotationData.numberOfPeople}
                             isFormValid={quotation.isFormValid()}
                             calculatePrepayment={quotation.calculatePrepayment}
-                            isOnSite={false}
-                            exchangeRate={exchangeRate}
                         />
 
                         {/* 렌트카(현장결제) 일정 테이블 */}
-                        <RentalCarTable
+                        <RentalCarOnsiteTable
                             schedules={quotation.rentalCarOnSiteSchedules}
                             onAdd={quotation.addRentalCarOnSiteSchedule}
                             onUpdate={quotation.updateRentalCarOnSiteSchedule}
@@ -350,7 +349,6 @@ export default function AdminTools() {
                             numberOfPeople={quotation.quotationData.numberOfPeople}
                             isFormValid={quotation.isFormValid()}
                             calculatePrepayment={quotation.calculatePrepayment}
-                            isOnSite={true}
                             exchangeRate={exchangeRate}
                         />
                     </>

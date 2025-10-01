@@ -10,6 +10,8 @@ import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '../../../../../types';
 import { createAddClickHandler } from '../../../../../utils/tableUtils';
+import { createInclusionChangeHandler, createCourseSelectHandler, createOnSiteTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
+import { convertYenToWon, convertWonToYen } from '../../../../../lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -43,79 +45,16 @@ export default function GolfOnSiteTable({
     // 각 스케줄별 직접입력 모드 상태 (티오프)
     const [directInputMode, setDirectInputMode] = useState<{ [key: string]: boolean }>({});
 
-    // 엔화를 원화로 변환하는 함수
-    const convertYenToWon = (yenAmount: number): number => {
-        return Math.round(yenAmount * exchangeRate);
-    };
-
-    // 원화를 엔화로 변환하는 함수
-    const convertWonToYen = (wonAmount: number): number => {
-        return Math.round(wonAmount / exchangeRate);
-    };
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-    const handleInclusionChange = (id: string, inclusion: string, checked: boolean) => {
-        const schedule = schedules.find(s => s.id === id);
-        if (!schedule) return;
-
-        let newInclusions = [...schedule.inclusions];
-        if (checked) {
-            newInclusions.push(inclusion);
-        } else {
-            newInclusions = newInclusions.filter(item => item !== inclusion);
-        }
-
-        onUpdate(id, 'inclusions', newInclusions);
-    };
-
-    const handleCourseSelect = (id: string, course: Course) => {
-        // 골프장명 업데이트
-        onUpdate(id, 'courseName', course.name);
-
-        // 포함사항 자동 설정 (골프장의 inclusions가 있으면 사용, 없으면 기본값)
-        const inclusions = course.inclusions && course.inclusions.length > 0
-            ? course.inclusions
-            : [...INCLUSION_OPTIONS];
-
-        onUpdate(id, 'inclusions', inclusions);
-    };
+    // 공통 핸들러 함수들
+    const handleInclusionChange = createInclusionChangeHandler(schedules, onUpdate);
+    const handleCourseSelect = createCourseSelectHandler(onUpdate);
+    const handleTotalChange = createOnSiteTotalChangeHandler(onUpdate, (yenAmount: number) => convertYenToWon(yenAmount, exchangeRate));
 
     // 직접입력 모드 토글 핸들러
-    const handleDirectInputToggle = (id: string) => {
-        const newValue = !directInputMode[id];
-        setDirectInputMode(prev => ({
-            ...prev,
-            [id]: newValue
-        }));
-        // DB에도 저장
-        onUpdate(id, 'teeOffDirectInput', newValue.toString());
-    };
+    const handleDirectInputToggle = createSingleFieldDirectInputToggleHandler(directInputMode, setDirectInputMode, onUpdate, 'teeOffDirectInput');
 
-    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 빈 값이면 그대로 저장
-        if (numericValue === '') {
-            onUpdate(id, 'total', '');
-            onUpdate(id, 'yenAmount', '');
-            return;
-        }
-
-        // 숫자로 변환
-        const yen = parseInt(numericValue) || 0;
-
-        // 엔화 금액을 별도로 저장
-        onUpdate(id, 'yenAmount', yen.toString());
-
-        // 엔화 금액을 원화로 변환하여 저장 (천단위 콤마 없음)
-        const wonAmount = convertYenToWon(yen);
-        const wonFormatted = `₩${wonAmount}`;
-
-        onUpdate(id, 'total', wonFormatted);
-    };
 
     // 일본 지역일 때 현장결제(1인) 입력 시 합계 자동 계산 핸들러
     const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +95,7 @@ export default function GolfOnSiteTable({
         schedules.forEach(schedule => {
             if (schedule.yenAmount) {
                 const yenAmount = parseInt(schedule.yenAmount);
-                const wonAmount = convertYenToWon(yenAmount);
+                const wonAmount = convertYenToWon(yenAmount, exchangeRate);
                 const wonFormatted = `₩${wonAmount}`;
 
                 // 원화 금액만 업데이트 (엔화는 그대로 유지)

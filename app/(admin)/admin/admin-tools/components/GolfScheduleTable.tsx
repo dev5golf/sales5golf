@@ -10,6 +10,7 @@ import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '@/types';
 import { createAddClickHandler } from '../../../../../utils/tableUtils';
+import { createInclusionChangeHandler, createCourseSelectHandler, createTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -44,43 +45,10 @@ export default function GolfScheduleTable({
     const [estimatedAmountMode, setEstimatedAmountMode] = useState<{ [key: string]: boolean }>({});
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-    const handleInclusionChange = (id: string, inclusion: string, checked: boolean) => {
-        const schedule = schedules.find(s => s.id === id);
-        if (!schedule) return;
-
-        let newInclusions = [...schedule.inclusions];
-        if (checked) {
-            newInclusions.push(inclusion);
-        } else {
-            newInclusions = newInclusions.filter(item => item !== inclusion);
-        }
-
-        onUpdate(id, 'inclusions', newInclusions);
-    };
-
-    const handleCourseSelect = (id: string, course: Course) => {
-        // 골프장명 업데이트
-        onUpdate(id, 'courseName', course.name);
-
-        // 포함사항 자동 설정 (골프장의 inclusions가 있으면 사용, 없으면 기본값)
-        const inclusions = course.inclusions && course.inclusions.length > 0
-            ? course.inclusions
-            : [...INCLUSION_OPTIONS];
-
-        onUpdate(id, 'inclusions', inclusions);
-    };
-
-    // 입력 필드에서 실시간으로 숫자만 허용하는 핸들러
-    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 원화 표기와 함께 저장 (천단위 콤마 없음)
-        const finalValue = numericValue ? `₩${numericValue}` : '';
-        onUpdate(id, 'total', finalValue);
-    };
+    // 공통 핸들러 함수들
+    const handleInclusionChange = createInclusionChangeHandler(schedules, onUpdate);
+    const handleCourseSelect = createCourseSelectHandler(onUpdate);
+    const handleTotalChange = createTotalChangeHandler(onUpdate);
 
     // 일본 지역일 때 사전결제(1인) 입력 시 합계 자동 계산 핸들러
     const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,15 +68,7 @@ export default function GolfScheduleTable({
     };
 
     // 직접입력 모드 토글 핸들러
-    const handleDirectInputToggle = (id: string) => {
-        const newValue = !directInputMode[id];
-        setDirectInputMode(prev => ({
-            ...prev,
-            [id]: newValue
-        }));
-        // DB에도 저장
-        onUpdate(id, 'teeOffDirectInput', newValue.toString());
-    };
+    const handleDirectInputToggle = createSingleFieldDirectInputToggleHandler(directInputMode, setDirectInputMode, onUpdate, 'teeOffDirectInput');
 
     // 예상금액 모드 토글 핸들러
     const handleEstimatedAmountToggle = (id: string) => {

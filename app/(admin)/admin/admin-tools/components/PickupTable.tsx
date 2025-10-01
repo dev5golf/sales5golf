@@ -8,6 +8,8 @@ import { Plus, Trash2 } from 'lucide-react';
 import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
 import { createAddClickHandler } from '../../../../../utils/tableUtils';
+import { createMultiFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
+import { createTotalChangeHandler } from '../../../../../utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -36,31 +38,10 @@ export default function PickupTable({
     const [directInputMode, setDirectInputMode] = useState<{ [key: string]: { destination: boolean; vehicleType: boolean } }>({});
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 원화 표기와 함께 저장 (천단위 콤마 없음)
-        const finalValue = numericValue ? `₩${numericValue}` : '';
-        onUpdate(id, 'total', finalValue);
-    };
+    const handleTotalChange = createTotalChangeHandler(onUpdate);
 
     // 직접입력 모드 토글 핸들러
-    const handleDirectInputToggle = (id: string, field: 'destination' | 'vehicleType') => {
-        const newValue = !directInputMode[id]?.[field];
-        setDirectInputMode(prev => ({
-            ...prev,
-            [id]: {
-                ...prev[id],
-                [field]: newValue
-            }
-        }));
-        // DB에도 저장
-        const dbField = field === 'destination' ? 'destinationDirectInput' : 'vehicleTypeDirectInput';
-        onUpdate(id, dbField, newValue.toString());
-    };
+    const handleDirectInputToggle = createMultiFieldDirectInputToggleHandler(directInputMode, setDirectInputMode, onUpdate);
 
     // schedules가 변경될 때 체크박스 상태 복원
     useEffect(() => {

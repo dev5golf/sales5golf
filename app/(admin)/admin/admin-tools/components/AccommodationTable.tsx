@@ -7,6 +7,8 @@ import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { AccommodationSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { createAddClickHandler } from '../../../../../utils/tableUtils';
+import { createTotalChangeHandler } from '../../../../../utils/tableHandlers';
+import { isValidDate } from '../../../../../lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -32,22 +34,9 @@ export default function AccommodationTable({
     // 마지막 선택한 날짜 범위를 기억하는 상태
     const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
 
-    // 날짜 유효성 검사 함수
-    const isValidDate = (date: Date): boolean => {
-        return date instanceof Date && !isNaN(date.getTime());
-    };
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-    const handleTotalChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        // 숫자만 추출
-        const numericValue = value.replace(/[^\d]/g, '');
-
-        // 원화 표기와 함께 저장 (천단위 콤마 없음)
-        const finalValue = numericValue ? `₩${numericValue}` : '';
-        onUpdate(id, 'total', finalValue);
-    };
+    const handleTotalChange = createTotalChangeHandler(onUpdate);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
