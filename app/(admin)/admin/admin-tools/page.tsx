@@ -273,7 +273,7 @@ export default function AdminTools() {
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                     calculatePrepayment={quotation.calculatePrepayment}
-                    isJapanRegion={regionType === 'japan'}
+                    regionType={regionType}
                     calculateTotalFromPerPerson={quotation.calculateTotalFromPerPerson}
                 />
 
@@ -288,7 +288,7 @@ export default function AdminTools() {
                         isFormValid={quotation.isFormValid()}
                         calculatePrepayment={quotation.calculatePrepayment}
                         exchangeRate={exchangeRate}
-                        isJapanRegion={regionType === 'japan'}
+                        regionType={regionType}
                         calculateTotalFromPerPerson={quotation.calculateTotalFromPerPerson}
                     />
                 )}
@@ -324,6 +324,8 @@ export default function AdminTools() {
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                     calculatePrepayment={quotation.calculatePrepayment}
+                    calculateTotalFromPerPerson={quotation.calculateTotalFromPerPerson}
+                    regionType={regionType}
                 />
 
                 {/* 렌트카 일정 테이블들 - 일본 선택 시에만 표시 */}

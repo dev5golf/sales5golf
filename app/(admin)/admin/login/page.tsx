@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '../../../../components/ui/alert';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
-    const { signIn, isAdmin, loading } = useAuth();
+    const { signIn, isAdmin, loading, user } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -26,6 +26,13 @@ export default function AdminLoginPage() {
             router.push('/admin');
         }
     }, [isAdmin, loading, router]);
+
+    // 로그인은 성공했지만 권한이 부족한 경우 처리
+    useEffect(() => {
+        if (!loading && user && !isAdmin) {
+            setError('관리자 권한이 없습니다. 관리자 계정으로 로그인해주세요.');
+        }
+    }, [loading, user, isAdmin]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

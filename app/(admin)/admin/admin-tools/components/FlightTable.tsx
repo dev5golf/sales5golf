@@ -6,8 +6,8 @@ import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { FlightSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { createAddClickHandler } from '../../../../../utils/tableUtils';
-import { createTotalChangeHandler } from '../../../../../utils/tableHandlers';
+import { createAddClickHandler } from '@/lib/utils/tableUtils';
+import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -19,6 +19,8 @@ interface FlightTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
+    calculateTotalFromPerPerson?: (perPersonValue: string, numberOfPeople: number) => string;
+    regionType?: 'basic' | 'japan';
 }
 
 export default function FlightTable({
@@ -28,13 +30,32 @@ export default function FlightTable({
     onRemove,
     numberOfPeople,
     isFormValid,
-    calculatePrepayment
+    calculatePrepayment,
+    calculateTotalFromPerPerson,
+    regionType
 }: FlightTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
     const [lastSelectedDate, setLastSelectedDate] = useState<Date | null>(null);
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
     const handleTotalChange = createTotalChangeHandler(onUpdate);
+
+    // 일본 지역일 때 사전결제(1인) 입력 시 합계 자동 계산 핸들러
+    const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        // 숫자만 추출
+        const numericValue = value.replace(/[^\d]/g, '');
+
+        if (numericValue && calculateTotalFromPerPerson) {
+            // 1인당 요금으로부터 총액 계산
+            const perPersonValue = `₩${numericValue}`;
+            const totalValue = calculateTotalFromPerPerson(perPersonValue, parseInt(numberOfPeople));
+            onUpdate(id, 'total', totalValue);
+        } else {
+            onUpdate(id, 'total', '');
+        }
+    };
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -164,21 +185,40 @@ export default function FlightTable({
                                     />
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        value={schedule.total}
-                                        onChange={(e) => handleTotalChange(schedule.id, e)}
-                                        placeholder="₩0"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        translate="no"
-                                    />
+                                    {regionType === 'japan' ? (
+                                        <div className="text-lg font-medium text-gray-900" translate="no">
+                                            {schedule.total || '-'}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.total}
+                                            onChange={(e) => handleTotalChange(schedule.id, e)}
+                                            placeholder="₩0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            translate="no"
+                                        />
+                                    )}
                                 </td>
-                                <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
-                                    <span className="text-lg font-medium text-gray-900">
-                                        {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
-                                    </span>
+                                <td className="px-1 py-1 text-lg w-32 text-center">
+                                    {regionType === 'japan' ? (
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            value={schedule.total ? calculatePrepayment(schedule.total, parseInt(numberOfPeople)) : ''}
+                                            onChange={(e) => handlePerPersonInputChange(schedule.id, e)}
+                                            placeholder="₩0"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            translate="no"
+                                        />
+                                    ) : (
+                                        <span className="text-lg font-medium text-gray-900" translate="no">
+                                            {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
+                                        </span>
+                                    )}
                                 </td>
                                 <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button

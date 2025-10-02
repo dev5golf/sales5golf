@@ -7,9 +7,9 @@ import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
-import { createAddClickHandler } from '../../../../../utils/tableUtils';
-import { createMultiFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
-import { createTotalChangeHandler } from '../../../../../utils/tableHandlers';
+import { createAddClickHandler } from '@/lib/utils/tableUtils';
+import { createMultiFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
+import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 

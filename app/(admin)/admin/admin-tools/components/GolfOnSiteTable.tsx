@@ -9,8 +9,8 @@ import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '../../../../../types';
-import { createAddClickHandler } from '../../../../../utils/tableUtils';
-import { createInclusionChangeHandler, createCourseSelectHandler, createOnSiteTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
+import { createAddClickHandler } from '@/lib/utils/tableUtils';
+import { createInclusionChangeHandler, createCourseSelectHandler, createOnSiteTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
 import { convertYenToWon, convertWonToYen } from '../../../../../lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
@@ -24,7 +24,7 @@ interface GolfOnSiteTableProps {
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
     exchangeRate?: number; // 환율 추가
-    isJapanRegion?: boolean;
+    regionType?: 'basic' | 'japan';
     calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 
@@ -37,7 +37,7 @@ export default function GolfOnSiteTable({
     isFormValid,
     calculatePrepayment,
     exchangeRate = 8.5, // 환율 기본값 8.5
-    isJapanRegion = false,
+    regionType = 'basic',
     calculateTotalFromPerPerson
 }: GolfOnSiteTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
@@ -256,7 +256,7 @@ export default function GolfOnSiteTable({
                                     </div>
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center">
-                                    {isJapanRegion ? (
+                                    {regionType === 'japan' ? (
                                         <div className="text-lg font-medium text-gray-900" translate="no">
                                             {schedule.yenAmount ? `¥${schedule.yenAmount}` : '-'}
                                         </div>
@@ -274,7 +274,7 @@ export default function GolfOnSiteTable({
                                     )}
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
-                                    {isJapanRegion ? (
+                                    {regionType === 'japan' ? (
                                         <input
                                             type="text"
                                             inputMode="numeric"

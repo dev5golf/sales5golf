@@ -9,8 +9,8 @@ import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
 import { Course } from '@/types';
-import { createAddClickHandler } from '../../../../../utils/tableUtils';
-import { createInclusionChangeHandler, createCourseSelectHandler, createTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '../../../../../utils/tableHandlers';
+import { createAddClickHandler } from '@/lib/utils/tableUtils';
+import { createInclusionChangeHandler, createCourseSelectHandler, createTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
@@ -22,7 +22,7 @@ interface GolfScheduleTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
-    isJapanRegion?: boolean;
+    regionType?: 'basic' | 'japan';
     calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 
@@ -34,7 +34,7 @@ export default function GolfScheduleTable({
     numberOfPeople,
     isFormValid,
     calculatePrepayment,
-    isJapanRegion = false,
+    regionType = 'basic',
     calculateTotalFromPerPerson
 }: GolfScheduleTableProps) {
     // 마지막 선택한 날짜를 기억하는 상태
@@ -244,7 +244,7 @@ export default function GolfScheduleTable({
                                 <td className="px-1 py-1 w-32 text-center text-lg">
                                     <div className="space-y-2">
                                         {/* 합계 표시 */}
-                                        {isJapanRegion ? (
+                                        {regionType === 'japan' ? (
                                             <div className="text-lg font-medium text-gray-900" translate="no">
                                                 {schedule.total || '-'}
                                             </div>
@@ -275,7 +275,7 @@ export default function GolfScheduleTable({
                                     </div>
                                 </td>
                                 <td className="px-1 py-1 w-32 text-center text-lg" translate="no">
-                                    {isJapanRegion ? (
+                                    {regionType === 'japan' ? (
                                         <input
                                             type="text"
                                             inputMode="numeric"
