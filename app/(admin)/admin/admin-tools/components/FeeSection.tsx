@@ -19,9 +19,12 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
     const golfFeePerPerson = 10000;
     const totalGolfFee = people * (golfSchedules.length + golfOnSiteSchedules.length) * golfFeePerPerson;
 
-    // 숙박 수수료 계산 (1객실당 1만원)
+    // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
     const accommodationFeePerRoom = 10000;
-    const totalAccommodationFee = accommodationSchedules.length * accommodationFeePerRoom;
+    const totalAccommodationFee = accommodationSchedules.reduce((total, schedule) => {
+        const rooms = parseInt(schedule.rooms) || 0;
+        return total + (rooms * accommodationFeePerRoom);
+    }, 0);
 
     // 렌트카 수수료 계산 (1대당 1만원 × 렌트카 행 수)
     const rentalCarFeePerCar = 10000;
