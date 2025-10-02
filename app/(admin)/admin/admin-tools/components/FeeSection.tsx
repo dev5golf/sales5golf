@@ -54,49 +54,53 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
             </div>
 
             <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="flex justify-center">
-                    <div className="w-full max-w-4xl">
-                        {/* 수수료 항목들 - 한 줄 배치 */}
-                        <div className="grid grid-cols-4 gap-4 mb-6">
-                            {/* 골프 수수료 */}
-                            <div className="flex flex-col items-center py-4 bg-blue-50 rounded-lg px-4">
-                                <span className="text-blue-800 font-bold text-lg mb-2">골프</span>
-                                <span className="text-blue-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
-                            </div>
-
-                            {/* 숙박 수수료 */}
-                            <div className="flex flex-col items-center py-4 bg-green-50 rounded-lg px-4">
-                                <span className="text-green-800 font-bold text-lg mb-2">숙박</span>
-                                <span className="text-green-900 font-bold text-xl">₩{totalAccommodationFee.toLocaleString()}</span>
-                            </div>
-
-                            {/* 렌트카 수수료 */}
-                            <div className="flex flex-col items-center py-4 bg-purple-50 rounded-lg px-4">
-                                <span className="text-purple-800 font-bold text-lg mb-2">렌트카</span>
-                                <span className="text-purple-900 font-bold text-xl">₩{totalRentalCarFee.toLocaleString()}</span>
-                            </div>
-
-                            {/* 항공 수수료 */}
-                            <div className="flex flex-col items-center py-4 bg-orange-50 rounded-lg px-4">
-                                <span className="text-orange-800 font-bold text-lg mb-2">항공</span>
-                                <span className="text-orange-900 font-bold text-xl">₩{totalFlightFee.toLocaleString()}</span>
-                            </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* 골프 수수료 */}
+                    {finalGolfFee > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-800 font-medium text-xl">골프</span>
+                            {isDiscountEligible ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
+                                    <span className="text-gray-500 text-sm line-through">(₩{totalGolfFee.toLocaleString()})</span>
+                                </div>
+                            ) : (
+                                <span className="text-gray-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
+                            )}
                         </div>
+                    )}
 
-                        {/* 할인 적용 */}
-                        {isDiscountEligible && (
-                            <div className="flex justify-between items-center py-3 border-b border-gray-100 mb-4">
-                                <span className="text-orange-600 font-medium">골프 8인 이상 할인 (30%)</span>
-                                <span className="text-orange-600 font-semibold">-₩{golfDiscountAmount.toLocaleString()}</span>
-                            </div>
-                        )}
-
-                        {/* 총 수수료 */}
-                        <div className="flex justify-between items-center py-4 bg-gray-50 rounded-lg px-6 border-2 border-gray-200">
-                            <span className="text-gray-800 font-bold text-xl">총 수수료</span>
-                            <span className="text-gray-900 font-bold text-2xl">₩{finalFee.toLocaleString()}</span>
+                    {/* 숙박 수수료 */}
+                    {totalAccommodationFee > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-800 font-medium text-xl">숙박</span>
+                            <span className="text-gray-900 font-bold text-xl">₩{totalAccommodationFee.toLocaleString()}</span>
                         </div>
-                    </div>
+                    )}
+
+                    {/* 렌트카 수수료 */}
+                    {totalRentalCarFee > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-800 font-medium text-xl">렌트카</span>
+                            <span className="text-gray-900 font-bold text-xl">₩{totalRentalCarFee.toLocaleString()}</span>
+                        </div>
+                    )}
+
+                    {/* 항공 수수료 */}
+                    {totalFlightFee > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-gray-800 font-medium text-xl">항공</span>
+                            <span className="text-gray-900 font-bold text-xl">₩{totalFlightFee.toLocaleString()}</span>
+                        </div>
+                    )}
+
+                    {/* 총 수수료 */}
+                    {finalFee > 0 && (
+                        <div className="flex items-center gap-2 ml-auto border-l border-gray-200 pl-4">
+                            <span className="text-gray-800 font-bold text-lg">총 수수료</span>
+                            <span className="text-gray-900 font-bold text-xl">₩{finalFee.toLocaleString()}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* 안내 문구 */}
@@ -106,9 +110,9 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
                             <span className="text-yellow-800 text-xs font-bold">!</span>
                         </div>
                         <div className="text-yellow-800">
-                            <p className="font-medium mb-1">수수료 안내</p>
-                            <p className="text-sm">
-                                골프 1인×1회 당 1만원, 숙박 1객실 당 1만원, 렌트카 1대 당 1만원, 항공 1인 당 1만원 (단, 8인 이상 시 골프 수수료 30% 할인)
+                            <p className="font-medium text-lg mb-1">수수료 안내</p>
+                            <p className="text-lg">
+                                골프 1인×1회 1만원(8인 이상 시 골프 수수료 30% 할인) / 숙박 1객실 1만원 / 렌트카 1대 1만원 / 항공 1인 1만원
                             </p>
                         </div>
                     </div>
