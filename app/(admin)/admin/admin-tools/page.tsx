@@ -18,6 +18,7 @@ import RentalCarTable from './components/RentalCarTable';
 import RentalCarOnsiteTable from './components/RentalCarOnsiteTable';
 import PaymentSummary from './components/PaymentSummary';
 import AdditionalInfoSection from './components/AdditionalInfoSection';
+import FeeSection from './components/FeeSection';
 import PreviewModal from './components/PreviewModal';
 import QuotationListModal from './components/QuotationListModal';
 
@@ -365,6 +366,17 @@ export default function AdminTools() {
                     onSiteYenTotal={quotation.calculateOnSiteYenTotal()}
                     isJapanRegion={regionType === 'japan'}
                     exchangeRate={exchangeRate}
+                />
+
+                {/* 오분골프 수수료 */}
+                <FeeSection
+                    numberOfPeople={quotation.quotationData.numberOfPeople}
+                    golfSchedules={quotation.golfSchedules}
+                    golfOnSiteSchedules={quotation.golfOnSiteSchedules}
+                    accommodationSchedules={quotation.accommodationSchedules}
+                    rentalCarSchedules={quotation.rentalCarSchedules}
+                    rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
+                    flightSchedules={quotation.flightSchedules}
                 />
 
                 {/* 추가 정보 섹션 */}
