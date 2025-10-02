@@ -55,34 +55,37 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
 
             <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="flex justify-center">
-                    <div className="w-full max-w-md space-y-3">
-                        {/* 골프 수수료 */}
-                        <div className="flex justify-between items-center py-3 bg-blue-50 rounded-lg px-6">
-                            <span className="text-blue-800 font-bold text-lg">골프</span>
-                            <span className="text-blue-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
-                        </div>
+                    <div className="w-full max-w-4xl">
+                        {/* 수수료 항목들 - 한 줄 배치 */}
+                        <div className="grid grid-cols-4 gap-4 mb-6">
+                            {/* 골프 수수료 */}
+                            <div className="flex flex-col items-center py-4 bg-blue-50 rounded-lg px-4">
+                                <span className="text-blue-800 font-bold text-lg mb-2">골프</span>
+                                <span className="text-blue-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
+                            </div>
 
-                        {/* 숙박 수수료 */}
-                        <div className="flex justify-between items-center py-3 bg-green-50 rounded-lg px-6">
-                            <span className="text-green-800 font-bold text-lg">숙박</span>
-                            <span className="text-green-900 font-bold text-xl">₩{totalAccommodationFee.toLocaleString()}</span>
-                        </div>
+                            {/* 숙박 수수료 */}
+                            <div className="flex flex-col items-center py-4 bg-green-50 rounded-lg px-4">
+                                <span className="text-green-800 font-bold text-lg mb-2">숙박</span>
+                                <span className="text-green-900 font-bold text-xl">₩{totalAccommodationFee.toLocaleString()}</span>
+                            </div>
 
-                        {/* 렌트카 수수료 */}
-                        <div className="flex justify-between items-center py-3 bg-purple-50 rounded-lg px-6">
-                            <span className="text-purple-800 font-bold text-lg">렌트카</span>
-                            <span className="text-purple-900 font-bold text-xl">₩{totalRentalCarFee.toLocaleString()}</span>
-                        </div>
+                            {/* 렌트카 수수료 */}
+                            <div className="flex flex-col items-center py-4 bg-purple-50 rounded-lg px-4">
+                                <span className="text-purple-800 font-bold text-lg mb-2">렌트카</span>
+                                <span className="text-purple-900 font-bold text-xl">₩{totalRentalCarFee.toLocaleString()}</span>
+                            </div>
 
-                        {/* 항공 수수료 */}
-                        <div className="flex justify-between items-center py-3 bg-orange-50 rounded-lg px-6">
-                            <span className="text-orange-800 font-bold text-lg">항공</span>
-                            <span className="text-orange-900 font-bold text-xl">₩{totalFlightFee.toLocaleString()}</span>
+                            {/* 항공 수수료 */}
+                            <div className="flex flex-col items-center py-4 bg-orange-50 rounded-lg px-4">
+                                <span className="text-orange-800 font-bold text-lg mb-2">항공</span>
+                                <span className="text-orange-900 font-bold text-xl">₩{totalFlightFee.toLocaleString()}</span>
+                            </div>
                         </div>
 
                         {/* 할인 적용 */}
                         {isDiscountEligible && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <div className="flex justify-between items-center py-3 border-b border-gray-100 mb-4">
                                 <span className="text-orange-600 font-medium">골프 8인 이상 할인 (30%)</span>
                                 <span className="text-orange-600 font-semibold">-₩{golfDiscountAmount.toLocaleString()}</span>
                             </div>
