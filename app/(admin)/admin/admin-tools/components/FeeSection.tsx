@@ -30,8 +30,8 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
     // 항공 수수료 계산 (항공 테이블 행의 인원수 × 1만원)
     const flightFeePerPerson = 10000;
     const totalFlightFee = flightSchedules.reduce((total, schedule) => {
-        const passengers = parseInt(schedule.passengers) || 0;
-        return total + (passengers * flightFeePerPerson);
+        const people = parseInt(schedule.people) || 0;
+        return total + (people * flightFeePerPerson);
     }, 0);
 
     // 8인 이상 시 골프 수수료에만 30% 할인 적용
