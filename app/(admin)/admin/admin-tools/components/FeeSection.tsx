@@ -9,14 +9,16 @@ interface FeeSectionProps {
     rentalCarSchedules: any[];
     rentalCarOnSiteSchedules: any[];
     flightSchedules: any[];
+    regionType?: 'basic' | 'japan';
 }
 
-export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSchedules, accommodationSchedules, rentalCarSchedules, rentalCarOnSiteSchedules, flightSchedules }: FeeSectionProps) {
+export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSchedules, accommodationSchedules, rentalCarSchedules, rentalCarOnSiteSchedules, flightSchedules, regionType = 'basic' }: FeeSectionProps) {
     // 인원수
     const people = parseInt(numberOfPeople) || 0;
 
     // 골프 수수료 계산 (1인당 1회 1만원 × 골프 행 수)
-    const golfFeePerPerson = 10000;
+    // 기본 지역의 경우 골프수수료는 무료(0원)로 적용
+    const golfFeePerPerson = regionType === 'japan' ? 10000 : 0;
     const totalGolfFee = people * (golfSchedules.length + golfOnSiteSchedules.length) * golfFeePerPerson;
 
     // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
@@ -56,10 +58,12 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
             <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* 골프 수수료 */}
-                    {finalGolfFee > 0 && (
+                    {(golfSchedules.length > 0 || golfOnSiteSchedules.length > 0) && (
                         <div className="flex items-center gap-2">
                             <span className="text-gray-800 font-medium text-xl">골프</span>
-                            {isDiscountEligible ? (
+                            {regionType === 'basic' && finalGolfFee === 0 ? (
+                                <span className="text-green-600 font-bold text-xl">₩0 (무료이벤트)</span>
+                            ) : isDiscountEligible ? (
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-900 font-bold text-xl">₩{finalGolfFee.toLocaleString()}</span>
                                     <span className="text-gray-500 text-sm line-through">(₩{totalGolfFee.toLocaleString()})</span>

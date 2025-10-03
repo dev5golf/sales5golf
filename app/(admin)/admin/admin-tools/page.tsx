@@ -377,6 +377,7 @@ export default function AdminTools() {
                     rentalCarSchedules={quotation.rentalCarSchedules}
                     rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
                     flightSchedules={quotation.flightSchedules}
+                    regionType={regionType}
                 />
 
                 {/* 추가 정보 섹션 */}
