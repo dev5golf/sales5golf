@@ -43,15 +43,15 @@ export default function AdminTools() {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
-    // 자동 저장 (30초마다) - 주석처리
+    // 자동 저장 (3분마다)
     useEffect(() => {
-        // const interval = setInterval(() => {
-        //     if (hasUnsavedChanges && quotation.isFormValid()) {
-        //         handleSaveQuotation();
-        //     }
-        // }, 30000);
-        // return () => clearInterval(interval);
-    }, [hasUnsavedChanges, quotation.isFormValid()]);
+        const interval = setInterval(() => {
+            if (hasUnsavedChanges && quotation.isFormValid()) {
+                handleSaveQuotation();
+            }
+        }, 180000);
+        return () => clearInterval(interval);
+    }, [hasUnsavedChanges]);
 
     // 변경사항 감지 (환율 제외)
     useEffect(() => {
