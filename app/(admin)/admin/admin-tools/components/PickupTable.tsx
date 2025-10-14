@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Copy } from 'lucide-react';
 import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
@@ -18,6 +18,7 @@ interface PickupTableProps {
     onAdd: () => void;
     onUpdate: (id: string, field: keyof PickupSchedule, value: string) => void;
     onRemove: (id: string) => void;
+    onCopy: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
@@ -28,6 +29,7 @@ export default function PickupTable({
     onAdd,
     onUpdate,
     onRemove,
+    onCopy,
     numberOfPeople,
     isFormValid,
     calculatePrepayment
@@ -88,6 +90,7 @@ export default function PickupTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-24">차종</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">복사</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
@@ -280,6 +283,16 @@ export default function PickupTable({
                                         {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
                                     </span>
                                 </td>
+                                <td className="px-1 py-1 text-center w-20 text-lg">
+                                    <Button
+                                        onClick={() => onCopy(schedule.id)}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-purple-600 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </td>
                                 <td className="px-1 py-1 text-lg text-center w-20">
                                     <Button
                                         onClick={() => onRemove(schedule.id)}
@@ -309,6 +322,7 @@ export default function PickupTable({
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
+                                <td className="px-1 py-1 w-20"></td>
                                 <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}

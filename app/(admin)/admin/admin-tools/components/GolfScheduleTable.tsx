@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Copy } from 'lucide-react';
 import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
@@ -19,6 +19,7 @@ interface GolfScheduleTableProps {
     onAdd: () => void;
     onUpdate: (id: string, field: keyof GolfSchedule, value: string | string[]) => void;
     onRemove: (id: string) => void;
+    onCopy: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
@@ -31,6 +32,7 @@ export default function GolfScheduleTable({
     onAdd,
     onUpdate,
     onRemove,
+    onCopy,
     numberOfPeople,
     isFormValid,
     calculatePrepayment,
@@ -125,6 +127,7 @@ export default function GolfScheduleTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">TEE-OFF</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">복사</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
@@ -293,6 +296,16 @@ export default function GolfScheduleTable({
                                 </td>
                                 <td className="px-1 py-1 text-center w-20 text-lg">
                                     <Button
+                                        onClick={() => onCopy(schedule.id)}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </td>
+                                <td className="px-1 py-1 text-center w-20 text-lg">
+                                    <Button
                                         onClick={() => onRemove(schedule.id)}
                                         variant="outline"
                                         size="sm"
@@ -322,6 +335,7 @@ export default function GolfScheduleTable({
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
+                                <td className="px-1 py-1 w-20"></td>
                                 <td className="px-1 py-1 w-20"></td>
                             </tr>
                         )}

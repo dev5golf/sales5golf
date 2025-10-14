@@ -271,6 +271,7 @@ export default function AdminTools() {
                     onAdd={quotation.addGolfSchedule}
                     onUpdate={quotation.updateGolfSchedule}
                     onRemove={quotation.removeGolfSchedule}
+                    onCopy={quotation.copyGolfSchedule}
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                     calculatePrepayment={quotation.calculatePrepayment}
@@ -285,6 +286,7 @@ export default function AdminTools() {
                         onAdd={quotation.addGolfOnSiteSchedule}
                         onUpdate={quotation.updateGolfOnSiteSchedule}
                         onRemove={quotation.removeGolfOnSiteSchedule}
+                        onCopy={quotation.copyGolfOnSiteSchedule}
                         numberOfPeople={quotation.quotationData.numberOfPeople}
                         isFormValid={quotation.isFormValid()}
                         calculatePrepayment={quotation.calculatePrepayment}
@@ -311,6 +313,7 @@ export default function AdminTools() {
                     onAdd={quotation.addPickupSchedule}
                     onUpdate={quotation.updatePickupSchedule}
                     onRemove={quotation.removePickupSchedule}
+                    onCopy={quotation.copyPickupSchedule}
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     isFormValid={quotation.isFormValid()}
                     calculatePrepayment={quotation.calculatePrepayment}

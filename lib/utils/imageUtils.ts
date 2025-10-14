@@ -100,12 +100,26 @@ const removeDeleteColumns = (element: HTMLElement): void => {
     tables.forEach(table => {
         const rows = table.querySelectorAll('tr');
 
-        // 각 행에서 마지막 셀 제거
+        // 복사 컬럼이 있는 테이블
+        const headerRow = table.querySelector('tr');
+        const headerCells = headerRow?.querySelectorAll('th');
+        const hasCopyColumn = Array.from(headerCells || []).some(cell =>
+            cell.textContent?.includes('복사')
+        );
+
         rows.forEach(row => {
             const cells = row.querySelectorAll('td, th');
             if (cells.length > 0) {
-                // 마지막 셀 제거
-                cells[cells.length - 1].remove();
+                if (hasCopyColumn) {
+                    // 골프 사전결제 테이블: 마지막 2개 컬럼 제거 (복사+삭제)
+                    if (cells.length >= 2) {
+                        cells[cells.length - 1].remove(); // 삭제
+                        cells[cells.length - 2].remove(); // 복사
+                    }
+                } else {
+                    // 다른 테이블들: 마지막 1개 컬럼만 제거 (삭제)
+                    cells[cells.length - 1].remove();
+                }
             }
         });
     });

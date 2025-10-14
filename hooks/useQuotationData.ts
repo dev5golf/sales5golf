@@ -82,6 +82,23 @@ export const useQuotationData = () => {
         setGolfSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
+    // 범용 복사 함수 - 모든 일정 복사용 (골프, 픽업, 숙박 등)
+    const copySchedule = <T extends { id: string }>(id: string, schedules: T[], setSchedules: React.Dispatch<React.SetStateAction<T[]>>) => {
+        const scheduleToCopy = schedules.find(schedule => schedule.id === id);
+        if (scheduleToCopy) {
+            const copiedSchedule: T = {
+                ...scheduleToCopy,
+                id: Date.now().toString() // 새로운 ID 생성
+            };
+            setSchedules(prev => [...prev, copiedSchedule]);
+        }
+    };
+
+    // 골프 사전결제 복사 함수
+    const copyGolfSchedule = (id: string) => {
+        copySchedule(id, golfSchedules, setGolfSchedules);
+    };
+
     const addGolfOnSiteSchedule = () => {
         const newSchedule: GolfSchedule = {
             id: Date.now().toString(),
@@ -109,6 +126,11 @@ export const useQuotationData = () => {
 
     const removeGolfOnSiteSchedule = (id: string) => {
         setGolfOnSiteSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 골프 현장결제 복사 함수
+    const copyGolfOnSiteSchedule = (id: string) => {
+        copySchedule(id, golfOnSiteSchedules, setGolfOnSiteSchedules);
     };
 
     const addAccommodationSchedule = () => {
@@ -169,6 +191,11 @@ export const useQuotationData = () => {
 
     const removePickupSchedule = (id: string) => {
         setPickupSchedules(prev => prev.filter(schedule => schedule.id !== id));
+    };
+
+    // 픽업 복사 함수
+    const copyPickupSchedule = (id: string) => {
+        copySchedule(id, pickupSchedules, setPickupSchedules);
     };
 
     const addFlightSchedule = () => {
@@ -461,6 +488,8 @@ export const useQuotationData = () => {
         addGolfSchedule,
         updateGolfSchedule,
         removeGolfSchedule,
+        copyGolfSchedule,
+        copyGolfOnSiteSchedule,
         addGolfOnSiteSchedule,
         updateGolfOnSiteSchedule,
         removeGolfOnSiteSchedule,
@@ -470,6 +499,7 @@ export const useQuotationData = () => {
         addPickupSchedule,
         updatePickupSchedule,
         removePickupSchedule,
+        copyPickupSchedule,
         addFlightSchedule,
         updateFlightSchedule,
         removeFlightSchedule,
