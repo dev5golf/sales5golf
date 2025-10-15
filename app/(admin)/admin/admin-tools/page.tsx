@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useQuotationData } from '../../../../hooks/useQuotationData';
@@ -43,23 +43,31 @@ export default function AdminTools() {
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
-    // 자동 저장 (3분마다)
+    // 자동저장을 위한 최신 quotation 참조
+    const quotationRef = useRef(quotation);
+    quotationRef.current = quotation;
+
+    // 간단한 참조를 위한 별칭
+    const curQuotationRef = quotationRef.current;
+
+    // 자동 저장 (3분마다) - 최신 quotation 데이터 참조
     useEffect(() => {
         const interval = setInterval(() => {
-            if (hasUnsavedChanges && quotation.isFormValid()) {
+            // 최신 quotation 데이터 사용
+            if (hasUnsavedChanges && curQuotationRef.isFormValid()) {
                 handleSaveQuotation();
             }
         }, 180000);
         return () => clearInterval(interval);
-    }, [hasUnsavedChanges]);
+    }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
 
     // 변경사항 감지 (환율 제외)
     useEffect(() => {
         setHasUnsavedChanges(true);
-    }, [quotation.quotationData, quotation.golfSchedules,
-    quotation.golfOnSiteSchedules, quotation.accommodationSchedules,
-    quotation.pickupSchedules, quotation.flightSchedules, quotation.rentalCarSchedules,
-    quotation.rentalCarOnSiteSchedules, quotation.paymentInfo, quotation.additionalOptions]);
+    }, [curQuotationRef.quotationData, curQuotationRef.golfSchedules,
+    curQuotationRef.golfOnSiteSchedules, curQuotationRef.accommodationSchedules,
+    curQuotationRef.pickupSchedules, curQuotationRef.flightSchedules, curQuotationRef.rentalCarSchedules,
+    curQuotationRef.rentalCarOnSiteSchedules, curQuotationRef.paymentInfo, curQuotationRef.additionalOptions]);
 
     // 일본 지역 선택 시 자동으로 환율 가져오기
     useEffect(() => {
@@ -71,17 +79,18 @@ export default function AdminTools() {
     // 견적서 저장
     const handleSaveQuotation = async () => {
         try {
+            // 최신 quotation 데이터 사용
             await storage.saveQuotationData(
-                quotation.quotationData,
-                quotation.golfSchedules,
-                quotation.golfOnSiteSchedules,
-                quotation.accommodationSchedules,
-                quotation.pickupSchedules,
-                quotation.flightSchedules,
-                quotation.rentalCarSchedules,
-                quotation.rentalCarOnSiteSchedules,
-                quotation.paymentInfo,
-                quotation.additionalOptions,
+                curQuotationRef.quotationData,
+                curQuotationRef.golfSchedules,
+                curQuotationRef.golfOnSiteSchedules,
+                curQuotationRef.accommodationSchedules,
+                curQuotationRef.pickupSchedules,
+                curQuotationRef.flightSchedules,
+                curQuotationRef.rentalCarSchedules,
+                curQuotationRef.rentalCarOnSiteSchedules,
+                curQuotationRef.paymentInfo,
+                curQuotationRef.additionalOptions,
                 regionType // 지역 타입만 저장
             );
             setHasUnsavedChanges(false);
