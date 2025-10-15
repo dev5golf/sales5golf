@@ -49,13 +49,13 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
     const finalFee = finalGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
 
     return (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-100 p-6 mb-8">
-            <div className="flex items-center gap-3 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-4">
                 <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                 <h3 className="text-xl font-semibold text-gray-900">오분골프 수수료</h3>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* 골프 수수료 */}
                     {(golfSchedules.length > 0 || golfOnSiteSchedules.length > 0) && (

@@ -374,17 +374,6 @@ export default function AdminTools() {
                     </>
                 )}
 
-                {/* 결제 요약 */}
-                <PaymentSummary
-                    paymentInfo={quotation.paymentInfo}
-                    onPaymentChange={quotation.updatePaymentInfo}
-                    balance={quotation.calculateBalance()}
-                    totalAmount={`₩${quotation.calculateTotalAmount()}`}
-                    onSiteYenTotal={quotation.calculateOnSiteYenTotal()}
-                    isJapanRegion={regionType === 'japan'}
-                    exchangeRate={exchangeRate}
-                />
-
                 {/* 오분골프 수수료 */}
                 <FeeSection
                     numberOfPeople={quotation.quotationData.numberOfPeople}
@@ -395,6 +384,17 @@ export default function AdminTools() {
                     rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
                     flightSchedules={quotation.flightSchedules}
                     regionType={regionType}
+                />
+
+                {/* 결제 요약 */}
+                <PaymentSummary
+                    paymentInfo={quotation.paymentInfo}
+                    onPaymentChange={quotation.updatePaymentInfo}
+                    balance={quotation.calculateBalance()}
+                    totalAmount={`₩${quotation.calculateTotalAmount()}`}
+                    onSiteYenTotal={quotation.calculateOnSiteYenTotal()}
+                    isJapanRegion={regionType === 'japan'}
+                    exchangeRate={exchangeRate}
                 />
 
                 {/* 추가 정보 섹션 */}
