@@ -61,7 +61,7 @@ export default function AdminTools() {
                 handleSaveQuotation();
             }
             console.log('자동저장', hasUnsavedChanges, quotationRef.current.isFormValid());
-        }, 10000);
+        }, 180000);
         return () => clearInterval(interval);
     }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
 
