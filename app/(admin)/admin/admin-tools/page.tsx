@@ -48,29 +48,27 @@ export default function AdminTools() {
     const quotationRef = useRef(quotation);
     quotationRef.current = quotation;
 
-    // 간단한 참조를 위한 별칭
-    const curQuotationRef = quotationRef.current;
 
     // 자동 저장 (3분마다) - 최신 quotation 데이터 참조
     useEffect(() => {
         const interval = setInterval(() => {
             // 최신 quotation 데이터 사용
-            if (hasUnsavedChanges && curQuotationRef.isFormValid()) {
-                console.log(hasUnsavedChanges, curQuotationRef.isFormValid());
+            if (hasUnsavedChanges && quotationRef.current.isFormValid()) {
+                console.log(hasUnsavedChanges, quotationRef.current.isFormValid());
                 handleSaveQuotation();
             }
-            console.log('자동 저장');
-        }, 10000);
+            console.log('자동저장', hasUnsavedChanges, quotationRef.current.isFormValid());
+        }, 180000);
         return () => clearInterval(interval);
     }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
 
     // 변경사항 감지 (환율 제외)
     useEffect(() => {
         setHasUnsavedChanges(true);
-    }, [curQuotationRef.quotationData, curQuotationRef.golfSchedules,
-    curQuotationRef.golfOnSiteSchedules, curQuotationRef.accommodationSchedules,
-    curQuotationRef.pickupSchedules, curQuotationRef.flightSchedules, curQuotationRef.rentalCarSchedules,
-    curQuotationRef.rentalCarOnSiteSchedules, curQuotationRef.paymentInfo, curQuotationRef.additionalOptions]);
+    }, [quotationRef.current.quotationData, quotationRef.current.golfSchedules,
+    quotationRef.current.golfOnSiteSchedules, quotationRef.current.accommodationSchedules,
+    quotationRef.current.pickupSchedules, quotationRef.current.flightSchedules, quotationRef.current.rentalCarSchedules,
+    quotationRef.current.rentalCarOnSiteSchedules, quotationRef.current.paymentInfo, quotationRef.current.additionalOptions]);
 
     // 일본 지역 선택 시 자동으로 환율 가져오기
     useEffect(() => {
@@ -84,16 +82,16 @@ export default function AdminTools() {
         try {
             // 최신 quotation 데이터 사용
             await storage.saveQuotationData(
-                curQuotationRef.quotationData,
-                curQuotationRef.golfSchedules,
-                curQuotationRef.golfOnSiteSchedules,
-                curQuotationRef.accommodationSchedules,
-                curQuotationRef.pickupSchedules,
-                curQuotationRef.flightSchedules,
-                curQuotationRef.rentalCarSchedules,
-                curQuotationRef.rentalCarOnSiteSchedules,
-                curQuotationRef.paymentInfo,
-                curQuotationRef.additionalOptions,
+                quotationRef.current.quotationData,
+                quotationRef.current.golfSchedules,
+                quotationRef.current.golfOnSiteSchedules,
+                quotationRef.current.accommodationSchedules,
+                quotationRef.current.pickupSchedules,
+                quotationRef.current.flightSchedules,
+                quotationRef.current.rentalCarSchedules,
+                quotationRef.current.rentalCarOnSiteSchedules,
+                quotationRef.current.paymentInfo,
+                quotationRef.current.additionalOptions,
                 regionType // 지역 타입만 저장
             );
             setHasUnsavedChanges(false);
