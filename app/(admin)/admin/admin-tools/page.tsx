@@ -57,7 +57,7 @@ export default function AdminTools() {
             if (hasUnsavedChanges && curQuotationRef.isFormValid()) {
                 handleSaveQuotation();
             }
-        }, 180000);
+        }, 10000);
         return () => clearInterval(interval);
     }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
 
