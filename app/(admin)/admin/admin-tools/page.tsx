@@ -48,6 +48,9 @@ export default function AdminTools() {
     const quotationRef = useRef(quotation);
     quotationRef.current = quotation;
 
+    const regionTypeRef = useRef<'basic' | 'japan'>('basic');
+    regionTypeRef.current = regionType;
+
 
     // 자동 저장 (3분마다) - 최신 quotation 데이터 참조
     useEffect(() => {
@@ -58,7 +61,7 @@ export default function AdminTools() {
                 handleSaveQuotation();
             }
             console.log('자동저장', hasUnsavedChanges, quotationRef.current.isFormValid());
-        }, 180000);
+        }, 10000);
         return () => clearInterval(interval);
     }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
 
@@ -68,7 +71,8 @@ export default function AdminTools() {
     }, [quotationRef.current.quotationData, quotationRef.current.golfSchedules,
     quotationRef.current.golfOnSiteSchedules, quotationRef.current.accommodationSchedules,
     quotationRef.current.pickupSchedules, quotationRef.current.flightSchedules, quotationRef.current.rentalCarSchedules,
-    quotationRef.current.rentalCarOnSiteSchedules, quotationRef.current.paymentInfo, quotationRef.current.additionalOptions]);
+    quotationRef.current.rentalCarOnSiteSchedules, quotationRef.current.paymentInfo, quotationRef.current.additionalOptions,
+        regionType]);
 
     // 일본 지역 선택 시 자동으로 환율 가져오기
     useEffect(() => {
@@ -92,7 +96,7 @@ export default function AdminTools() {
                 quotationRef.current.rentalCarOnSiteSchedules,
                 quotationRef.current.paymentInfo,
                 quotationRef.current.additionalOptions,
-                regionType // 지역 타입만 저장
+                regionTypeRef.current // 지역 타입만 저장
             );
             setHasUnsavedChanges(false);
 
