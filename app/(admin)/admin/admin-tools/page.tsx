@@ -21,6 +21,7 @@ import AdditionalInfoSection from './components/AdditionalInfoSection';
 import FeeSection from './components/FeeSection';
 import PreviewModal from './components/PreviewModal';
 import QuotationListModal from './components/QuotationListModal';
+import { log } from 'console';
 
 export default function AdminTools() {
     const { user, loading } = useAuth();
@@ -55,8 +56,10 @@ export default function AdminTools() {
         const interval = setInterval(() => {
             // 최신 quotation 데이터 사용
             if (hasUnsavedChanges && curQuotationRef.isFormValid()) {
+                console.log(hasUnsavedChanges, curQuotationRef.isFormValid());
                 handleSaveQuotation();
             }
+            console.log('자동 저장');
         }, 10000);
         return () => clearInterval(interval);
     }, [hasUnsavedChanges]); // quotation 제거하여 클로저 문제 해결
