@@ -65,23 +65,16 @@ export interface FilterOption {
 export interface Course {
     id: string;
     name: string;
-    address: string;
     countryId: string;
     provinceId: string;
     cityId: string;
     countryName: string;
     provinceName: string;
     cityName: string;
-    phone: string;
-    email?: string;
-    website?: string;
-    description: string;
-    price: number;
-    images: string[];
-    facilities?: string[];
     inclusions?: string[];
     adminIds: string[];
     isActive: boolean;
+    googleMapsLink?: string;
     createdAt: any;
     updatedAt: any;
     createdBy: string | null;
@@ -149,25 +142,4 @@ export interface Region {
     createdAt: any;
     updatedAt: any;
     createdBy: string | null;
-}
-
-/**
- * 골프장 폼 데이터 구조
- * 골프장 생성/수정 폼에서 사용하는 데이터 인터페이스
- */
-export interface CourseFormData {
-    name: string;
-    address: string;
-    countryId: string;
-    provinceId: string;
-    cityId: string;
-    phone: string;
-    email: string;
-    website: string;
-    description: string;
-    price: string;
-    images: string[];
-    facilities: string[];
-    adminIds: string[];
-    isActive: boolean;
 }

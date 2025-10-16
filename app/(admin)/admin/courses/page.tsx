@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { Course, Country, Province } from '@/types';
@@ -28,6 +28,8 @@ export default function CoursesPage() {
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
 
     // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
     if (!authLoading && currentUser?.role !== 'super_admin') {
@@ -119,9 +121,7 @@ export default function CoursesPage() {
 
     const filteredCourses = courses.filter(course => {
         // 검색어 필터
-        if (searchTerm && !course.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !course.address.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !course.phone.includes(searchTerm)) {
+        if (searchTerm && !course.name.toLowerCase().includes(searchTerm.toLowerCase())) {
             return false;
         }
 
@@ -174,12 +174,51 @@ export default function CoursesPage() {
     const handleCloseModals = () => {
         setShowCreateModal(false);
         setShowEditModal(false);
+        setShowDeleteModal(false);
         setSelectedCourse(null);
+        setCourseToDelete(null);
     };
 
     const handleCourseSaved = () => {
         fetchCourses(); // 목록 새로고침
         handleCloseModals();
+    };
+
+    const handleDeleteCourse = (course: Course) => {
+        setCourseToDelete(course);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDeleteCourse = async () => {
+        if (!courseToDelete) return;
+
+        try {
+            // 1. 먼저 해당 골프장의 모든 티타임 데이터 삭제
+            const teeTimesQuery = query(
+                collection(db, 'teeTimes'),
+                where('courseId', '==', courseToDelete.id)
+            );
+            const teeTimesSnapshot = await getDocs(teeTimesQuery);
+
+            // 각 티타임 데이터 삭제
+            const deletePromises = teeTimesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+
+            console.log(`골프장 "${courseToDelete.name}"의 ${teeTimesSnapshot.docs.length}개 티타임 데이터 삭제 완료`);
+
+            // 2. 골프장 데이터 삭제
+            const courseRef = doc(db, 'courses', courseToDelete.id);
+            await deleteDoc(courseRef);
+
+            // 목록 새로고침
+            fetchCourses();
+            handleCloseModals();
+
+            alert(`골프장 "${courseToDelete.name}"과 관련된 모든 데이터가 성공적으로 삭제되었습니다.`);
+        } catch (error) {
+            console.error('골프장 삭제 실패:', error);
+            alert('골프장 삭제에 실패했습니다.');
+        }
     };
 
     if (loading) {
@@ -214,7 +253,7 @@ export default function CoursesPage() {
                     <div className="flex gap-3">
                         <input
                             type="text"
-                            placeholder="골프장명, 주소, 전화번호로 검색..."
+                            placeholder="골프장명"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -274,12 +313,12 @@ export default function CoursesPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>골프장명</TableHead>
+                            <TableHead>국가</TableHead>
                             <TableHead>지역</TableHead>
-                            <TableHead>주소</TableHead>
-                            <TableHead>전화번호</TableHead>
-                            <TableHead>가격</TableHead>
+                            <TableHead>도시</TableHead>
+                            <TableHead>포함사항</TableHead>
                             <TableHead>상태</TableHead>
-                            <TableHead>등록일</TableHead>
+                            <TableHead>구글맵</TableHead>
                             <TableHead>액션</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -291,20 +330,42 @@ export default function CoursesPage() {
                                         <span className="font-medium text-gray-900">{course.name}</span>
                                     </div>
                                 </TableCell>
+                                <TableCell className="text-gray-600">{course.countryName}</TableCell>
+                                <TableCell className="text-gray-600">{course.provinceName}</TableCell>
+                                <TableCell className="text-gray-600">{course.cityName}</TableCell>
                                 <TableCell>
-                                    <div className="text-sm text-gray-600">
-                                        {course.countryName} &gt; {course.provinceName} &gt; {course.cityName}
+                                    <div className="flex flex-wrap gap-1">
+                                        {course.inclusions && course.inclusions.length > 0 ? (
+                                            course.inclusions.map((inclusion, index) => (
+                                                <Badge key={index} variant="secondary" className="text-xs">
+                                                    {inclusion}
+                                                </Badge>
+                                            ))
+                                        ) : (
+                                            <span className="text-gray-400 text-sm">미설정</span>
+                                        )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-gray-600">{course.address}</TableCell>
-                                <TableCell className="text-gray-600">{course.phone}</TableCell>
-                                <TableCell className="text-gray-600">{course.price ? `${course.price.toLocaleString()}원` : '미설정'}</TableCell>
                                 <TableCell>
                                     <Badge variant={course.isActive ? 'active' : 'inactive'}>
                                         {course.isActive ? '활성' : '비활성'}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-gray-600">{formatDate(course.createdAt)}</TableCell>
+                                <TableCell>
+                                    {course.googleMapsLink ? (
+                                        <a
+                                            href={course.googleMapsLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            <i className="fas fa-map-marker-alt"></i>
+                                            <span className="text-sm">지도보기</span>
+                                        </a>
+                                    ) : (
+                                        <span className="text-gray-400 text-sm">미설정</span>
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex gap-2">
                                         <Button
@@ -314,6 +375,15 @@ export default function CoursesPage() {
                                             title="수정"
                                         >
                                             <i className="fas fa-edit"></i>
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleDeleteCourse(course)}
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            title="삭제"
+                                        >
+                                            <i className="fas fa-trash"></i>
                                         </Button>
                                     </div>
                                 </TableCell>
@@ -345,6 +415,45 @@ export default function CoursesPage() {
                 course={selectedCourse}
                 onSave={handleCourseSaved}
             />
+
+            {/* 골프장 삭제 확인 모달 */}
+            {showDeleteModal && courseToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <div className="flex items-center mb-4">
+                            <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                                <i className="fas fa-exclamation-triangle text-red-600"></i>
+                            </div>
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                골프장 삭제 확인
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-6">
+                                <strong>"{courseToDelete.name}"</strong> 골프장과 관련된 모든 데이터를 삭제하시겠습니까?<br />
+                                <span className="text-red-600 font-medium">• 골프장 정보</span><br />
+                                <span className="text-red-600 font-medium">• 모든 티타임 데이터</span><br />
+                                이 작업은 되돌릴 수 없습니다.
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <Button
+                                    onClick={handleCloseModals}
+                                    variant="outline"
+                                    className="px-4 py-2"
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    onClick={confirmDeleteCourse}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
+                                >
+                                    삭제
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

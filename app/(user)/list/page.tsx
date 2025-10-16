@@ -43,17 +43,13 @@ export default function ListPage() {
                     {
                         id: 'dummy1',
                         name: '더미 골프장 1',
-                        address: '서울시 강남구',
                         countryId: 'KR',
                         provinceId: 'KR_001',
                         cityId: 'KR_001_001',
                         countryName: '대한민국',
                         provinceName: '서울',
                         cityName: '강남구',
-                        phone: '02-1234-5678',
-                        description: '더미 골프장입니다.',
-                        price: 200000,
-                        images: [],
+                        inclusions: [],
                         adminIds: [],
                         isActive: true,
                         createdAt: new Date(),
@@ -87,8 +83,8 @@ export default function ListPage() {
                         type: 'public' as const,
                         rating: 4.5,
                         reviews: 120,
-                        originalPrice: data.price ? `${Math.floor(data.price * 1.3).toLocaleString()}원` : '',
-                        discount: data.price ? '30% 할인' : '',
+                        originalPrice: '가격 문의',
+                        discount: '',
                         image: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
                         features: ['18홀', '파 72', '골프카트', '프로샵']
                     };
@@ -110,17 +106,13 @@ export default function ListPage() {
                 {
                     id: 'dummy1',
                     name: '더미 골프장 1',
-                    address: '서울시 강남구',
                     countryId: 'KR',
                     provinceId: 'KR_001',
                     cityId: 'KR_001_001',
                     countryName: '대한민국',
                     provinceName: '서울',
                     cityName: '강남구',
-                    phone: '02-1234-5678',
-                    description: '더미 골프장입니다.',
-                    price: 200000,
-                    images: [],
+                    inclusions: [],
                     adminIds: [],
                     isActive: true,
                     createdAt: new Date(),
@@ -154,8 +146,6 @@ export default function ListPage() {
             const q = search.toLowerCase();
             data = data.filter(c =>
                 c.name.toLowerCase().includes(q) ||
-                c.address.toLowerCase().includes(q) ||
-                c.description.toLowerCase().includes(q) ||
                 c.provinceName.toLowerCase().includes(q) ||
                 c.cityName.toLowerCase().includes(q)
             );
@@ -218,10 +208,10 @@ export default function ListPage() {
                                     <h3 className="course-card-title">{course.name}</h3>
                                     <div className="course-card-location"><i className="fas fa-map-marker-alt" /> {course.provinceName} {course.cityName}</div>
                                     <div className="course-card-rating"><i className="fas fa-star" /> {course.rating} ({course.reviews} reviews)</div>
-                                    <p className="course-card-description">{course.description || '아름다운 자연 속에서 즐기는 골프장입니다.'}</p>
+                                    <p className="course-card-description">아름다운 자연 속에서 즐기는 골프장입니다.</p>
                                     <div className="course-card-features">{course.features.map((f, i) => (<span key={i} className="feature-tag">{f}</span>))}</div>
                                     <div className="course-card-price">
-                                        <span className="current-price">{course.price ? `${course.price.toLocaleString()}원` : '가격 문의'}</span>
+                                        <span className="current-price">가격 문의</span>
                                         {course.originalPrice && <span className="original-price">{course.originalPrice}</span>}
                                     </div>
                                 </CardContent>

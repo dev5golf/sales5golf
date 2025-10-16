@@ -4,6 +4,7 @@ import { Course, Country, Province, City } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import Modal from '@/app/(admin)/admin/components/Modal';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CourseModalProps {
     isOpen: boolean;
@@ -13,27 +14,19 @@ interface CourseModalProps {
 }
 
 export default function CourseModal({ isOpen, onClose, course, onSave }: CourseModalProps) {
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
-        address: '',
-        phone: '',
-        email: '',
-        website: '',
-        description: '',
         countryId: '',
         countryName: '',
         provinceId: '',
         provinceName: '',
         cityId: '',
         cityName: '',
-
-        facilities: [] as string[],
         inclusions: [] as string[],
-        images: [] as string[],
-        price: 0,
         adminIds: [] as string[],
         isActive: true,
-        createdBy: null
+        googleMapsLink: ''
     });
 
     const [countries, setCountries] = useState<Country[]>([]);
@@ -47,25 +40,16 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
             if (course) {
                 setFormData({
                     name: course.name || '',
-                    address: course.address || '',
-                    phone: course.phone || '',
-                    email: course.email || '',
-                    website: course.website || '',
-                    description: course.description || '',
                     countryId: (course as any).countryId || (course as any).countryCode || '',
                     countryName: course.countryName || '',
                     provinceId: (course as any).provinceId || (course as any).provinceCode || '',
                     provinceName: course.provinceName || '',
                     cityId: (course as any).cityId || (course as any).cityCode || '',
                     cityName: course.cityName || '',
-
-                    facilities: course.facilities || [],
                     inclusions: course.inclusions || [],
-                    images: course.images || [],
-                    price: course.price || 0,
                     adminIds: course.adminIds || [],
                     isActive: course.isActive !== undefined ? course.isActive : true,
-                    createdBy: course.createdBy || null
+                    googleMapsLink: course.googleMapsLink || ''
                 });
                 if ((course as any).countryId || (course as any).countryCode) {
                     fetchProvinces((course as any).countryId || (course as any).countryCode);
@@ -76,25 +60,16 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
             } else {
                 setFormData({
                     name: '',
-                    address: '',
-                    phone: '',
-                    email: '',
-                    website: '',
-                    description: '',
                     countryId: '',
                     countryName: '',
                     provinceId: '',
                     provinceName: '',
                     cityId: '',
                     cityName: '',
-
-                    facilities: [],
                     inclusions: [],
-                    images: [],
-                    price: 0,
                     adminIds: [],
                     isActive: true,
-                    createdBy: null
+                    googleMapsLink: ''
                 });
             }
         }
@@ -172,8 +147,10 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                 await setDoc(courseRef, {
                     ...formData,
                     id: courseId,
+                    adminIds: user?.id ? [user.id] : [],
                     createdAt: new Date(),
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
+                    createdBy: user?.id || null
                 });
             }
             onSave();
@@ -257,61 +234,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     />
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        주소 *
-                    </label>
-                    <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            전화번호
-                        </label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            이메일
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        웹사이트
-                    </label>
-                    <input
-                        type="url"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -353,92 +275,23 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            도시
-                        </label>
-                        <select
-                            name="cityId"
-                            value={formData.cityId}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">선택하세요</option>
-                            {cities.map(city => (
-                                <option key={city.id} value={city.id}>
-                                    {city.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            가격 (원) *
-                        </label>
-                        <input
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleInputChange}
-                            required
-                            min="0"
-                            step="1000"
-                            placeholder="예: 150000"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            상태
-                        </label>
-                        <select
-                            name="isActive"
-                            value={formData.isActive ? 'true' : 'false'}
-                            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === 'true' }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="true">활성</option>
-                            <option value="false">비활성</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            시설
-                        </label>
-                        <div className="space-y-2">
-                            <div className="flex flex-wrap gap-2">
-                                {['주차장', '레스토랑', '프로샵', '연습장', '락커룸', '샤워시설', '휴게실'].map(facility => (
-                                    <label key={facility} className="flex items-center space-x-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.facilities.includes(facility)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        facilities: [...prev.facilities, facility]
-                                                    }));
-                                                } else {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        facilities: prev.facilities.filter(f => f !== facility)
-                                                    }));
-                                                }
-                                            }}
-                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <span className="text-sm text-gray-700">{facility}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        도시
+                    </label>
+                    <select
+                        name="cityId"
+                        value={formData.cityId}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">선택하세요</option>
+                        {cities.map(city => (
+                            <option key={city.id} value={city.id}>
+                                {city.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div>
@@ -479,15 +332,34 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        설명
+                        상태
                     </label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
+                    <select
+                        name="isActive"
+                        value={formData.isActive ? 'true' : 'false'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === 'true' }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="true">활성</option>
+                        <option value="false">비활성</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        구글맵 링크
+                    </label>
+                    <input
+                        type="url"
+                        name="googleMapsLink"
+                        value={formData.googleMapsLink}
                         onChange={handleInputChange}
-                        rows={3}
+                        placeholder="https://maps.google.com/..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                        골프장 위치의 구글맵 링크를 입력하세요.
+                    </p>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
