@@ -115,13 +115,29 @@ export interface CountryWithTranslations extends Country {
  */
 export interface Province {
     id: string;
-    name: string;
     countryId: string;
     countryName: string;
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
-    createdBy: string | null;
+}
+
+/**
+ * 도/주 번역 데이터 구조
+ * 각 언어별 도/주명을 담는 인터페이스
+ */
+export interface ProvinceTranslation {
+    name: string;
+}
+
+/**
+ * 번역이 포함된 도/주 데이터 (프론트엔드 사용)
+ */
+export interface ProvinceWithTranslations extends Province {
+    translations?: {
+        [language: string]: ProvinceTranslation;
+    };
+    name?: string; // 현재 선택된 언어의 이름
 }
 
 /**
@@ -130,7 +146,6 @@ export interface Province {
  */
 export interface City {
     id: string;
-    name: string;
     countryId: string;
     countryName: string;
     provinceId: string;
@@ -138,7 +153,24 @@ export interface City {
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
-    createdBy: string | null;
+}
+
+/**
+ * 도시 번역 데이터 구조
+ * 각 언어별 도시명을 담는 인터페이스
+ */
+export interface CityTranslation {
+    name: string;
+}
+
+/**
+ * 번역이 포함된 도시 데이터 (프론트엔드 사용)
+ */
+export interface CityWithTranslations extends City {
+    translations?: {
+        [language: string]: CityTranslation;
+    };
+    name?: string; // 현재 선택된 언어의 이름
 }
 
 /**
