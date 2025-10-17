@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Course, Country, Province, City } from '@/types';
+import { Course } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import Modal from '@/app/(admin)/admin/components/Modal';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCountries, useProvinces, useCities } from '@/hooks/useRegions';
 
 interface CourseModalProps {
     isOpen: boolean;
@@ -29,14 +30,14 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
         googleMapsLink: ''
     });
 
-    const [countries, setCountries] = useState<Country[]>([]);
-    const [provinces, setProvinces] = useState<Province[]>([]);
-    const [cities, setCities] = useState<City[]>([]);
+    // Custom hooks 사용
+    const { countries } = useCountries();
+    const { provinces } = useProvinces(formData.countryId);
+    const { cities } = useCities(formData.provinceId);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            fetchCountries();
             if (course) {
                 setFormData({
                     name: course.name || '',
@@ -51,12 +52,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     isActive: course.isActive !== undefined ? course.isActive : true,
                     googleMapsLink: course.googleMapsLink || ''
                 });
-                if ((course as any).countryId || (course as any).countryCode) {
-                    fetchProvinces((course as any).countryId || (course as any).countryCode);
-                }
-                if ((course as any).provinceId || (course as any).provinceCode) {
-                    fetchCities((course as any).provinceId || (course as any).provinceCode);
-                }
             } else {
                 setFormData({
                     name: '',
@@ -74,48 +69,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
             }
         }
     }, [isOpen, course]);
-
-    const fetchCountries = async () => {
-        try {
-            const countriesRef = collection(db, 'countries');
-            const snapshot = await getDocs(countriesRef);
-            const countriesData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Country[];
-            setCountries(countriesData);
-        } catch (error) {
-            console.error('국가 데이터 가져오기 실패:', error);
-        }
-    };
-
-    const fetchProvinces = async (countryId: string) => {
-        try {
-            const provincesRef = collection(db, 'provinces');
-            const snapshot = await getDocs(provincesRef);
-            const allProvinces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const provincesData = allProvinces
-                .filter(province => ((province as any).countryId || (province as any).countryCode) === countryId) as Province[];
-            setProvinces(provincesData);
-        } catch (error) {
-            console.error('지역 데이터 가져오기 실패:', error);
-        }
-    };
-
-    const fetchCities = async (provinceId: string) => {
-        try {
-            const citiesRef = collection(db, 'cities');
-            const snapshot = await getDocs(citiesRef);
-            const allCities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const citiesData = allCities
-                .filter(city => ((city as any).provinceId || (city as any).provinceCode) === provinceId) as City[];
-            setCities(citiesData);
-        } catch (error) {
-            console.error('도시 데이터 가져오기 실패:', error);
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -177,12 +130,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                 cityId: '',
                 cityName: ''
             }));
-            if (value) {
-                fetchProvinces(value);
-            } else {
-                setProvinces([]);
-                setCities([]);
-            }
         } else if (name === 'provinceId') {
             const selectedProvince = provinces.find(province => province.id === value);
             setFormData(prev => ({
@@ -192,11 +139,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                 cityId: '',
                 cityName: ''
             }));
-            if (value) {
-                fetchCities(value);
-            } else {
-                setCities([]);
-            }
         } else if (name === 'cityId') {
             const selectedCity = cities.find(city => city.id === value);
             setFormData(prev => ({

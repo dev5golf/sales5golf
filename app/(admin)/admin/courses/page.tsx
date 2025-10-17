@@ -5,11 +5,12 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { collection, getDocs, query, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
-import { Course, Country, Province } from '@/types';
+import { Course } from '@/types';
 import CourseModal from './components/CourseModal';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useCountries, useProvinces } from '@/hooks/useRegions';
 import '../../admin.css';
 
 export default function CoursesPage() {
@@ -21,8 +22,10 @@ export default function CoursesPage() {
     const [countryFilter, setCountryFilter] = useState<string>('all');
     const [provinceFilter, setProvinceFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [countries, setCountries] = useState<Country[]>([]);
-    const [provinces, setProvinces] = useState<Province[]>([]);
+
+    // Custom hooks 사용
+    const { countries } = useCountries();
+    const { provinces } = useProvinces(countryFilter !== 'all' ? countryFilter : undefined);
 
     // 모달 상태
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -39,15 +42,9 @@ export default function CoursesPage() {
 
     useEffect(() => {
         fetchCourses();
-        fetchCountries();
     }, []);
 
     useEffect(() => {
-        if (countryFilter !== 'all') {
-            fetchProvinces(countryFilter);
-        } else {
-            setProvinces([]);
-        }
         // 국가 필터가 변경되면 지방 필터 초기화
         setProvinceFilter('all');
     }, [countryFilter]);
@@ -78,41 +75,6 @@ export default function CoursesPage() {
         }
     };
 
-    const fetchCountries = async () => {
-        try {
-            const snapshot = await getDocs(collection(db, 'countries'));
-            const countryData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Country[];
-            setCountries(countryData);
-        } catch (error) {
-            console.error('국가 목록 가져오기 실패:', error);
-        }
-    };
-
-    const fetchProvinces = async (countryCode: string) => {
-        try {
-            console.log('fetchProvinces 호출됨, countryCode:', countryCode);
-            const snapshot = await getDocs(collection(db, 'provinces'));
-            const allProvinces = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Province[];
-
-            console.log('모든 지방 데이터:', allProvinces);
-
-            // 클라이언트 사이드에서 필터링 (countryId 또는 countryCode로)
-            const provinceData = allProvinces.filter(province =>
-                (province as any).countryId === countryCode || (province as any).countryCode === countryCode
-            );
-
-            console.log('필터링된 지방 데이터:', provinceData);
-            setProvinces(provinceData);
-        } catch (error) {
-            console.error('지방 목록 가져오기 실패:', error);
-        }
-    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
