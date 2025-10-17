@@ -8,14 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
+import { CountryWithTranslations, CountryTranslation } from '@/types';
 import '../../admin.css';
-
-interface Country {
-    id: string;
-    name: string;
-    isActive: boolean;
-    createdAt: any;
-}
 
 interface Province {
     id: string;
@@ -52,7 +46,7 @@ export default function RegionsPage() {
     }
 
     // 데이터 상태
-    const [countries, setCountries] = useState<Country[]>([]);
+    const [countries, setCountries] = useState<CountryWithTranslations[]>([]);
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [cities, setCities] = useState<City[]>([]);
 
@@ -68,13 +62,18 @@ export default function RegionsPage() {
 
     // 폼 상태
     const [showAddForm, setShowAddForm] = useState(false);
-    const [newCountry, setNewCountry] = useState({ name: '', code: '', isActive: true });
+    const [newCountry, setNewCountry] = useState({
+        nameKo: '',
+        nameEn: '',
+        code: '',
+        isActive: true
+    });
     const [newProvince, setNewProvince] = useState({ name: '', code: '', countryCode: '', isActive: true });
     const [newCity, setNewCity] = useState({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
 
     // 편집 상태
     const [editingItem, setEditingItem] = useState<{ type: string, id: string, data: any } | null>(null);
-    const [editCountry, setEditCountry] = useState({ name: '', code: '', isActive: true });
+    const [editCountry, setEditCountry] = useState({ name: '', nameEn: '', code: '', isActive: true });
     const [editProvince, setEditProvince] = useState({ name: '', code: '', countryCode: '', isActive: true });
     const [editCity, setEditCity] = useState({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
 
@@ -101,10 +100,27 @@ export default function RegionsPage() {
     const fetchCountries = async () => {
         try {
             const snapshot = await getDocs(collection(db, 'countries'));
-            const countryData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Country[];
+
+            // 각 국가의 번역 데이터도 함께 가져오기
+            const countryDataPromises = snapshot.docs.map(async (countryDoc) => {
+                const translationsSnapshot = await getDocs(
+                    collection(db, 'countries', countryDoc.id, 'translations')
+                );
+
+                const translations: { [key: string]: CountryTranslation } = {};
+                translationsSnapshot.docs.forEach(transDoc => {
+                    translations[transDoc.id] = transDoc.data() as CountryTranslation;
+                });
+
+                return {
+                    id: countryDoc.id,
+                    ...countryDoc.data(),
+                    translations,
+                    name: translations['ko']?.name || translations['en']?.name || countryDoc.id // 기본값으로 한글명 사용
+                } as CountryWithTranslations;
+            });
+
+            const countryData = await Promise.all(countryDataPromises);
             setCountries(countryData);
         } catch (error) {
             console.error('국가 목록 가져오기 실패:', error);
@@ -286,24 +302,43 @@ export default function RegionsPage() {
     const handleAddCountry = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!newCountry.name.trim() || !newCountry.code.trim()) {
-            setErrors({ submit: '국가명과 국가코드를 입력해주세요.' });
+        if (!newCountry.nameKo.trim() || !newCountry.nameEn.trim() || !newCountry.code.trim()) {
+            setErrors({ submit: '한글명, 영어명, 국가코드를 모두 입력해주세요.' });
             return;
         }
 
         try {
             const countryId = newCountry.code.trim().toUpperCase();
+
+            // 1. 국가 메인 정보 저장
             const countryData = {
-                name: newCountry.name.trim(),
                 isActive: newCountry.isActive,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
-
             await setDoc(doc(db, 'countries', countryId), countryData);
+
+            // 2. 한국어 번역 저장
+            const koTranslation: CountryTranslation = {
+                name: newCountry.nameKo.trim()
+            };
+            await setDoc(
+                doc(db, 'countries', countryId, 'translations', 'ko'),
+                koTranslation
+            );
+
+            // 3. 영어 번역 저장
+            const enTranslation: CountryTranslation = {
+                name: newCountry.nameEn.trim()
+            };
+            await setDoc(
+                doc(db, 'countries', countryId, 'translations', 'en'),
+                enTranslation
+            );
+
             await fetchCountries();
 
-            setNewCountry({ name: '', code: '', isActive: true });
+            setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
             setShowAddForm(false);
             setErrors({});
 
@@ -388,7 +423,7 @@ export default function RegionsPage() {
     };
 
     const resetForm = () => {
-        setNewCountry({ name: '', code: '', isActive: true });
+        setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
         setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
         setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
         setShowAddForm(false);
@@ -397,9 +432,14 @@ export default function RegionsPage() {
     };
 
     // 편집 함수들
-    const handleEditCountry = (country: Country) => {
+    const handleEditCountry = (country: CountryWithTranslations) => {
         setEditingItem({ type: 'country', id: country.id, data: country });
-        setEditCountry({ name: country.name, code: country.id, isActive: country.isActive });
+        setEditCountry({
+            name: country.translations?.['ko']?.name || '',
+            nameEn: country.translations?.['en']?.name || '',
+            code: country.id,
+            isActive: country.isActive
+        });
         setShowAddForm(false);
     };
 
@@ -430,19 +470,37 @@ export default function RegionsPage() {
     const handleUpdateCountry = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!editCountry.name.trim() || !editCountry.code.trim()) {
-            setErrors({ submit: '국가명과 국가코드를 입력해주세요.' });
+        if (!editCountry.name.trim() || !editCountry.nameEn.trim() || !editCountry.code.trim()) {
+            setErrors({ submit: '한글명, 영어명, 국가코드를 모두 입력해주세요.' });
             return;
         }
 
         try {
+            // 1. 국가 메인 정보 업데이트
             const countryData = {
-                name: editCountry.name.trim(),
                 isActive: editCountry.isActive,
                 updatedAt: serverTimestamp()
             };
-
             await setDoc(doc(db, 'countries', editingItem!.id), countryData, { merge: true });
+
+            // 2. 한국어 번역 업데이트
+            const koTranslation: CountryTranslation = {
+                name: editCountry.name.trim()
+            };
+            await setDoc(
+                doc(db, 'countries', editingItem!.id, 'translations', 'ko'),
+                koTranslation
+            );
+
+            // 3. 영어 번역 업데이트
+            const enTranslation: CountryTranslation = {
+                name: editCountry.nameEn.trim()
+            };
+            await setDoc(
+                doc(db, 'countries', editingItem!.id, 'translations', 'en'),
+                enTranslation
+            );
+
             await fetchCountries();
 
             setEditingItem(null);
@@ -739,10 +797,10 @@ export default function RegionsPage() {
                         setEditingItem(null);
                         setErrors({});
                         // 폼 상태 초기화
-                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
                         setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
-                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
                         setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
@@ -765,10 +823,10 @@ export default function RegionsPage() {
                         setEditingItem(null);
                         setErrors({});
                         // 폼 상태 초기화
-                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
                         setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
-                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
                         setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
@@ -791,10 +849,10 @@ export default function RegionsPage() {
                         setEditingItem(null);
                         setErrors({});
                         // 폼 상태 초기화
-                        setNewCountry({ name: '', code: '', isActive: true });
+                        setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
                         setNewProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setNewCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
-                        setEditCountry({ name: '', code: '', isActive: true });
+                        setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
                         setEditProvince({ name: '', code: '', countryCode: '', isActive: true });
                         setEditCity({ name: '', code: '', countryCode: '', provinceCode: '', isActive: true });
                     }}
@@ -913,31 +971,46 @@ export default function RegionsPage() {
                         )}
 
                         {activeTab === 'countries' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label htmlFor="countryName" className="block text-sm font-medium text-gray-700">국가명 *</label>
-                                    <input
-                                        type="text"
-                                        id="countryName"
-                                        value={newCountry.name}
-                                        onChange={(e) => setNewCountry(prev => ({ ...prev, name: e.target.value }))}
-                                        placeholder="예: 대한민국"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="countryNameKo" className="block text-sm font-medium text-gray-700">한글명 *</label>
+                                        <input
+                                            type="text"
+                                            id="countryNameKo"
+                                            value={newCountry.nameKo}
+                                            onChange={(e) => setNewCountry(prev => ({ ...prev, nameKo: e.target.value }))}
+                                            placeholder="예: 대한민국"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="countryNameEn" className="block text-sm font-medium text-gray-700">영어명 *</label>
+                                        <input
+                                            type="text"
+                                            id="countryNameEn"
+                                            value={newCountry.nameEn}
+                                            onChange={(e) => setNewCountry(prev => ({ ...prev, nameEn: e.target.value }))}
+                                            placeholder="예: South Korea"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="countryCode" className="block text-sm font-medium text-gray-700">국가코드 *</label>
-                                    <input
-                                        type="text"
-                                        id="countryCode"
-                                        value={newCountry.code}
-                                        onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                        placeholder="예: KR"
-                                        maxLength={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="countryCode" className="block text-sm font-medium text-gray-700">국가코드 *</label>
+                                        <input
+                                            type="text"
+                                            id="countryCode"
+                                            value={newCountry.code}
+                                            onChange={(e) => setNewCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                            placeholder="예: KR"
+                                            maxLength={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            </>
                         )}
 
                         {activeTab === 'provinces' && (
@@ -1092,54 +1165,74 @@ export default function RegionsPage() {
 
             {/* 편집 폼 */}
             {editingItem && (
-                <div className="form-container" style={{ marginBottom: '2rem' }}>
-                    <div className="form-header">
-                        <h3>
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                        <h3 className="text-xl font-semibold text-gray-900">
                             {editingItem.type === 'country' ? '국가 수정' :
                                 editingItem.type === 'province' ? '지방 수정' : '도시 수정'}
                         </h3>
-                        <button onClick={resetForm} className="btn btn-outline btn-sm">
+                        <button
+                            onClick={resetForm}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                        >
                             <i className="fas fa-times"></i>
                         </button>
                     </div>
 
-                    <form onSubmit={
-                        editingItem.type === 'country' ? handleUpdateCountry :
-                            editingItem.type === 'province' ? handleUpdateProvince : handleUpdateCity
-                    } className="admin-form">
+                    <form
+                        onSubmit={
+                            editingItem.type === 'country' ? handleUpdateCountry :
+                                editingItem.type === 'province' ? handleUpdateProvince : handleUpdateCity
+                        }
+                        className="space-y-6"
+                    >
                         {errors.submit && (
-                            <div className="error-message">
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
                                 {errors.submit}
                             </div>
                         )}
 
                         {editingItem.type === 'country' && (
-                            <div className="form-row">
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="editCountryName">국가명 *</label>
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="editCountryNameKo" className="block text-sm font-medium text-gray-700">한글명 *</label>
                                         <input
                                             type="text"
-                                            id="editCountryName"
+                                            id="editCountryNameKo"
                                             value={editCountry.name}
                                             onChange={(e) => setEditCountry(prev => ({ ...prev, name: e.target.value }))}
                                             placeholder="예: 대한민국"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="editCountryCode">국가코드 *</label>
+                                    <div className="space-y-2">
+                                        <label htmlFor="editCountryNameEn" className="block text-sm font-medium text-gray-700">영어명 *</label>
+                                        <input
+                                            type="text"
+                                            id="editCountryNameEn"
+                                            value={editCountry.nameEn}
+                                            onChange={(e) => setEditCountry(prev => ({ ...prev, nameEn: e.target.value }))}
+                                            placeholder="예: South Korea"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="editCountryCode" className="block text-sm font-medium text-gray-700">국가코드 *</label>
                                         <input
                                             type="text"
                                             id="editCountryCode"
                                             value={editCountry.code}
-                                            onChange={(e) => setEditCountry(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                            placeholder="예: KR"
-                                            maxLength={3}
+                                            readOnly
+                                            disabled
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                                         />
+                                        <p className="text-xs text-gray-500">코드는 수정할 수 없습니다.</p>
                                     </div>
                                 </div>
-
-                            </div>
+                            </>
                         )}
 
                         {editingItem.type === 'province' && (
@@ -1260,12 +1353,19 @@ export default function RegionsPage() {
                             </>
                         )}
 
-                        <div className="form-actions">
-                            <button type="submit" className="btn btn-primary">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                            <button
+                                type="submit"
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
                                 {editingItem.type === 'country' ? '국가 수정' :
                                     editingItem.type === 'province' ? '지방 수정' : '도시 수정'}
                             </button>
-                            <button type="button" onClick={resetForm} className="btn btn-outline">
+                            <button
+                                type="button"
+                                onClick={resetForm}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
                                 취소
                             </button>
                         </div>
@@ -1288,7 +1388,12 @@ export default function RegionsPage() {
                         <TableBody>
                             {filteredCountries.map((country) => (
                                 <TableRow key={country.id}>
-                                    <TableCell className="font-medium text-gray-900">{country.name}</TableCell>
+                                    <TableCell>
+                                        <div>
+                                            <div className="font-medium text-gray-900">{country.translations?.['ko']?.name || '-'}</div>
+                                            <div className="text-sm text-gray-500">{country.translations?.['en']?.name || '-'}</div>
+                                        </div>
+                                    </TableCell>
                                     <TableCell><span className="font-mono text-sm text-gray-600">{country.id}</span></TableCell>
                                     <TableCell>
                                         <Badge variant={country.isActive ? 'active' : 'inactive'}>

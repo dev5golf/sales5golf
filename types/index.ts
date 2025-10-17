@@ -86,11 +86,27 @@ export interface Course {
  */
 export interface Country {
     id: string;
-    name: string;
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
-    createdBy: string | null;
+}
+
+/**
+ * 국가 번역 데이터 구조
+ * 각 언어별 국가명을 담는 인터페이스
+ */
+export interface CountryTranslation {
+    name: string;
+}
+
+/**
+ * 번역이 포함된 국가 데이터 (프론트엔드 사용)
+ */
+export interface CountryWithTranslations extends Country {
+    translations?: {
+        [language: string]: CountryTranslation;
+    };
+    name?: string; // 현재 선택된 언어의 이름
 }
 
 /**
