@@ -32,12 +32,10 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
     const rentalCarFeePerCar = 10000;
     const totalRentalCarFee = (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
 
-    // 항공 수수료 계산 (항공 테이블 행의 인원수 × 1만원)
+    // 항공 수수료 계산 (첫 번째 항공 행의 인원수 × 1만원)
     const flightFeePerPerson = 10000;
-    const totalFlightFee = flightSchedules.reduce((total, schedule) => {
-        const people = parseInt(schedule.people) || 0;
-        return total + (people * flightFeePerPerson);
-    }, 0);
+    const firstFlightPeople = flightSchedules.length > 0 ? (parseInt(flightSchedules[0].people) || 0) : 0;
+    const totalFlightFee = firstFlightPeople * flightFeePerPerson;
 
     // 8인 이상 시 골프 수수료에만 30% 할인 적용
     const isDiscountEligible = people >= 8;
