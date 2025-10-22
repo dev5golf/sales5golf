@@ -35,8 +35,8 @@ export default function CoursesPage() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState<CourseWithTranslations | null>(null);
 
-    // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
-    if (!authLoading && currentUser?.role !== 'super_admin') {
+    // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
+    if (!authLoading && currentUser?.role !== 'super_admin' && currentUser?.role !== 'site_admin') {
         router.push('/admin/tee-times');
         return null;
     }
@@ -188,7 +188,7 @@ export default function CoursesPage() {
             // 2. 골프장의 translations 서브컬렉션 삭제
             const translationsRef = collection(db, 'courses', courseToDelete.id, 'translations');
             const translationsSnapshot = await getDocs(translationsRef);
-            
+
             const translationDeletePromises = translationsSnapshot.docs.map(doc => deleteDoc(doc.ref));
             await Promise.all(translationDeletePromises);
 

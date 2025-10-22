@@ -694,7 +694,7 @@ export default function RegionsPage() {
             );
             const provincesSnapshot = await getDocs(provincesQuery);
 
-            // 2. 각 지방의 모든 도시 조회 및 삭제
+            // 2. 각 지방의 모든 도시 조회 및 삭제 (translations 포함)
             const cityDeletePromises: Promise<void>[] = [];
             for (const provinceDoc of provincesSnapshot.docs) {
                 const citiesQuery = query(
@@ -704,23 +704,39 @@ export default function RegionsPage() {
                 const citiesSnapshot = await getDocs(citiesQuery);
 
                 citiesSnapshot.docs.forEach(cityDoc => {
-                    cityDeletePromises.push(deleteDoc(cityDoc.ref));
+                    // 도시의 translations 서브컬렉션 삭제
+                    cityDeletePromises.push(
+                        getDocs(collection(db, 'cities', cityDoc.id, 'translations'))
+                            .then(translationsSnapshot =>
+                                Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)))
+                            )
+                            .then(() => deleteDoc(cityDoc.ref))
+                    );
                 });
             }
 
             // 3. 모든 도시 삭제 실행
             await Promise.all(cityDeletePromises);
 
-            // 4. 모든 지방 삭제
-            const provinceDeletePromises = provincesSnapshot.docs.map(provinceDoc =>
-                deleteDoc(provinceDoc.ref)
-            );
+            // 4. 모든 지방 삭제 (translations 포함)
+            const provinceDeletePromises = provincesSnapshot.docs.map(async provinceDoc => {
+                // 지방의 translations 서브컬렉션 삭제
+                const translationsSnapshot = await getDocs(collection(db, 'provinces', provinceDoc.id, 'translations'));
+                await Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+
+                // 지방 삭제
+                return deleteDoc(provinceDoc.ref);
+            });
             await Promise.all(provinceDeletePromises);
 
-            // 5. 마지막으로 국가 삭제
+            // 5. 국가의 translations 서브컬렉션 삭제
+            const countryTranslationsSnapshot = await getDocs(collection(db, 'countries', countryId, 'translations'));
+            await Promise.all(countryTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+
+            // 6. 마지막으로 국가 삭제
             await deleteDoc(doc(db, 'countries', countryId));
 
-            // 6. 데이터 새로고침
+            // 7. 데이터 새로고침
             await fetchCountries();
             await fetchProvinces();
             await fetchCities();
@@ -738,23 +754,32 @@ export default function RegionsPage() {
         }
 
         try {
-            // 1. 해당 지방의 모든 도시 조회 및 삭제
+            // 1. 해당 지방의 모든 도시 조회 및 삭제 (translations 포함)
             const citiesQuery = query(
                 collection(db, 'cities'),
                 where('provinceId', '==', provinceId)
             );
             const citiesSnapshot = await getDocs(citiesQuery);
 
-            // 2. 모든 도시 삭제
-            const cityDeletePromises = citiesSnapshot.docs.map(cityDoc =>
-                deleteDoc(cityDoc.ref)
-            );
+            // 2. 모든 도시 삭제 (translations 포함)
+            const cityDeletePromises = citiesSnapshot.docs.map(async cityDoc => {
+                // 도시의 translations 서브컬렉션 삭제
+                const translationsSnapshot = await getDocs(collection(db, 'cities', cityDoc.id, 'translations'));
+                await Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+
+                // 도시 삭제
+                return deleteDoc(cityDoc.ref);
+            });
             await Promise.all(cityDeletePromises);
 
-            // 3. 지방 삭제
+            // 3. 지방의 translations 서브컬렉션 삭제
+            const provinceTranslationsSnapshot = await getDocs(collection(db, 'provinces', provinceId, 'translations'));
+            await Promise.all(provinceTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+
+            // 4. 지방 삭제
             await deleteDoc(doc(db, 'provinces', provinceId));
 
-            // 4. 데이터 새로고침
+            // 5. 데이터 새로고침
             await fetchProvinces();
             await fetchCities();
 
@@ -771,7 +796,14 @@ export default function RegionsPage() {
         }
 
         try {
+            // 1. 도시의 translations 서브컬렉션 삭제
+            const cityTranslationsSnapshot = await getDocs(collection(db, 'cities', cityId, 'translations'));
+            await Promise.all(cityTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+
+            // 2. 도시 삭제
             await deleteDoc(doc(db, 'cities', cityId));
+
+            // 3. 데이터 새로고침
             await fetchCities();
             alert('도시가 성공적으로 삭제되었습니다.');
         } catch (error) {

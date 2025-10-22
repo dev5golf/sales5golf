@@ -131,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </Link>
                         )}
 
-                        {user?.role === 'super_admin' && (
+                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
                             <>
                                 <Link
                                     href="/admin/courses"
