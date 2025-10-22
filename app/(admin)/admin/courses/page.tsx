@@ -185,7 +185,16 @@ export default function CoursesPage() {
 
             console.log(`골프장 "${courseToDelete.name}"의 ${teeTimesSnapshot.docs.length}개 티타임 데이터 삭제 완료`);
 
-            // 2. 골프장 데이터 삭제
+            // 2. 골프장의 translations 서브컬렉션 삭제
+            const translationsRef = collection(db, 'courses', courseToDelete.id, 'translations');
+            const translationsSnapshot = await getDocs(translationsRef);
+            
+            const translationDeletePromises = translationsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(translationDeletePromises);
+
+            console.log(`골프장 "${courseToDelete.name}"의 ${translationsSnapshot.docs.length}개 번역 데이터 삭제 완료`);
+
+            // 3. 골프장 데이터 삭제
             const courseRef = doc(db, 'courses', courseToDelete.id);
             await deleteDoc(courseRef);
 
@@ -416,6 +425,7 @@ export default function CoursesPage() {
                             <p className="text-sm text-gray-500 mb-6">
                                 <strong>"{courseToDelete.name}"</strong> 골프장과 관련된 모든 데이터를 삭제하시겠습니까?<br />
                                 <span className="text-red-600 font-medium">• 골프장 정보</span><br />
+                                <span className="text-red-600 font-medium">• 골프장 번역 데이터</span><br />
                                 <span className="text-red-600 font-medium">• 모든 티타임 데이터</span><br />
                                 이 작업은 되돌릴 수 없습니다.
                             </p>
