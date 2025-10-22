@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Course } from '@/types';
+import { Course, CourseWithTranslations } from '@/types';
 import {
     getTypeLabel
 } from '../../../lib/utils';
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 // 사용자 페이지용 골프장 타입 (Firebase Course + 추가 UI 필드)
-type UserCourse = Course & {
+type UserCourse = CourseWithTranslations & {
     type: 'public' | 'private' | 'resort';
     rating: number;
     reviews: number;
@@ -76,7 +76,7 @@ export default function ListPage() {
 
             const coursesData: UserCourse[] = querySnapshot.docs
                 .map(doc => {
-                    const data = doc.data() as Course;
+                    const data = doc.data() as CourseWithTranslations;
                     return {
                         ...data,
                         // 기본 UI 데이터 추가
@@ -145,7 +145,7 @@ export default function ListPage() {
         if (search.trim()) {
             const q = search.toLowerCase();
             data = data.filter(c =>
-                c.name.toLowerCase().includes(q) ||
+                (c.name || '').toLowerCase().includes(q) ||
                 c.provinceName.toLowerCase().includes(q) ||
                 c.cityName.toLowerCase().includes(q)
             );
@@ -198,14 +198,14 @@ export default function ListPage() {
                         {!loading && coursesToShow.map(course => (
                             <Card key={course.id} className="course-card">
                                 <div className="course-card-image" style={{ position: 'relative', height: 250 }}>
-                                    <Image src={course.image} alt={course.name} fill sizes="(max-width: 768px) 100vw, 400px" style={{ objectFit: 'cover' }} />
+                                    <Image src={course.image} alt={course.name || '골프장'} fill sizes="(max-width: 768px) 100vw, 400px" style={{ objectFit: 'cover' }} />
                                     <Badge variant={course.type as any} className="absolute top-4 left-4">
                                         {getTypeLabel(course.type)}
                                     </Badge>
                                     {course.discount && <div className="course-card-discount">{course.discount}</div>}
                                 </div>
                                 <CardContent className="course-card-content">
-                                    <h3 className="course-card-title">{course.name}</h3>
+                                    <h3 className="course-card-title">{course.name || '골프장'}</h3>
                                     <div className="course-card-location"><i className="fas fa-map-marker-alt" /> {course.provinceName} {course.cityName}</div>
                                     <div className="course-card-rating"><i className="fas fa-star" /> {course.rating} ({course.reviews} reviews)</div>
                                     <p className="course-card-description">아름다운 자연 속에서 즐기는 골프장입니다.</p>
