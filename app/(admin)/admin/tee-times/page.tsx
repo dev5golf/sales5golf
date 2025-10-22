@@ -6,7 +6,7 @@ import { collection, getDocs, query, where, addDoc, updateDoc, deleteDoc, doc, s
 import Calendar from '../components/Calendar';
 import TeeTimeModal from '../components/TeeTimeModal';
 import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
-import { Course } from '@/types';
+import { Course, CourseWithTranslations } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ export default function TeeTimeManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<CourseWithTranslations[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string>('');
     const [loading, setLoading] = useState(true);
 
@@ -55,7 +55,7 @@ export default function TeeTimeManagement() {
 
             const snapshot = await getDocs(coursesQuery);
             const coursesData = snapshot.docs.map(doc => {
-                const data = doc.data() as Omit<Course, 'id'>;
+                const data = doc.data() as Omit<CourseWithTranslations, 'id'>;
                 return {
                     id: doc.id,
                     ...data
@@ -63,7 +63,7 @@ export default function TeeTimeManagement() {
             });
 
             console.log('조회된 골프장 개수:', coursesData.length);
-            console.log('조회된 골프장 목록:', coursesData.map(c => ({ id: c.id, name: c.name })));
+            console.log('조회된 골프장 목록:', coursesData.map(c => ({ id: c.id, name: c.name || '이름 없음' })));
             setCourses(coursesData);
 
             // 골프장이 하나만 있으면 자동 선택
@@ -181,7 +181,7 @@ export default function TeeTimeManagement() {
 
             const teeTimeDoc = {
                 courseId: selectedCourseId,
-                courseName: selectedCourse.name,
+                courseName: selectedCourse.name || '이름 없음',
                 date: teeTimeData.date,
                 time: teeTimeData.time,
                 availableSlots: teeTimeData.availableSlots,
@@ -334,7 +334,7 @@ export default function TeeTimeManagement() {
                             <option value="">골프장을 선택하세요</option>
                             {courses.map(course => (
                                 <option key={course.id} value={course.id}>
-                                    {course.name} ({course.cityName})
+                                    {course.name || '이름 없음'} ({course.cityName})
                                 </option>
                             ))}
                         </select>
@@ -346,7 +346,7 @@ export default function TeeTimeManagement() {
                 <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-semibold text-gray-800">
-                            {courses.find(c => c.id === selectedCourseId)?.name} - 티타임 등록 캘린더
+                            {courses.find(c => c.id === selectedCourseId)?.name || '이름 없음'} - 티타임 등록 캘린더
                         </h2>
                         <div className="flex items-center gap-4">
                             <Button
@@ -393,7 +393,7 @@ export default function TeeTimeManagement() {
                     existingTeeTimes={getTeeTimesForDate(selectedDate)}
                     onUpdate={handleUpdateTeeTime}
                     onDelete={handleDeleteTeeTime}
-                    courseName={courses.find(c => c.id === selectedCourseId)?.name}
+                    courseName={courses.find(c => c.id === selectedCourseId)?.name || '이름 없음'}
                 />
             )}
         </div>
