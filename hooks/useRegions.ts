@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, collectionGroup, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import {
     CountryWithTranslations,
-    ProvinceWithTranslations,
     CityWithTranslations,
     CountryTranslation,
-    ProvinceTranslation,
     CityTranslation
 } from '@/types';
 
@@ -64,81 +62,8 @@ export const useCountries = () => {
     };
 };
 
-// 지방 데이터 가져오기
-export const useProvinces = (countryId?: string) => {
-    const [provinces, setProvinces] = useState<ProvinceWithTranslations[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchProvinces = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const snapshot = await getDocs(collection(db, 'provinces'));
-
-            const provinceDataPromises = snapshot.docs.map(async (docSnap) => {
-                const provinceData = docSnap.data() as ProvinceWithTranslations;
-                provinceData.id = docSnap.id;
-
-                const translationsSnapshot = await getDocs(
-                    collection(db, 'provinces', docSnap.id, 'translations')
-                );
-
-                const translations: { [key: string]: ProvinceTranslation } = {};
-                translationsSnapshot.forEach(transDoc => {
-                    translations[transDoc.id] = transDoc.data() as ProvinceTranslation;
-                });
-
-                provinceData.translations = translations;
-                provinceData.name = translations['ko']?.name || translations['en']?.name || provinceData.id;
-
-                // 국가 이름 가져오기
-                try {
-                    const countryDoc = await getDocs(collection(db, 'countries', provinceData.countryId, 'translations'));
-                    const countryTranslations: { [key: string]: CountryTranslation } = {};
-                    countryDoc.forEach(transDoc => {
-                        countryTranslations[transDoc.id] = transDoc.data() as CountryTranslation;
-                    });
-                    provinceData.countryName = countryTranslations['ko']?.name || countryTranslations['en']?.name || provinceData.countryId;
-                } catch (error) {
-                    provinceData.countryName = '알 수 없음';
-                }
-
-                return provinceData;
-            });
-
-            let provincesData = await Promise.all(provinceDataPromises);
-
-            // 국가 필터링
-            if (countryId) {
-                provincesData = provincesData.filter(p => p.countryId === countryId);
-            }
-
-            provincesData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            setProvinces(provincesData);
-        } catch (err) {
-            console.error('지방 목록 가져오기 실패:', err);
-            setError('지방 목록을 불러오는데 실패했습니다.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchProvinces();
-    }, [countryId]);
-
-    return {
-        provinces,
-        loading,
-        error,
-        refetch: fetchProvinces
-    };
-};
-
-// 도시 데이터 가져오기
-export const useCities = (provinceId?: string) => {
+// 도시 데이터 가져오기 (서브컬렉션)
+export const useCities = (countryId?: string) => {
     const [cities, setCities] = useState<CityWithTranslations[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -148,14 +73,27 @@ export const useCities = (provinceId?: string) => {
             setLoading(true);
             setError(null);
 
-            const snapshot = await getDocs(collection(db, 'cities'));
+            let snapshot;
+
+            if (countryId) {
+                // 특정 국가의 도시만 조회 (효율적)
+                snapshot = await getDocs(collection(db, 'countries', countryId, 'cities'));
+            } else {
+                // 모든 도시 조회 (Collection Group 사용)
+                snapshot = await getDocs(collectionGroup(db, 'cities'));
+            }
 
             const cityDataPromises = snapshot.docs.map(async (docSnap) => {
                 const cityData = docSnap.data() as CityWithTranslations;
                 cityData.id = docSnap.id;
 
+                // countryId 추출 (Collection Group의 경우 부모 경로에서 가져옴)
+                const pathSegments = docSnap.ref.path.split('/');
+                cityData.countryId = pathSegments[pathSegments.length - 3]; // countries/{countryId}/cities/{cityId}
+
+                // 번역 가져오기
                 const translationsSnapshot = await getDocs(
-                    collection(db, 'cities', docSnap.id, 'translations')
+                    collection(db, 'countries', cityData.countryId, 'cities', docSnap.id, 'translations')
                 );
 
                 const translations: { [key: string]: CityTranslation } = {};
@@ -166,37 +104,29 @@ export const useCities = (provinceId?: string) => {
                 cityData.translations = translations;
                 cityData.name = translations['ko']?.name || translations['en']?.name || cityData.id;
 
-                // 지방 이름 가져오기
+                // 국가 이름 가져오기
                 try {
-                    if (cityData.provinceId) {
-                        const provinceDoc = await getDocs(collection(db, 'provinces', cityData.provinceId, 'translations'));
-                        const provinceTranslations: { [key: string]: ProvinceTranslation } = {};
-                        provinceDoc.forEach(transDoc => {
-                            provinceTranslations[transDoc.id] = transDoc.data() as ProvinceTranslation;
-                        });
-                        cityData.provinceName = provinceTranslations['ko']?.name || provinceTranslations['en']?.name || cityData.provinceId;
-                    } else {
-                        cityData.provinceName = '알 수 없음';
-                    }
+                    const countryDoc = await getDocs(collection(db, 'countries', cityData.countryId, 'translations'));
+                    const countryTranslations: { [key: string]: CountryTranslation } = {};
+                    countryDoc.forEach(transDoc => {
+                        countryTranslations[transDoc.id] = transDoc.data() as CountryTranslation;
+                    });
+                    cityData.countryName = countryTranslations['ko']?.name || countryTranslations['en']?.name || cityData.countryId;
                 } catch (error) {
-                    cityData.provinceName = '알 수 없음';
+                    cityData.countryName = '알 수 없음';
                 }
 
                 return cityData;
             });
 
             let citiesData = await Promise.all(cityDataPromises);
-
-            // 지방 필터링
-            if (provinceId) {
-                citiesData = citiesData.filter(c => c.provinceId === provinceId);
-            }
-
             citiesData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             setCities(citiesData);
         } catch (err) {
             console.error('도시 목록 가져오기 실패:', err);
             setError('도시 목록을 불러오는데 실패했습니다.');
+            // Collection Group 권한이 없거나 도시가 없을 경우 빈 배열 설정
+            setCities([]);
         } finally {
             setLoading(false);
         }
@@ -204,7 +134,7 @@ export const useCities = (provinceId?: string) => {
 
     useEffect(() => {
         fetchCities();
-    }, [provinceId]);
+    }, [countryId]);
 
     return {
         cities,
@@ -217,19 +147,16 @@ export const useCities = (provinceId?: string) => {
 // 모든 지역 데이터 가져오기 (필요한 경우)
 export const useRegions = () => {
     const countriesResult = useCountries();
-    const provincesResult = useProvinces();
     const citiesResult = useCities();
 
     return {
         countries: countriesResult.countries,
-        provinces: provincesResult.provinces,
         cities: citiesResult.cities,
-        loading: countriesResult.loading || provincesResult.loading || citiesResult.loading,
-        error: countriesResult.error || provincesResult.error || citiesResult.error,
+        loading: countriesResult.loading || citiesResult.loading,
+        error: countriesResult.error || citiesResult.error,
         refetchAll: async () => {
             await Promise.all([
                 countriesResult.refetch(),
-                provincesResult.refetch(),
                 citiesResult.refetch()
             ]);
         }

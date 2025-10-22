@@ -10,7 +10,7 @@ import CourseModal from './components/CourseModal';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useCountries, useProvinces } from '@/hooks/useRegions';
+import { useCountries, useCities } from '@/hooks/useRegions';
 import { getInclusionName } from '@/constants/courseConstants';
 import '../../admin.css';
 
@@ -21,12 +21,12 @@ export default function CoursesPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [countryFilter, setCountryFilter] = useState<string>('all');
-    const [provinceFilter, setProvinceFilter] = useState<string>('all');
+    const [cityFilter, setCityFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
     // Custom hooks 사용
     const { countries } = useCountries();
-    const { provinces } = useProvinces(countryFilter !== 'all' ? countryFilter : undefined);
+    const { cities } = useCities(countryFilter !== 'all' ? countryFilter : undefined);
 
     // 모달 상태
     const [selectedCourse, setSelectedCourse] = useState<CourseWithTranslations | null>(null);
@@ -45,9 +45,11 @@ export default function CoursesPage() {
         fetchCourses();
     }, []);
 
+    // 국가 필터 변경 시 도시 필터 초기화
     useEffect(() => {
-        // 국가 필터가 변경되면 지방 필터 초기화
-        setProvinceFilter('all');
+        if (countryFilter === 'all') {
+            setCityFilter('all');
+        }
     }, [countryFilter]);
 
     const fetchCourses = async () => {
@@ -113,11 +115,10 @@ export default function CoursesPage() {
             }
         }
 
-        // 지방 필터
-        if (provinceFilter !== 'all') {
-            const courseProvinceId = (course as any).provinceId || (course as any).provinceCode;
-            console.log('지방 필터 체크:', { courseProvinceId, provinceFilter, match: courseProvinceId === provinceFilter });
-            if (courseProvinceId !== provinceFilter) {
+        // 도시 필터 (국가가 선택된 경우에만 적용)
+        if (countryFilter !== 'all' && cityFilter !== 'all') {
+            const courseCityId = (course as any).cityId;
+            if (courseCityId !== cityFilter) {
                 return false;
             }
         }
@@ -255,10 +256,7 @@ export default function CoursesPage() {
                 <div className="flex gap-4">
                     <select
                         value={countryFilter}
-                        onChange={(e) => {
-                            setCountryFilter(e.target.value);
-                            setProvinceFilter('all');
-                        }}
+                        onChange={(e) => setCountryFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">모든 국가</option>
@@ -270,15 +268,17 @@ export default function CoursesPage() {
                     </select>
 
                     <select
-                        value={provinceFilter}
-                        onChange={(e) => setProvinceFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        value={cityFilter}
+                        onChange={(e) => setCityFilter(e.target.value)}
                         disabled={countryFilter === 'all'}
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
-                        <option value="all">모든 지방</option>
-                        {provinces.map(province => (
-                            <option key={province.id} value={province.id}>
-                                {province.name}
+                        <option value="all">
+                            {countryFilter === 'all' ? '먼저 국가를 선택하세요' : '모든 도시'}
+                        </option>
+                        {cities.map(city => (
+                            <option key={city.id} value={city.id}>
+                                {city.name}
                             </option>
                         ))}
                     </select>
@@ -302,7 +302,6 @@ export default function CoursesPage() {
                         <TableRow>
                             <TableHead>골프장명 (한글/영어)</TableHead>
                             <TableHead>국가</TableHead>
-                            <TableHead>지역</TableHead>
                             <TableHead>도시</TableHead>
                             <TableHead>포함사항</TableHead>
                             <TableHead>구글맵</TableHead>
@@ -324,7 +323,6 @@ export default function CoursesPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-gray-600">{course.countryName}</TableCell>
-                                <TableCell className="text-gray-600">{course.provinceName}</TableCell>
                                 <TableCell className="text-gray-600">{course.cityName}</TableCell>
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1">
