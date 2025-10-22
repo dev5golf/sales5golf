@@ -3,7 +3,7 @@
  * 공통으로 사용되는 테이블 관련 핸들러 함수들을 모아놓은 파일
  */
 
-import { Course } from '@/types';
+import { CourseWithTranslations } from '@/types';
 import { INCLUSION_OPTIONS } from '@/constants/quotationConstants';
 
 /**
@@ -33,9 +33,10 @@ export const createInclusionChangeHandler = (schedules: any[], onUpdate: Functio
  * @returns 골프장 선택 핸들러 함수
  */
 export const createCourseSelectHandler = (onUpdate: Function) =>
-    (id: string, course: Course) => {
-        // 골프장명 업데이트
-        onUpdate(id, 'courseName', course.name);
+    (id: string, course: CourseWithTranslations) => {
+        // 골프장명 업데이트 (한글명 우선)
+        const courseName = course.translations?.ko?.name || course.translations?.en?.name || course.id;
+        onUpdate(id, 'courseName', courseName);
 
         // 포함사항 자동 설정 (골프장의 inclusions가 있으면 사용, 없으면 기본값)
         const inclusions = course.inclusions && course.inclusions.length > 0

@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Course } from '@/types';
+import { CourseWithTranslations, CourseTranslation } from '@/types';
 
 interface GolfCourseAutocompleteProps {
     value: string;
     onChange: (value: string) => void;
-    onSelect?: (course: Course) => void;
+    onSelect?: (course: CourseWithTranslations) => void;
     placeholder?: string;
     className?: string;
 }
@@ -29,7 +29,7 @@ export default function GolfCourseAutocomplete({
     className = ""
 }: GolfCourseAutocompleteProps) {
     // 데이터 상태
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<CourseWithTranslations[]>([]);
     const [loading, setLoading] = useState(false);
 
     // 드롭다운 상태 통합
@@ -66,10 +66,27 @@ export default function GolfCourseAutocomplete({
             );
 
             const snapshot = await getDocs(coursesQuery);
-            const coursesData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Course[];
+
+            // 각 골프장의 번역 데이터도 함께 가져오기
+            const courseDataPromises = snapshot.docs.map(async (courseDoc) => {
+                const translationsSnapshot = await getDocs(
+                    collection(db, 'courses', courseDoc.id, 'translations')
+                );
+
+                const translations: { [key: string]: CourseTranslation } = {};
+                translationsSnapshot.docs.forEach(transDoc => {
+                    translations[transDoc.id] = transDoc.data() as CourseTranslation;
+                });
+
+                return {
+                    id: courseDoc.id,
+                    ...courseDoc.data(),
+                    translations,
+                    name: translations['ko']?.name || translations['en']?.name || courseDoc.id
+                } as CourseWithTranslations;
+            });
+
+            const coursesData = await Promise.all(courseDataPromises);
 
             // 이름순으로 정렬
             const sortedCourses = coursesData.sort((a, b) =>
@@ -94,9 +111,10 @@ export default function GolfCourseAutocomplete({
     const filteredCourses = useMemo(() => {
         if (!value.trim()) return courses;
 
-        return courses.filter(course =>
-            course.name.toLowerCase().includes(value.toLowerCase())
-        );
+        return courses.filter(course => {
+            const courseName = course.translations?.ko?.name || course.translations?.en?.name || '';
+            return courseName.toLowerCase().includes(value.toLowerCase());
+        });
     }, [courses, value]);
 
     // 드롭다운 위치 업데이트
@@ -148,7 +166,7 @@ export default function GolfCourseAutocomplete({
     }, [updateDropdownState]);
 
     // 골프장 선택 핸들러
-    const handleCourseSelect = useCallback((course: Course, event?: React.MouseEvent) => {
+    const handleCourseSelect = useCallback((course: CourseWithTranslations, event?: React.MouseEvent) => {
         if (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -162,8 +180,9 @@ export default function GolfCourseAutocomplete({
             isFocused: false
         });
 
-        // 값 업데이트
-        onChange(course.name);
+        // 값 업데이트 (한글명 우선)
+        const courseName = course.translations?.ko?.name || course.translations?.en?.name || course.id;
+        onChange(courseName);
 
         // onSelect 콜백 호출
         if (onSelect) {
@@ -177,7 +196,7 @@ export default function GolfCourseAutocomplete({
         setTimeout(() => {
             updateDropdownState({ isSelecting: false });
         }, 0);
-    }, [onChange, updateDropdownState]);
+    }, [onChange, updateDropdownState, onSelect]);
 
     // 선택된 항목을 화면에 보이도록 스크롤
     const scrollToSelectedItem = useCallback((selectedIndex: number) => {
@@ -392,7 +411,7 @@ export default function GolfCourseAutocomplete({
                                             color: '#111827'
                                         }}
                                     >
-                                        {course.name}
+                                        {course.translations?.ko?.name || course.translations?.en?.name || course.id}
                                     </div>
                                 </div>
                             );

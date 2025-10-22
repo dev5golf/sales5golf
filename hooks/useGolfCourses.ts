@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Course } from '@/types';
+import { CourseWithTranslations, CourseTranslation } from '@/types';
 
 export const useGolfCourses = () => {
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<CourseWithTranslations[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -17,10 +17,26 @@ export const useGolfCourses = () => {
                 const coursesRef = collection(db, 'courses');
                 const snapshot = await getDocs(coursesRef);
 
-                const coursesData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })) as Course[];
+                // 각 골프장의 번역 데이터도 함께 가져오기
+                const courseDataPromises = snapshot.docs.map(async (courseDoc) => {
+                    const translationsSnapshot = await getDocs(
+                        collection(db, 'courses', courseDoc.id, 'translations')
+                    );
+
+                    const translations: { [key: string]: CourseTranslation } = {};
+                    translationsSnapshot.docs.forEach(transDoc => {
+                        translations[transDoc.id] = transDoc.data() as CourseTranslation;
+                    });
+
+                    return {
+                        id: courseDoc.id,
+                        ...courseDoc.data(),
+                        translations,
+                        name: translations['ko']?.name || translations['en']?.name || courseDoc.id
+                    } as CourseWithTranslations;
+                });
+
+                const coursesData = await Promise.all(courseDataPromises);
 
                 setCourses(coursesData);
             } catch (err) {
@@ -41,10 +57,13 @@ export const useGolfCourses = () => {
     const searchCourses = (searchTerm: string) => {
         if (!searchTerm) return courses;
 
-        return courses.filter(course =>
-            course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            course.provinceName.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return courses.filter(course => {
+            const courseName = course.translations?.ko?.name || course.translations?.en?.name || '';
+            const provinceName = course.provinceName || '';
+
+            return courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                provinceName.toLowerCase().includes(searchTerm.toLowerCase());
+        });
     };
 
     return {

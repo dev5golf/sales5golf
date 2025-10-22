@@ -59,12 +59,12 @@ export interface FilterOption {
 // ==========================================
 
 /**
- * 골프장 데이터 구조
+ * 골프장 데이터 구조 (Firestore 저장용)
  * 골프장의 기본 정보, 위치, 연락처, 시설, 포함사항 등을 담는 인터페이스
+ * name은 translations 서브컬렉션에 저장
  */
 export interface Course {
     id: string;
-    name: string;
     countryId: string;
     provinceId: string;
     cityId: string;
@@ -78,6 +78,24 @@ export interface Course {
     createdAt: any;
     updatedAt: any;
     createdBy: string | null;
+}
+
+/**
+ * 골프장 번역 데이터 구조
+ * 각 언어별 골프장명을 담는 인터페이스
+ */
+export interface CourseTranslation {
+    name: string;
+}
+
+/**
+ * 번역이 포함된 골프장 데이터 (프론트엔드 사용)
+ */
+export interface CourseWithTranslations extends Course {
+    translations?: {
+        [language: string]: CourseTranslation;
+    };
+    name?: string; // 현재 선택된 언어의 이름
 }
 
 /**

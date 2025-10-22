@@ -8,7 +8,7 @@ import { Plus, Trash2, Copy } from 'lucide-react';
 import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
 import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
 import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
-import { Course } from '../../../../../types';
+import { CourseWithTranslations } from '../../../../../types';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createInclusionChangeHandler, createCourseSelectHandler, createOnSiteTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
 import { convertYenToWon, convertWonToYen } from '../../../../../lib/utils';

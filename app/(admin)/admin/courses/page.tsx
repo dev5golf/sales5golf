@@ -5,18 +5,19 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { collection, getDocs, query, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
-import { Course } from '@/types';
+import { CourseWithTranslations, CourseTranslation } from '@/types';
 import CourseModal from './components/CourseModal';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useCountries, useProvinces } from '@/hooks/useRegions';
+import { getInclusionName } from '@/constants/courseConstants';
 import '../../admin.css';
 
 export default function CoursesPage() {
     const { user: currentUser, isSuperAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<CourseWithTranslations[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [countryFilter, setCountryFilter] = useState<string>('all');
@@ -28,11 +29,11 @@ export default function CoursesPage() {
     const { provinces } = useProvinces(countryFilter !== 'all' ? countryFilter : undefined);
 
     // 모달 상태
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<CourseWithTranslations | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+    const [courseToDelete, setCourseToDelete] = useState<CourseWithTranslations | null>(null);
 
     // 권한 검사 - 수퍼관리자가 아니면 아예 렌더링하지 않음
     if (!authLoading && currentUser?.role !== 'super_admin') {
@@ -61,11 +62,27 @@ export default function CoursesPage() {
             }
 
             const snapshot = await getDocs(q);
-            const courseData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Course[];
 
+            // 각 골프장의 번역 데이터도 함께 가져오기
+            const courseDataPromises = snapshot.docs.map(async (courseDoc) => {
+                const translationsSnapshot = await getDocs(
+                    collection(db, 'courses', courseDoc.id, 'translations')
+                );
+
+                const translations: { [key: string]: CourseTranslation } = {};
+                translationsSnapshot.docs.forEach(transDoc => {
+                    translations[transDoc.id] = transDoc.data() as CourseTranslation;
+                });
+
+                return {
+                    id: courseDoc.id,
+                    ...courseDoc.data(),
+                    translations,
+                    name: translations['ko']?.name || translations['en']?.name || courseDoc.id // 기본값으로 한글명 사용
+                } as CourseWithTranslations;
+            });
+
+            const courseData = await Promise.all(courseDataPromises);
             setCourses(courseData);
 
         } catch (error) {
@@ -128,7 +145,7 @@ export default function CoursesPage() {
         setShowCreateModal(true);
     };
 
-    const handleEditCourse = (course: Course) => {
+    const handleEditCourse = (course: CourseWithTranslations) => {
         setSelectedCourse(course);
         setShowEditModal(true);
     };
@@ -146,7 +163,7 @@ export default function CoursesPage() {
         handleCloseModals();
     };
 
-    const handleDeleteCourse = (course: Course) => {
+    const handleDeleteCourse = (course: CourseWithTranslations) => {
         setCourseToDelete(course);
         setShowDeleteModal(true);
     };
@@ -274,13 +291,13 @@ export default function CoursesPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>골프장명</TableHead>
+                            <TableHead>골프장명 (한글/영어)</TableHead>
                             <TableHead>국가</TableHead>
                             <TableHead>지역</TableHead>
                             <TableHead>도시</TableHead>
                             <TableHead>포함사항</TableHead>
-                            <TableHead>상태</TableHead>
                             <TableHead>구글맵</TableHead>
+                            <TableHead>상태</TableHead>
                             <TableHead>액션</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -288,8 +305,13 @@ export default function CoursesPage() {
                         {filteredCourses.map((course) => (
                             <TableRow key={course.id}>
                                 <TableCell>
-                                    <div className="flex items-center">
-                                        <span className="font-medium text-gray-900">{course.name}</span>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="font-medium text-gray-900">
+                                            {course.translations?.ko?.name || '-'}
+                                        </span>
+                                        <span className="text-sm text-gray-500">
+                                            {course.translations?.en?.name || '-'}
+                                        </span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-gray-600">{course.countryName}</TableCell>
@@ -298,20 +320,15 @@ export default function CoursesPage() {
                                 <TableCell>
                                     <div className="flex flex-wrap gap-1">
                                         {course.inclusions && course.inclusions.length > 0 ? (
-                                            course.inclusions.map((inclusion, index) => (
+                                            course.inclusions.map((inclusionCode, index) => (
                                                 <Badge key={index} variant="secondary" className="text-xs">
-                                                    {inclusion}
+                                                    {getInclusionName(inclusionCode, 'ko')}
                                                 </Badge>
                                             ))
                                         ) : (
                                             <span className="text-gray-400 text-sm">미설정</span>
                                         )}
                                     </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={course.isActive ? 'active' : 'inactive'}>
-                                        {course.isActive ? '활성' : '비활성'}
-                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     {course.googleMapsLink ? (
@@ -327,6 +344,11 @@ export default function CoursesPage() {
                                     ) : (
                                         <span className="text-gray-400 text-sm">미설정</span>
                                     )}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={course.isActive ? 'active' : 'inactive'}>
+                                        {course.isActive ? '활성' : '비활성'}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex gap-2">
