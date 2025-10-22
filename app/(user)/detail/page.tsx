@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Course } from '@/types';
+import { Course, CourseWithTranslations } from '@/types';
 import { TeeTime } from '@/app/(admin)/admin/tee-times/types';
 import {
     formatTime,
@@ -20,7 +20,7 @@ function DetailContent() {
     const courseId = params.get('course');
     const booking = params.get('booking') === 'true';
     const [status, setStatus] = useState<'idle' | 'confirm' | 'done'>('idle');
-    const [course, setCourse] = useState<Course | null>(null);
+    const [course, setCourse] = useState<CourseWithTranslations | null>(null);
     const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -43,7 +43,7 @@ function DetailContent() {
             if (db && courseId) {
                 const courseDoc = await getDoc(doc(db, 'courses', courseId));
                 if (courseDoc.exists()) {
-                    const courseData = { id: courseDoc.id, ...courseDoc.data() } as Course;
+                    const courseData = { id: courseDoc.id, ...courseDoc.data() } as CourseWithTranslations;
                     setCourse(courseData);
                 }
 
@@ -67,17 +67,12 @@ function DetailContent() {
                 setCourse({
                     id: 'dummy1',
                     name: '더미 골프장',
-                    address: '서울시 강남구',
                     countryId: 'KR',
                     provinceId: 'KR_001',
                     cityId: 'KR_001_001',
                     countryName: '대한민국',
                     provinceName: '서울',
                     cityName: '강남구',
-                    phone: '02-1234-5678',
-                    description: '더미 골프장입니다.',
-                    price: 200000,
-                    images: [],
                     adminIds: [],
                     isActive: true,
                     createdAt: new Date(),
@@ -92,17 +87,12 @@ function DetailContent() {
             setCourse({
                 id: 'dummy1',
                 name: '더미 골프장',
-                address: '서울시 강남구',
                 countryId: 'KR',
                 provinceId: 'KR_001',
                 cityId: 'KR_001_001',
                 countryName: '대한민국',
                 provinceName: '서울',
                 cityName: '강남구',
-                phone: '02-1234-5678',
-                description: '더미 골프장입니다.',
-                price: 200000,
-                images: [],
                 adminIds: [],
                 isActive: true,
                 createdAt: new Date(),
@@ -187,7 +177,7 @@ function DetailContent() {
                 <div className="page-header-overlay"></div>
                 <div className="container">
                     <div className="page-header-content">
-                        <h1 className="page-title">{course.name}</h1>
+                        <h1 className="page-title">{course.name || '골프장'}</h1>
                         <p className="page-subtitle">{course.provinceName} {course.cityName}</p>
                     </div>
                 </div>
