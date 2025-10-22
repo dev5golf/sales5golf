@@ -7,7 +7,7 @@ import {
     AccommodationSchedule,
     PickupSchedule,
     PaymentInfo
-} from '@/app/(admin)/admin/admin-tools/types';
+} from '@/app/(admin)/admin/admin-tools/quotation/types';
 
 // Export types for use in other files
 export type {

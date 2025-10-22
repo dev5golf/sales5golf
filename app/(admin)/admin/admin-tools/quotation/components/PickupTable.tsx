@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, Trash2, Copy } from 'lucide-react';
-import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '../../../../../constants/quotationConstants';
+import { PickupSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { VEHICLE_TYPES, DESTINATION_OPTIONS } from '@/constants/quotationConstants';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createMultiFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
 import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';

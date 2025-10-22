@@ -4,13 +4,21 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
-import { LogOut, Home, Calendar, Users, Map, Building, Globe, Settings, Menu } from 'lucide-react';
+import { LogOut, Home, Calendar, Users, Map, Building, Globe, Settings, Menu, ChevronDown, ChevronRight, FileText, BarChart3, Wrench } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading, logout, isAdmin, isSiteAdmin } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [adminToolsOpen, setAdminToolsOpen] = useState(false);
+
+    // pathname 변경 시 관리자 도구 하위 메뉴 자동 열기
+    useEffect(() => {
+        if (pathname.startsWith('/admin/admin-tools')) {
+            setAdminToolsOpen(true);
+        }
+    }, [pathname]);
 
     useEffect(() => {
         // 로그인 페이지가 아니고, 로딩이 완료되었으며, 관리자가 아닌 경우 로그인 페이지로 리다이렉트
@@ -154,22 +162,68 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         )}
 
                         {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
-                            <Link
-                                href="/admin/admin-tools"
-                                onClick={() => {
-                                    // 모바일에서만 사이드바 닫기
-                                    if (window.innerWidth < 375) {
-                                        setSidebarOpen(false);
-                                    }
-                                }}
-                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/admin-tools')
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                                    }`}
-                            >
-                                <Settings className="h-5 w-5" />
-                                <span>관리자 도구</span>
-                            </Link>
+                            <div>
+                                {/* 관리자 도구 메인 버튼 */}
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        console.log('관리자 도구 클릭, 현재 상태:', adminToolsOpen);
+                                        setAdminToolsOpen(!adminToolsOpen);
+                                    }}
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/admin-tools')
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                        }`}
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <Settings className="h-5 w-5" />
+                                        <span>관리자 도구</span>
+                                    </div>
+                                    {adminToolsOpen ? (
+                                        <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                        <ChevronRight className="h-4 w-4" />
+                                    )}
+                                </button>
+
+                                {/* 하위 메뉴 */}
+                                {adminToolsOpen && (
+                                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-700 pl-3">
+                                        <Link
+                                            href="/admin/admin-tools/dashboard"
+                                            onClick={() => {
+                                                if (window.innerWidth < 375) {
+                                                    setSidebarOpen(false);
+                                                }
+                                            }}
+                                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/dashboard'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                }`}
+                                        >
+                                            <Home className="h-4 w-4" />
+                                            <span>대시보드</span>
+                                            <span className="ml-auto text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">준비중</span>
+                                        </Link>
+
+                                        <Link
+                                            href="/admin/admin-tools/quotation"
+                                            onClick={() => {
+                                                if (window.innerWidth < 375) {
+                                                    setSidebarOpen(false);
+                                                }
+                                            }}
+                                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/quotation'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                }`}
+                                        >
+                                            <FileText className="h-4 w-4" />
+                                            <span>견적서 작성</span>
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </nav>
                 </aside>

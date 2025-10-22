@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, Trash2, Copy } from 'lucide-react';
-import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
-import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
+import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { INCLUSION_OPTIONS } from '@/constants/quotationConstants';
+import GolfCourseAutocomplete from '@/app/(admin)/admin/components/GolfCourseAutocomplete';
 import { CourseWithTranslations } from '@/types';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createInclusionChangeHandler, createCourseSelectHandler, createTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';

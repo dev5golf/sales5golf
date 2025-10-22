@@ -3,18 +3,18 @@
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
+import { RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '@/constants/quotationConstants';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createMultiFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
-import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';
-import { isValidDate } from '../../../../../lib/utils';
+import { createOnSiteTotalChangeHandler } from '@/lib/utils/tableHandlers';
+import { isValidDate, convertYenToWon, convertWonToYen } from '@/lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
-interface RentalCarTableProps {
+interface RentalCarOnsiteTableProps {
     schedules: RentalCarSchedule[];
     onAdd: () => void;
     onUpdate: (id: string, field: keyof RentalCarSchedule, value: string) => void;
@@ -22,17 +22,19 @@ interface RentalCarTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
+    exchangeRate?: number; // 환율
 }
 
-export default function RentalCarTable({
+export default function RentalCarOnsiteTable({
     schedules,
     onAdd,
     onUpdate,
     onRemove,
     numberOfPeople,
     isFormValid,
-    calculatePrepayment
-}: RentalCarTableProps) {
+    calculatePrepayment,
+    exchangeRate = 8.5 // 환율 기본값 8.5
+}: RentalCarOnsiteTableProps) {
     // 마지막 선택한 날짜 범위를 기억하는 상태
     const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
     // 각 스케줄별 직접입력 모드 상태 (픽업장소, 반납장소, 대표차종)
@@ -41,7 +43,7 @@ export default function RentalCarTable({
 
 
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
-    const handleTotalChange = createTotalChangeHandler(onUpdate);
+    const handleTotalChange = createOnSiteTotalChangeHandler(onUpdate, (yenAmount: number) => convertYenToWon(yenAmount, exchangeRate));
 
     // 직접입력 모드 토글 핸들러
     const handleDirectInputToggle = createMultiFieldDirectInputToggleHandler(directInputMode, setDirectInputMode, onUpdate);
@@ -61,20 +63,35 @@ export default function RentalCarTable({
         setDirectInputMode(newDirectInputMode);
     }, [schedules]);
 
+    // 환율이 변경될 때 원화 금액만 다시 계산
+    useEffect(() => {
+        schedules.forEach(schedule => {
+            if (schedule.yenAmount) {
+                const yenAmount = parseInt(schedule.yenAmount);
+                const wonAmount = convertYenToWon(yenAmount, exchangeRate);
+                const wonFormatted = `₩${wonAmount}`;
+
+                // 원화 금액만 업데이트 (엔화는 그대로 유지)
+                if (schedule.total !== wonFormatted) {
+                    onUpdate(schedule.id, 'total', wonFormatted);
+                }
+            }
+        });
+    }, [exchangeRate, schedules, onUpdate, convertYenToWon]);
 
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                    <h3 className="text-xl font-semibold text-gray-900">렌트카 (사전결제)</h3>
+                    <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                    <h3 className="text-xl font-semibold text-gray-900">렌트카 (현장결제)</h3>
                 </div>
                 <Button
                     onClick={handleAddClick}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 hover:border-orange-300 transition-colors"
+                    className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-colors"
                 >
                     <Plus className="h-4 w-4" />
                     추가
@@ -84,7 +101,7 @@ export default function RentalCarTable({
             <div className="w-full h-auto rounded-lg border border-gray-200">
                 <table className="w-full table-auto">
                     <thead>
-                        <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 border-b border-gray-200">
+                        <tr className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 border-b border-gray-200">
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-48">날짜</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-40">픽업장소</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">픽업시간</th>
@@ -94,13 +111,13 @@ export default function RentalCarTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-28">이용일수</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">대표차종</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">합계</th>
-                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">사전결제(1인)</th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">현장결제(1인)</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {schedules.map((schedule, index) => (
-                            <tr key={schedule.id} className="hover:bg-orange-50/50 transition-colors bg-white">
+                            <tr key={schedule.id} className="hover:bg-green-50/50 transition-colors bg-white">
                                 <td className="px-1 py-1 text-lg w-48 text-center">
                                     <DatePicker
                                         selected={(() => {
@@ -171,7 +188,7 @@ export default function RentalCarTable({
                                         dateFormat="yy/MM/dd"
                                         locale={ko}
                                         placeholderText="YY/MM/DD-MM/DD"
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
                                     />
@@ -198,13 +215,13 @@ export default function RentalCarTable({
                                                 value={schedule.pickupLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'pickupLocation', e.target.value)}
                                                 placeholder="픽업장소 입력"
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             />
                                         ) : (
                                             <select
                                                 value={schedule.pickupLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'pickupLocation', e.target.value)}
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             >
                                                 <option value="">선택하세요</option>
                                                 {RENTAL_CAR_PICKUP_LOCATIONS.map((location) => (
@@ -218,7 +235,7 @@ export default function RentalCarTable({
                                     <select
                                         value={schedule.pickupTime}
                                         onChange={(e) => onUpdate(schedule.id, 'pickupTime', e.target.value)}
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                     >
                                         <option value="">선택하세요</option>
                                         {RENTAL_CAR_PICKUP_TIMES.map((time) => (
@@ -248,13 +265,13 @@ export default function RentalCarTable({
                                                 value={schedule.returnLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'returnLocation', e.target.value)}
                                                 placeholder="반납장소 입력"
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             />
                                         ) : (
                                             <select
                                                 value={schedule.returnLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'returnLocation', e.target.value)}
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             >
                                                 <option value="">선택하세요</option>
                                                 {RENTAL_CAR_RETURN_LOCATIONS.map((location) => (
@@ -268,7 +285,7 @@ export default function RentalCarTable({
                                     <select
                                         value={(schedule as any).returnTime || ''}
                                         onChange={(e) => onUpdate(schedule.id, 'returnTime' as keyof RentalCarSchedule, e.target.value)}
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                     >
                                         <option value="">선택하세요</option>
                                         {RENTAL_CAR_RETURN_TIMES.map((time) => (
@@ -282,7 +299,7 @@ export default function RentalCarTable({
                                         value={schedule.people}
                                         onChange={(e) => onUpdate(schedule.id, 'people', e.target.value)}
                                         min="1"
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                     />
                                 </td>
                                 <td className="px-1 py-1 text-lg w-28 text-center">
@@ -291,7 +308,7 @@ export default function RentalCarTable({
                                         value={schedule.rentalDays}
                                         onChange={(e) => onUpdate(schedule.id, 'rentalDays', e.target.value)}
                                         min="1"
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                     />
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center">
@@ -316,13 +333,13 @@ export default function RentalCarTable({
                                                 value={schedule.carType}
                                                 onChange={(e) => onUpdate(schedule.id, 'carType', e.target.value)}
                                                 placeholder="차종 입력"
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             />
                                         ) : (
                                             <select
                                                 value={schedule.carType}
                                                 onChange={(e) => onUpdate(schedule.id, 'carType', e.target.value)}
-                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                                className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                             >
                                                 <option value="">선택하세요</option>
                                                 {RENTAL_CAR_TYPES.map((type) => (
@@ -337,16 +354,20 @@ export default function RentalCarTable({
                                         type="text"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
-                                        value={schedule.total}
+                                        value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
                                         onChange={(e) => handleTotalChange(schedule.id, e)}
-                                        placeholder="₩0"
-                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                                        placeholder="¥0"
+                                        className={`w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                                         translate="no"
                                     />
                                 </td>
                                 <td className="px-1 py-1 text-lg w-32 text-center" translate="no">
                                     <span className="text-lg font-medium text-gray-900">
-                                        {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
+                                        {schedule.yenAmount ? (
+                                            `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}`
+                                        ) : (
+                                            '-'
+                                        )}
                                     </span>
                                 </td>
                                 <td className="px-1 py-1 text-lg text-center w-20">
@@ -364,19 +385,19 @@ export default function RentalCarTable({
 
                         {/* 총 합계 행 */}
                         {schedules.length > 0 && (
-                            <tr className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 border-t-2 border-gray-200">
-                                <td colSpan={8} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(KRW)</td>
-                                <td className={`px-1 py-1 text-xl font-bold text-orange-900 w-32 text-center`} translate="no">
-                                    ₩{schedules.reduce((sum, schedule) => {
-                                        const total = parseInt(schedule.total.replace(/[₩,]/g, '')) || 0;
-                                        return sum + total;
+                            <tr className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 border-t-2 border-gray-200">
+                                <td colSpan={8} className="px-1 py-1 text-lg font-bold text-gray-900 text-left">총 합계(JPY)</td>
+                                <td className={`px-1 py-1 text-xl font-bold text-green-900 w-32 text-center`} translate="no">
+                                    ¥{schedules.reduce((sum, schedule) => {
+                                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                        return sum + yenAmount;
                                     }, 0)}
                                 </td>
-                                <td className={`px-1 py-1 text-xl font-bold text-orange-900 w-32 text-center`} translate="no">
-                                    ₩{schedules.reduce((sum, schedule) => {
-                                        const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
-                                        return sum + parseInt(prepayment) || 0;
-                                    }, 0)}
+                                <td className={`px-1 py-1 text-xl font-bold text-green-900 w-32 text-center`} translate="no">
+                                    ¥{Math.round(schedules.reduce((sum, schedule) => {
+                                        const yenAmount = parseInt(schedule.yenAmount || '0') || 0;
+                                        return sum + yenAmount;
+                                    }, 0) / parseInt(numberOfPeople))}
                                 </td>
                                 <td className="px-1 py-1 w-20"></td>
                             </tr>

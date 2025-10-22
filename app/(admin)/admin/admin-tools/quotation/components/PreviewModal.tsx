@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../../components/ui/dialog';
-import { Button } from '../../../../../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Download, Loader2, ZoomIn, ZoomOut, RotateCcw, Maximize2 } from 'lucide-react';
 
 interface PreviewModalProps {

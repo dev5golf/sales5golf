@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { AccommodationSchedule } from '@/app/(admin)/admin/admin-tools/types';
+import { AccommodationSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';
-import { isValidDate } from '../../../../../lib/utils';
+import { isValidDate } from '@/lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 

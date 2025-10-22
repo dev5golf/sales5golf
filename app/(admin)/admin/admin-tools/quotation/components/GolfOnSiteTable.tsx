@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Plus, Trash2, Copy } from 'lucide-react';
-import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { INCLUSION_OPTIONS } from '../../../../../constants/quotationConstants';
-import GolfCourseAutocomplete from '../../components/GolfCourseAutocomplete';
-import { CourseWithTranslations } from '../../../../../types';
+import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { INCLUSION_OPTIONS } from '@/constants/quotationConstants';
+import GolfCourseAutocomplete from '@/app/(admin)/admin/components/GolfCourseAutocomplete';
+import { CourseWithTranslations } from '@/types';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createInclusionChangeHandler, createCourseSelectHandler, createOnSiteTotalChangeHandler, createSingleFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
-import { convertYenToWon, convertWonToYen } from '../../../../../lib/utils';
+import { convertYenToWon, convertWonToYen } from '@/lib/utils';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 

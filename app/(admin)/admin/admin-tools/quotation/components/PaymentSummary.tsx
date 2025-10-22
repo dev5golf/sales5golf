@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
-import { PaymentInfo } from '@/app/(admin)/admin/admin-tools/types';
-import { BANK_INFO, QUOTATION_NOTES } from '../../../../../constants/quotationConstants';
+import { PaymentInfo } from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { BANK_INFO, QUOTATION_NOTES } from '@/constants/quotationConstants';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 

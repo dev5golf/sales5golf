@@ -17,8 +17,8 @@ import {
     AccommodationSchedule,
     PickupSchedule,
     PaymentInfo
-} from '@/app/(admin)/admin/admin-tools/types';
-import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
+} from '@/app/(admin)/admin/admin-tools/quotation/types';
+import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
 
 export const useQuotationStorage = (currentUserId?: string) => {
     const [isLoading, setIsLoading] = useState(false);
