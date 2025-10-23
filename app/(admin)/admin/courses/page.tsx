@@ -274,7 +274,7 @@ export default function CoursesPage() {
                         className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                         <option value="all">
-                            {countryFilter === 'all' ? '먼저 국가를 선택하세요' : '모든 도시'}
+                            {countryFilter === 'all' ? '모든 도시' : '모든 도시'}
                         </option>
                         {cities.map(city => (
                             <option key={city.id} value={city.id}>
