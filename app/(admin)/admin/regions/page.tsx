@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import { CountryWithTranslations, CountryTranslation, ProvinceWithTranslations, ProvinceTranslation, CityWithTranslations, CityTranslation } from '@/types';
+import { CountryWithTranslations, CountryTranslation, CityWithTranslations, CityTranslation } from '@/types';
 import '../../admin.css';
 
-type TabType = 'countries' | 'provinces' | 'cities';
+type TabType = 'countries' | 'cities';
 
 export default function RegionsPage() {
     const { user: currentUser, isSuperAdmin, loading: authLoading } = useAuth();
@@ -26,8 +26,8 @@ export default function RegionsPage() {
 
     // 데이터 상태
     const [countries, setCountries] = useState<CountryWithTranslations[]>([]);
-    const [provinces, setProvinces] = useState<ProvinceWithTranslations[]>([]);
     const [cities, setCities] = useState<CityWithTranslations[]>([]);
+    const [cityCountByCountry, setCityCountByCountry] = useState<Record<string, number>>({});
 
     // 로딩 상태
     const [loading, setLoading] = useState(true);
@@ -36,7 +36,6 @@ export default function RegionsPage() {
     // 검색 및 필터 상태
     const [searchTerm, setSearchTerm] = useState('');
     const [countryFilter, setCountryFilter] = useState<string>('all');
-    const [provinceFilter, setProvinceFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
     // 폼 상태
@@ -47,14 +46,12 @@ export default function RegionsPage() {
         code: '',
         isActive: true
     });
-    const [newProvince, setNewProvince] = useState({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-    const [newCity, setNewCity] = useState({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+    const [newCity, setNewCity] = useState({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
 
     // 편집 상태
     const [editingItem, setEditingItem] = useState<{ type: string, id: string, data: any } | null>(null);
     const [editCountry, setEditCountry] = useState({ name: '', nameEn: '', code: '', isActive: true });
-    const [editProvince, setEditProvince] = useState({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
-    const [editCity, setEditCity] = useState({ name: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+    const [editCity, setEditCity] = useState({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
 
     // 오류 상태
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,14 +60,20 @@ export default function RegionsPage() {
         fetchAllData();
     }, []);
 
+    // 도시 데이터가 변경될 때마다 도시 수 재계산
+    useEffect(() => {
+        calculateCityCountByCountry();
+    }, [cities]);
+
     const fetchAllData = async () => {
         try {
             setLoading(true);
             await Promise.all([
                 fetchCountries(),
-                fetchProvinces(),
                 fetchCities()
             ]);
+            // 도시 수 계산
+            calculateCityCountByCountry();
         } finally {
             setLoading(false);
         }
@@ -106,73 +109,24 @@ export default function RegionsPage() {
         }
     };
 
-    const fetchProvinces = async () => {
-        try {
-            const snapshot = await getDocs(collection(db, 'provinces'));
-
-            const provincesWithTranslations = await Promise.all(
-                snapshot.docs.map(async (docSnap) => {
-                    const provinceData = docSnap.data() as ProvinceWithTranslations;
-                    provinceData.id = docSnap.id;
-
-                    // translations 서브컬렉션 가져오기
-                    const translationsSnapshot = await getDocs(
-                        collection(db, 'provinces', docSnap.id, 'translations')
-                    );
-
-                    const translations: { [key: string]: ProvinceTranslation } = {};
-                    translationsSnapshot.forEach(transDoc => {
-                        translations[transDoc.id] = transDoc.data() as ProvinceTranslation;
-                    });
-
-                    provinceData.translations = translations;
-                    // 표시용 이름 설정 (한국어 우선, 없으면 영어, 없으면 ID)
-                    provinceData.name = translations['ko']?.name || translations['en']?.name || provinceData.id;
-
-                    // 국가 이름 가져오기
-                    try {
-                        const countryDoc = await getDoc(doc(db, 'countries', provinceData.countryId));
-                        if (countryDoc.exists()) {
-                            const countryTranslationsSnapshot = await getDocs(
-                                collection(db, 'countries', provinceData.countryId, 'translations')
-                            );
-                            const countryTranslations: { [key: string]: CountryTranslation } = {};
-                            countryTranslationsSnapshot.forEach(transDoc => {
-                                countryTranslations[transDoc.id] = transDoc.data() as CountryTranslation;
-                            });
-                            provinceData.countryName = countryTranslations['ko']?.name || countryTranslations['en']?.name || provinceData.countryId;
-                        } else {
-                            provinceData.countryName = '알 수 없음';
-                        }
-                    } catch (error) {
-                        provinceData.countryName = '알 수 없음';
-                    }
-
-                    return provinceData;
-                })
-            );
-
-            // 이름으로 정렬
-            provincesWithTranslations.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-            setProvinces(provincesWithTranslations);
-        } catch (error) {
-            console.error('지방 목록 가져오기 실패:', error);
-        }
-    };
-
     const fetchCities = async () => {
         try {
-            const snapshot = await getDocs(collection(db, 'cities'));
+            // Collection Group으로 모든 국가의 도시 조회
+            const { collectionGroup } = await import('firebase/firestore');
+            const snapshot = await getDocs(collectionGroup(db, 'cities'));
 
             const citiesWithTranslations = await Promise.all(
                 snapshot.docs.map(async (docSnap) => {
                     const cityData = docSnap.data() as CityWithTranslations;
                     cityData.id = docSnap.id;
 
+                    // countryId 추출 (경로: countries/{countryId}/cities/{cityId})
+                    const pathSegments = docSnap.ref.path.split('/');
+                    cityData.countryId = pathSegments[1];
+
                     // translations 서브컬렉션 가져오기
                     const translationsSnapshot = await getDocs(
-                        collection(db, 'cities', docSnap.id, 'translations')
+                        collection(db, 'countries', cityData.countryId, 'cities', docSnap.id, 'translations')
                     );
 
                     const translations: { [key: string]: CityTranslation } = {};
@@ -184,27 +138,23 @@ export default function RegionsPage() {
                     // 표시용 이름 설정 (한국어 우선, 없으면 영어, 없으면 ID)
                     cityData.name = translations['ko']?.name || translations['en']?.name || cityData.id;
 
-                    // 지방 이름 가져오기
+                    // 국가 이름 가져오기
                     try {
-                        if (cityData.provinceId) {
-                            const provinceDoc = await getDoc(doc(db, 'provinces', cityData.provinceId));
-                            if (provinceDoc.exists()) {
-                                const provinceTranslationsSnapshot = await getDocs(
-                                    collection(db, 'provinces', cityData.provinceId, 'translations')
-                                );
-                                const provinceTranslations: { [key: string]: ProvinceTranslation } = {};
-                                provinceTranslationsSnapshot.forEach(transDoc => {
-                                    provinceTranslations[transDoc.id] = transDoc.data() as ProvinceTranslation;
-                                });
-                                cityData.provinceName = provinceTranslations['ko']?.name || provinceTranslations['en']?.name || cityData.provinceId;
-                            } else {
-                                cityData.provinceName = '알 수 없음';
-                            }
+                        const countryDoc = await getDoc(doc(db, 'countries', cityData.countryId));
+                        if (countryDoc.exists()) {
+                            const countryTranslationsSnapshot = await getDocs(
+                                collection(db, 'countries', cityData.countryId, 'translations')
+                            );
+                            const countryTranslations: { [key: string]: CountryTranslation } = {};
+                            countryTranslationsSnapshot.forEach(transDoc => {
+                                countryTranslations[transDoc.id] = transDoc.data() as CountryTranslation;
+                            });
+                            cityData.countryName = countryTranslations['ko']?.name || countryTranslations['en']?.name || cityData.countryId;
                         } else {
-                            cityData.provinceName = '알 수 없음';
+                            cityData.countryName = '알 수 없음';
                         }
                     } catch (error) {
-                        cityData.provinceName = '알 수 없음';
+                        cityData.countryName = '알 수 없음';
                     }
 
                     return cityData;
@@ -217,75 +167,52 @@ export default function RegionsPage() {
             setCities(citiesWithTranslations);
         } catch (error) {
             console.error('도시 목록 가져오기 실패:', error);
+            // Collection Group 권한이 없거나 도시가 없을 경우 빈 배열 설정
+            setCities([]);
         }
     };
 
+    // 국가별 도시 수 계산 함수
+    const calculateCityCountByCountry = () => {
+        const countMap: Record<string, number> = {};
+
+        cities.forEach(city => {
+            const countryId = city.countryId;
+            if (countryId) {
+                countMap[countryId] = (countMap[countryId] || 0) + 1;
+            }
+        });
+
+        setCityCountByCountry(countMap);
+    };
+
     // 자동 코드 생성 함수들
-    const getLastProvinceCodeByCountry = async (countryCode: string) => {
+    const getLastCityCodeByCountry = async (countryCode: string) => {
         try {
             setIsGeneratingCode(true);
-            console.log('getLastProvinceCodeByCountry 호출됨, countryCode:', countryCode);
-            const provincesRef = collection(db, 'provinces');
-            const snapshot = await getDocs(provincesRef);
+            console.log('getLastCityCodeByCountry 호출됨, countryCode:', countryCode);
+
+            // 해당 국가의 도시 서브컬렉션 조회
+            const citiesRef = collection(db, 'countries', countryCode, 'cities');
+            const snapshot = await getDocs(citiesRef);
 
             let lastCode = '000';
 
-            for (const doc of snapshot.docs) {
-                const data = doc.data();
-                console.log('지방 데이터 확인:', { docId: doc.id, data });
-                if ((data as any).countryId === countryCode || (data as any).countryCode === countryCode) {
-                    const provinceCode = doc.id; // doc.id 사용 (예: KR_001)
-                    console.log('매칭된 지방 코드:', provinceCode);
-                    const match = provinceCode.match(/(\d{3})$/);
-                    if (match) {
-                        const currentCode = match[1];
-                        // 더 큰 번호를 찾기 위해 비교
-                        if (parseInt(currentCode) > parseInt(lastCode)) {
-                            lastCode = currentCode;
-                            console.log('더 큰 코드 발견:', lastCode);
-                        }
+            for (const docSnap of snapshot.docs) {
+                const cityCode = docSnap.id; // doc.id 사용 (예: KR_001 또는 001)
+                console.log('도시 코드 확인:', cityCode);
+
+                const match = cityCode.match(/(\d{3})$/);
+                if (match) {
+                    const currentCode = match[1];
+                    if (parseInt(currentCode) > parseInt(lastCode)) {
+                        lastCode = currentCode;
+                        console.log('더 큰 코드 발견:', lastCode);
                     }
                 }
             }
 
             console.log('최종 반환 코드:', lastCode);
-            return lastCode;
-        } catch (error) {
-            console.error('provinces 데이터 조회 실패:', error);
-            return '000';
-        } finally {
-            setIsGeneratingCode(false);
-        }
-    };
-
-    const getLastCityCodeByProvince = async (provinceCode: string) => {
-        try {
-            setIsGeneratingCode(true);
-            console.log('getLastCityCodeByProvince 호출됨, provinceCode:', provinceCode);
-            const citiesRef = collection(db, 'cities');
-            const snapshot = await getDocs(citiesRef);
-
-            let lastCode = '000';
-
-            for (const doc of snapshot.docs) {
-                const data = doc.data();
-                console.log('도시 데이터 확인:', { docId: doc.id, data });
-                if ((data as any).provinceId === provinceCode || (data as any).provinceCode === provinceCode) {
-                    const cityCode = doc.id; // doc.id 사용 (예: KR_001_001)
-                    console.log('매칭된 도시 코드:', cityCode);
-                    const match = cityCode.match(/(\d{3})$/);
-                    if (match) {
-                        const currentCode = match[1];
-                        // 더 큰 번호를 찾기 위해 비교
-                        if (parseInt(currentCode) > parseInt(lastCode)) {
-                            lastCode = currentCode;
-                            console.log('더 큰 도시 코드 발견:', lastCode);
-                        }
-                    }
-                }
-            }
-
-            console.log('최종 반환 도시 코드:', lastCode);
             return lastCode;
         } catch (error) {
             console.error('cities 데이터 조회 실패:', error);
@@ -295,37 +222,20 @@ export default function RegionsPage() {
         }
     };
 
+
     // 국가 선택 시 시도 코드 자동 생성
-    const handleCountryChangeForProvince = async (countryCode: string) => {
-        setNewProvince(prev => ({ ...prev, countryCode, code: '' }));
+    const handleCountryChangeForCity = async (countryCode: string) => {
+        setNewCity(prev => ({ ...prev, countryCode, code: '' }));
 
         if (countryCode) {
-            const lastCode = await getLastProvinceCodeByCountry(countryCode);
+            const lastCode = await getLastCityCodeByCountry(countryCode);
             const nextCodeNumber = (parseInt(lastCode) + 1).toString().padStart(3, '0');
-            const provinceCode = `${countryCode}_${nextCodeNumber}`;
-
-            setNewProvince(prev => ({ ...prev, code: provinceCode }));
-        }
-    };
-
-    // 시도 선택 시 구군 코드 자동 생성
-    const handleProvinceChangeForCity = async (provinceCode: string) => {
-        const selectedProvince = provinces.find(p => p.id === provinceCode);
-        setNewCity(prev => ({
-            ...prev,
-            provinceCode,
-            countryCode: (selectedProvince as any)?.countryId || (selectedProvince as any)?.countryCode || '',
-            code: ''
-        }));
-
-        if (provinceCode) {
-            const lastCode = await getLastCityCodeByProvince(provinceCode);
-            const nextCodeNumber = (parseInt(lastCode) + 1).toString().padStart(3, '0');
-            const cityCode = `${provinceCode}_${nextCodeNumber}`;
+            const cityCode = `${countryCode}_${nextCodeNumber}`;
 
             setNewCity(prev => ({ ...prev, code: cityCode }));
         }
     };
+
 
     // 국가 등록
     const handleAddCountry = async (e: React.FormEvent) => {
@@ -379,90 +289,34 @@ export default function RegionsPage() {
     };
 
     // 시도 등록
-    const handleAddProvince = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!newProvince.nameKo.trim() || !newProvince.nameEn.trim() || !newProvince.countryCode || !newProvince.code.trim()) {
-            setErrors({ submit: '한글명, 영어명, 국가, 지방코드를 모두 입력해주세요.' });
-            return;
-        }
-
-        try {
-            const selectedCountry = countries.find(c => c.id === newProvince.countryCode);
-            const provinceId = newProvince.code.trim(); // 이미 KR_001 형태로 생성됨
-
-            // 1. 지방 메인 정보 저장
-            const provinceData = {
-                countryId: newProvince.countryCode,
-                countryName: selectedCountry?.name || '',
-                isActive: newProvince.isActive,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
-            await setDoc(doc(db, 'provinces', provinceId), provinceData);
-
-            // 2. 한국어 번역 저장
-            const koTranslation: ProvinceTranslation = {
-                name: newProvince.nameKo.trim()
-            };
-            await setDoc(
-                doc(db, 'provinces', provinceId, 'translations', 'ko'),
-                koTranslation
-            );
-
-            // 3. 영어 번역 저장
-            const enTranslation: ProvinceTranslation = {
-                name: newProvince.nameEn.trim()
-            };
-            await setDoc(
-                doc(db, 'provinces', provinceId, 'translations', 'en'),
-                enTranslation
-            );
-
-            await fetchProvinces();
-
-            setNewProvince({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-            setShowAddForm(false);
-            setErrors({});
-
-            alert('지방이 성공적으로 등록되었습니다.');
-        } catch (error: any) {
-            console.error('지방 등록 실패:', error);
-            setErrors({ submit: '지방 등록에 실패했습니다.' });
-        }
-    };
-
-    // 도시 등록
     const handleAddCity = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!newCity.nameKo.trim() || !newCity.nameEn.trim() || !newCity.provinceCode || !newCity.code.trim()) {
-            setErrors({ submit: '한글명, 영어명, 지방, 도시코드를 모두 입력해주세요.' });
+        if (!newCity.nameKo.trim() || !newCity.nameEn.trim() || !newCity.countryCode || !newCity.code.trim()) {
+            setErrors({ submit: '한글명, 영어명, 국가, 도시코드를 모두 입력해주세요.' });
             return;
         }
 
         try {
-            const selectedProvince = provinces.find(p => p.id === newCity.provinceCode);
-            const cityId = newCity.code.trim(); // 이미 KR_001_001 형태로 생성됨
+            const selectedCountry = countries.find(c => c.id === newCity.countryCode);
+            const cityId = newCity.code.trim(); // 이미 KR_001 형태로 생성됨
 
-            // 1. 도시 메인 정보 저장
+            // 1. 도시 메인 정보 저장 (서브컬렉션으로)
             const cityData = {
                 countryId: newCity.countryCode,
-                countryName: '',
-                provinceId: newCity.provinceCode,
-                provinceName: selectedProvince?.name || '',
+                countryName: selectedCountry?.name || '',
                 isActive: newCity.isActive,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
-            await setDoc(doc(db, 'cities', cityId), cityData);
+            await setDoc(doc(db, 'countries', newCity.countryCode, 'cities', cityId), cityData);
 
             // 2. 한국어 번역 저장
             const koTranslation: CityTranslation = {
                 name: newCity.nameKo.trim()
             };
             await setDoc(
-                doc(db, 'cities', cityId, 'translations', 'ko'),
+                doc(db, 'countries', newCity.countryCode, 'cities', cityId, 'translations', 'ko'),
                 koTranslation
             );
 
@@ -471,27 +325,28 @@ export default function RegionsPage() {
                 name: newCity.nameEn.trim()
             };
             await setDoc(
-                doc(db, 'cities', cityId, 'translations', 'en'),
+                doc(db, 'countries', newCity.countryCode, 'cities', cityId, 'translations', 'en'),
                 enTranslation
             );
 
             await fetchCities();
+            calculateCityCountByCountry();
 
-            setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+            setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
             setShowAddForm(false);
             setErrors({});
 
-            alert('도시가 성공적으로 등록되었습니다.');
+            alert('도시이 성공적으로 등록되었습니다.');
         } catch (error: any) {
             console.error('도시 등록 실패:', error);
             setErrors({ submit: '도시 등록에 실패했습니다.' });
         }
     };
 
+
     const resetForm = () => {
         setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
-        setNewProvince({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
         setShowAddForm(false);
         setEditingItem(null);
         setErrors({});
@@ -509,30 +364,18 @@ export default function RegionsPage() {
         setShowAddForm(false);
     };
 
-    const handleEditProvince = (province: ProvinceWithTranslations) => {
-        setEditingItem({ type: 'province', id: province.id, data: province });
-        setEditProvince({
-            name: province.translations?.['ko']?.name || '',
-            nameEn: province.translations?.['en']?.name || '',
-            code: province.id,
-            countryCode: province.countryId,
-            isActive: province.isActive
-        });
-        setShowAddForm(false);
-    };
-
     const handleEditCity = (city: CityWithTranslations) => {
         setEditingItem({ type: 'city', id: city.id, data: city });
         setEditCity({
             name: city.translations?.['ko']?.name || '',
             nameEn: city.translations?.['en']?.name || '',
             code: city.id,
-            countryCode: city.countryId || '',
-            provinceCode: city.provinceId,
+            countryCode: city.countryId,
             isActive: city.isActive
         });
         setShowAddForm(false);
     };
+
 
     // 업데이트 함수들
     const handleUpdateCountry = async (e: React.FormEvent) => {
@@ -580,83 +423,32 @@ export default function RegionsPage() {
         }
     };
 
-    const handleUpdateProvince = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!editProvince.name.trim() || !editProvince.nameEn.trim() || !editProvince.countryCode || !editProvince.code.trim()) {
-            setErrors({ submit: '한글명, 영어명, 국가, 지방코드를 모두 입력해주세요.' });
-            return;
-        }
-
-        try {
-            const selectedCountry = countries.find(c => c.id === editProvince.countryCode);
-
-            // 1. 지방 메인 정보 업데이트
-            const provinceData = {
-                countryId: editProvince.countryCode,
-                countryName: selectedCountry?.name || '',
-                isActive: editProvince.isActive,
-                updatedAt: serverTimestamp()
-            };
-            await setDoc(doc(db, 'provinces', editingItem!.id), provinceData, { merge: true });
-
-            // 2. 한국어 번역 업데이트
-            const koTranslation: ProvinceTranslation = {
-                name: editProvince.name.trim()
-            };
-            await setDoc(
-                doc(db, 'provinces', editingItem!.id, 'translations', 'ko'),
-                koTranslation
-            );
-
-            // 3. 영어 번역 업데이트
-            const enTranslation: ProvinceTranslation = {
-                name: editProvince.nameEn.trim()
-            };
-            await setDoc(
-                doc(db, 'provinces', editingItem!.id, 'translations', 'en'),
-                enTranslation
-            );
-
-            await fetchProvinces();
-
-            setEditingItem(null);
-            setErrors({});
-            alert('지방이 성공적으로 수정되었습니다.');
-        } catch (error: any) {
-            console.error('지방 수정 실패:', error);
-            setErrors({ submit: '지방 수정에 실패했습니다.' });
-        }
-    };
-
     const handleUpdateCity = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!editCity.name.trim() || !editCity.nameEn.trim() || !editCity.provinceCode || !editCity.code.trim()) {
-            setErrors({ submit: '한글명, 영어명, 지방, 도시코드를 모두 입력해주세요.' });
+        if (!editCity.name.trim() || !editCity.nameEn.trim() || !editCity.countryCode || !editCity.code.trim()) {
+            setErrors({ submit: '한글명, 영어명, 국가, 도시코드를 모두 입력해주세요.' });
             return;
         }
 
         try {
-            const selectedProvince = provinces.find(p => p.id === editCity.provinceCode);
+            const selectedCountry = countries.find(c => c.id === editCity.countryCode);
 
-            // 1. 도시 메인 정보 업데이트
+            // 1. 도시 메인 정보 업데이트 (서브컬렉션)
             const cityData = {
                 countryId: editCity.countryCode,
-                countryName: '',
-                provinceId: editCity.provinceCode,
-                provinceName: selectedProvince?.name || '',
+                countryName: selectedCountry?.name || '',
                 isActive: editCity.isActive,
                 updatedAt: serverTimestamp()
             };
-            await setDoc(doc(db, 'cities', editingItem!.id), cityData, { merge: true });
+            await setDoc(doc(db, 'countries', editCity.countryCode, 'cities', editingItem!.id), cityData, { merge: true });
 
             // 2. 한국어 번역 업데이트
             const koTranslation: CityTranslation = {
                 name: editCity.name.trim()
             };
             await setDoc(
-                doc(db, 'cities', editingItem!.id, 'translations', 'ko'),
+                doc(db, 'countries', editCity.countryCode, 'cities', editingItem!.id, 'translations', 'ko'),
                 koTranslation
             );
 
@@ -665,106 +457,39 @@ export default function RegionsPage() {
                 name: editCity.nameEn.trim()
             };
             await setDoc(
-                doc(db, 'cities', editingItem!.id, 'translations', 'en'),
+                doc(db, 'countries', editCity.countryCode, 'cities', editingItem!.id, 'translations', 'en'),
                 enTranslation
             );
 
             await fetchCities();
+            calculateCityCountByCountry();
 
             setEditingItem(null);
             setErrors({});
-            alert('도시가 성공적으로 수정되었습니다.');
+            alert('도시이 성공적으로 수정되었습니다.');
         } catch (error: any) {
             console.error('도시 수정 실패:', error);
             setErrors({ submit: '도시 수정에 실패했습니다.' });
         }
     };
 
+
     // 삭제 함수들
     const handleDeleteCountry = async (countryId: string, countryName: string) => {
-        if (!confirm(`"${countryName}" 국가를 삭제하시겠습니까?\n\n주의: 이 국가와 관련된 모든 지방과 도시 데이터도 함께 삭제됩니다.`)) {
+        if (!confirm(`"${countryName}" 국가를 삭제하시겠습니까?\n\n주의: 이 국가의 모든 도시 데이터도 함께 삭제됩니다.`)) {
             return;
         }
 
         try {
-            // 1. 해당 국가의 모든 지방 조회
-            const provincesQuery = query(
-                collection(db, 'provinces'),
-                where('countryId', '==', countryId)
-            );
-            const provincesSnapshot = await getDocs(provincesQuery);
-
-            // 2. 각 지방의 모든 도시 조회 및 삭제 (translations 포함)
-            const cityDeletePromises: Promise<void>[] = [];
-            for (const provinceDoc of provincesSnapshot.docs) {
-                const citiesQuery = query(
-                    collection(db, 'cities'),
-                    where('provinceId', '==', provinceDoc.id)
-                );
-                const citiesSnapshot = await getDocs(citiesQuery);
-
-                citiesSnapshot.docs.forEach(cityDoc => {
-                    // 도시의 translations 서브컬렉션 삭제
-                    cityDeletePromises.push(
-                        getDocs(collection(db, 'cities', cityDoc.id, 'translations'))
-                            .then(translationsSnapshot =>
-                                Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)))
-                            )
-                            .then(() => deleteDoc(cityDoc.ref))
-                    );
-                });
-            }
-
-            // 3. 모든 도시 삭제 실행
-            await Promise.all(cityDeletePromises);
-
-            // 4. 모든 지방 삭제 (translations 포함)
-            const provinceDeletePromises = provincesSnapshot.docs.map(async provinceDoc => {
-                // 지방의 translations 서브컬렉션 삭제
-                const translationsSnapshot = await getDocs(collection(db, 'provinces', provinceDoc.id, 'translations'));
-                await Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
-
-                // 지방 삭제
-                return deleteDoc(provinceDoc.ref);
-            });
-            await Promise.all(provinceDeletePromises);
-
-            // 5. 국가의 translations 서브컬렉션 삭제
-            const countryTranslationsSnapshot = await getDocs(collection(db, 'countries', countryId, 'translations'));
-            await Promise.all(countryTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
-
-            // 6. 마지막으로 국가 삭제
-            await deleteDoc(doc(db, 'countries', countryId));
-
-            // 7. 데이터 새로고침
-            await fetchCountries();
-            await fetchProvinces();
-            await fetchCities();
-
-            alert('국가와 관련된 모든 지방, 도시 데이터가 성공적으로 삭제되었습니다.');
-        } catch (error) {
-            console.error('국가 삭제 실패:', error);
-            alert('국가 삭제에 실패했습니다.');
-        }
-    };
-
-    const handleDeleteProvince = async (provinceId: string, provinceName: string) => {
-        if (!confirm(`"${provinceName}" 지방을 삭제하시겠습니까?\n\n주의: 이 지방과 관련된 모든 도시 데이터도 함께 삭제됩니다.`)) {
-            return;
-        }
-
-        try {
-            // 1. 해당 지방의 모든 도시 조회 및 삭제 (translations 포함)
-            const citiesQuery = query(
-                collection(db, 'cities'),
-                where('provinceId', '==', provinceId)
-            );
-            const citiesSnapshot = await getDocs(citiesQuery);
+            // 1. 해당 국가의 모든 도시 조회 (서브컬렉션)
+            const citiesSnapshot = await getDocs(collection(db, 'countries', countryId, 'cities'));
 
             // 2. 모든 도시 삭제 (translations 포함)
             const cityDeletePromises = citiesSnapshot.docs.map(async cityDoc => {
                 // 도시의 translations 서브컬렉션 삭제
-                const translationsSnapshot = await getDocs(collection(db, 'cities', cityDoc.id, 'translations'));
+                const translationsSnapshot = await getDocs(
+                    collection(db, 'countries', countryId, 'cities', cityDoc.id, 'translations')
+                );
                 await Promise.all(translationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
 
                 // 도시 삭제
@@ -772,45 +497,51 @@ export default function RegionsPage() {
             });
             await Promise.all(cityDeletePromises);
 
-            // 3. 지방의 translations 서브컬렉션 삭제
-            const provinceTranslationsSnapshot = await getDocs(collection(db, 'provinces', provinceId, 'translations'));
-            await Promise.all(provinceTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
+            // 3. 국가의 translations 서브컬렉션 삭제
+            const countryTranslationsSnapshot = await getDocs(collection(db, 'countries', countryId, 'translations'));
+            await Promise.all(countryTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
 
-            // 4. 지방 삭제
-            await deleteDoc(doc(db, 'provinces', provinceId));
+            // 4. 마지막으로 국가 삭제
+            await deleteDoc(doc(db, 'countries', countryId));
 
             // 5. 데이터 새로고침
-            await fetchProvinces();
+            await fetchCountries();
             await fetchCities();
+            calculateCityCountByCountry();
 
-            alert('지방과 관련된 모든 도시 데이터가 성공적으로 삭제되었습니다.');
+            alert('국가와 관련된 모든 도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
-            console.error('지방 삭제 실패:', error);
-            alert('지방 삭제에 실패했습니다.');
+            console.error('국가 삭제 실패:', error);
+            alert('국가 삭제에 실패했습니다.');
         }
     };
 
-    const handleDeleteCity = async (cityId: string, cityName: string) => {
+    const handleDeleteCity = async (cityId: string, cityName: string, countryId: string) => {
         if (!confirm(`"${cityName}" 도시를 삭제하시겠습니까?`)) {
             return;
         }
 
         try {
             // 1. 도시의 translations 서브컬렉션 삭제
-            const cityTranslationsSnapshot = await getDocs(collection(db, 'cities', cityId, 'translations'));
+            const cityTranslationsSnapshot = await getDocs(
+                collection(db, 'countries', countryId, 'cities', cityId, 'translations')
+            );
             await Promise.all(cityTranslationsSnapshot.docs.map(transDoc => deleteDoc(transDoc.ref)));
 
-            // 2. 도시 삭제
-            await deleteDoc(doc(db, 'cities', cityId));
+            // 2. 도시 삭제 (서브컬렉션)
+            await deleteDoc(doc(db, 'countries', countryId, 'cities', cityId));
 
             // 3. 데이터 새로고침
             await fetchCities();
-            alert('도시가 성공적으로 삭제되었습니다.');
+            calculateCityCountByCountry();
+
+            alert('도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
             console.error('도시 삭제 실패:', error);
             alert('도시 삭제에 실패했습니다.');
         }
     };
+
 
     // 검색 및 필터링 로직
     const handleSearch = (e: React.FormEvent) => {
@@ -836,45 +567,16 @@ export default function RegionsPage() {
         return true;
     });
 
-    const filteredProvinces = provinces.filter(province => {
-        // 검색어 필터
-        if (searchTerm && !province.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !province.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !province.countryName.toLowerCase().includes(searchTerm.toLowerCase())) {
-            return false;
-        }
-
-        // 국가 필터
-        if (countryFilter !== 'all' && ((province as any).countryId || (province as any).countryCode) !== countryFilter) {
-            return false;
-        }
-
-        // 상태 필터
-        if (statusFilter !== 'all') {
-            const isActive = statusFilter === 'active';
-            if (province.isActive !== isActive) {
-                return false;
-            }
-        }
-
-        return true;
-    });
-
-    const filteredCities = cities.filter(city => {
+    const filteredCitys = cities.filter(city => {
         // 검색어 필터
         if (searchTerm && !city.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
             !city.id.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !city.provinceName.toLowerCase().includes(searchTerm.toLowerCase())) {
+            !city.countryName.toLowerCase().includes(searchTerm.toLowerCase())) {
             return false;
         }
 
         // 국가 필터
         if (countryFilter !== 'all' && ((city as any).countryId || (city as any).countryCode) !== countryFilter) {
-            return false;
-        }
-
-        // 시도 필터
-        if (provinceFilter !== 'all' && ((city as any).provinceId || (city as any).provinceCode) !== provinceFilter) {
             return false;
         }
 
@@ -888,6 +590,7 @@ export default function RegionsPage() {
 
         return true;
     });
+
 
 
     if (loading) {
@@ -913,8 +616,7 @@ export default function RegionsPage() {
                         onClick={() => setShowAddForm(!showAddForm)}
                     >
                         <i className="fas fa-plus"></i>
-                        {activeTab === 'countries' ? '국가 등록' :
-                            activeTab === 'provinces' ? '지방 등록' : '도시 등록'}
+                        {activeTab === 'countries' ? '국가 등록' : '도시 등록'}
                     </Button>
                 </div>
             </div>
@@ -930,48 +632,19 @@ export default function RegionsPage() {
                         setActiveTab('countries');
                         setSearchTerm('');
                         setCountryFilter('all');
-                        setProvinceFilter('all');
                         setStatusFilter('all');
                         setShowAddForm(false);
                         setEditingItem(null);
                         setErrors({});
                         // 폼 상태 초기화
                         setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
-                        setNewProvince({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
                         setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
-                        setEditProvince({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setEditCity({ name: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setEditCity({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
                     }}
                 >
                     <i className="fas fa-globe"></i>
                     국가 ({countries.length})
-                </button>
-                <button
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'provinces'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    onClick={() => {
-                        setActiveTab('provinces');
-                        setSearchTerm('');
-                        setCountryFilter('all');
-                        setProvinceFilter('all');
-                        setStatusFilter('all');
-                        setShowAddForm(false);
-                        setEditingItem(null);
-                        setErrors({});
-                        // 폼 상태 초기화
-                        setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
-                        setNewProvince({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
-                        setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
-                        setEditProvince({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setEditCity({ name: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
-                    }}
-                >
-                    <i className="fas fa-map-marked-alt"></i>
-                    지방 ({provinces.length})
                 </button>
                 <button
                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'cities'
@@ -982,21 +655,18 @@ export default function RegionsPage() {
                         setActiveTab('cities');
                         setSearchTerm('');
                         setCountryFilter('all');
-                        setProvinceFilter('all');
                         setStatusFilter('all');
                         setShowAddForm(false);
                         setEditingItem(null);
                         setErrors({});
                         // 폼 상태 초기화
                         setNewCountry({ nameKo: '', nameEn: '', code: '', isActive: true });
-                        setNewProvince({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
                         setEditCountry({ name: '', nameEn: '', code: '', isActive: true });
-                        setEditProvince({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
-                        setEditCity({ name: '', nameEn: '', code: '', countryCode: '', provinceCode: '', isActive: true });
+                        setEditCity({ name: '', nameEn: '', code: '', countryCode: '', isActive: true });
                     }}
                 >
-                    <i className="fas fa-city"></i>
+                    <i className="fas fa-map-marked-alt"></i>
                     도시 ({cities.length})
                 </button>
             </div>
@@ -1009,8 +679,8 @@ export default function RegionsPage() {
                             type="text"
                             placeholder={
                                 activeTab === 'countries' ? '국가명, 국가코드로 검색...' :
-                                    activeTab === 'provinces' ? '지방명, 지방코드, 국가명으로 검색...' :
-                                        '도시명, 도시코드, 지방명으로 검색...'
+                                    activeTab === 'cities' ? '도시명, 도시코드, 국가명으로 검색...' :
+                                        '도시명, 도시코드, 도시명으로 검색...'
                             }
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -1023,21 +693,6 @@ export default function RegionsPage() {
                 </form>
 
                 <div className="flex gap-4">
-                    {activeTab === 'provinces' && (
-                        <select
-                            value={countryFilter}
-                            onChange={(e) => setCountryFilter(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="all">모든 국가</option>
-                            {countries.map(country => (
-                                <option key={country.id} value={country.id}>
-                                    {country.name}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-
                     {activeTab === 'cities' && (
                         <select
                             value={countryFilter}
@@ -1048,21 +703,6 @@ export default function RegionsPage() {
                             {countries.map(country => (
                                 <option key={country.id} value={country.id}>
                                     {country.name}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-
-                    {activeTab === 'cities' && (
-                        <select
-                            value={provinceFilter}
-                            onChange={(e) => setProvinceFilter(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="all">모든 지방</option>
-                            {provinces.map(province => (
-                                <option key={province.id} value={province.id}>
-                                    {province.name}
                                 </option>
                             ))}
                         </select>
@@ -1086,7 +726,7 @@ export default function RegionsPage() {
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-semibold text-gray-800">
                             {activeTab === 'countries' ? '새 국가 등록' :
-                                activeTab === 'provinces' ? '새 지방 등록' : '새 도시 등록'}
+                                activeTab === 'cities' ? '새 도시 등록' : '새 도시 등록'}
                         </h3>
                         <button
                             onClick={resetForm}
@@ -1097,8 +737,7 @@ export default function RegionsPage() {
                     </div>
 
                     <form onSubmit={
-                        activeTab === 'countries' ? handleAddCountry :
-                            activeTab === 'provinces' ? handleAddProvince : handleAddCity
+                        activeTab === 'countries' ? handleAddCountry : handleAddCity
                     } className="space-y-6">
                         {errors.submit && (
                             <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -1152,15 +791,15 @@ export default function RegionsPage() {
                             </>
                         )}
 
-                        {activeTab === 'provinces' && (
+                        {activeTab === 'cities' && (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label htmlFor="provinceCountry" className="block text-sm font-medium text-gray-700">국가 *</label>
+                                        <label htmlFor="cityCountry" className="block text-sm font-medium text-gray-700">국가 *</label>
                                         <select
-                                            id="provinceCountry"
-                                            value={newProvince.countryCode}
-                                            onChange={(e) => handleCountryChangeForProvince(e.target.value)}
+                                            id="cityCountry"
+                                            value={newCity.countryCode}
+                                            onChange={(e) => handleCountryChangeForCity(e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         >
                                             <option value="">국가를 선택하세요</option>
@@ -1170,85 +809,7 @@ export default function RegionsPage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <small className="text-gray-500 text-xs">국가를 선택하면 지방 코드가 자동으로 생성됩니다.</small>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="provinceNameKo" className="block text-sm font-medium text-gray-700">한글명 *</label>
-                                        <input
-                                            type="text"
-                                            id="provinceNameKo"
-                                            value={newProvince.nameKo}
-                                            onChange={(e) => setNewProvince(prev => ({ ...prev, nameKo: e.target.value }))}
-                                            placeholder="예: 서울특별시"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="provinceNameEn" className="block text-sm font-medium text-gray-700">영어명 *</label>
-                                        <input
-                                            type="text"
-                                            id="provinceNameEn"
-                                            value={newProvince.nameEn}
-                                            onChange={(e) => setNewProvince(prev => ({ ...prev, nameEn: e.target.value }))}
-                                            placeholder="예: Seoul"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="provinceCode" className="block text-sm font-medium text-gray-700">지방 코드 *</label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            id="provinceCode"
-                                            value={newProvince.code}
-                                            readOnly
-                                            className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 ${isGeneratingCode ? 'opacity-50' : ''}`}
-                                            placeholder={isGeneratingCode ? "코드 생성 중..." : "국가를 선택하면 자동 생성됩니다"}
-                                        />
-                                        {isGeneratingCode && (
-                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                <i className="fas fa-spinner fa-spin text-gray-400"></i>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <small className="text-gray-500 text-xs">지방 코드는 자동으로 생성됩니다. (형식: 국가코드_001, 국가코드_002...)</small>
-                                </div>
-                                <div className="flex items-center">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={newProvince.isActive}
-                                            onChange={(e) => setNewProvince(prev => ({ ...prev, isActive: e.target.checked }))}
-                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <span className="ml-2 text-sm text-gray-700">활성 상태</span>
-                                    </label>
-                                </div>
-                            </>
-                        )}
-
-                        {activeTab === 'cities' && (
-                            <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="cityProvince" className="block text-sm font-medium text-gray-700">지방 *</label>
-                                        <select
-                                            id="cityProvince"
-                                            value={newCity.provinceCode}
-                                            onChange={(e) => handleProvinceChangeForCity(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        >
-                                            <option value="">지방을 선택하세요</option>
-                                            {provinces.map(province => (
-                                                <option key={province.id} value={province.id}>
-                                                    {province.name} ({province.countryName})
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <small className="text-gray-500 text-xs">지방을 선택하면 도시 코드가 자동으로 생성됩니다.</small>
+                                        <small className="text-gray-500 text-xs">국가를 선택하면 도시 코드가 자동으로 생성됩니다.</small>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1259,7 +820,7 @@ export default function RegionsPage() {
                                             id="cityNameKo"
                                             value={newCity.nameKo}
                                             onChange={(e) => setNewCity(prev => ({ ...prev, nameKo: e.target.value }))}
-                                            placeholder="예: 강남구"
+                                            placeholder="예: 서울특별시"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -1270,7 +831,7 @@ export default function RegionsPage() {
                                             id="cityNameEn"
                                             value={newCity.nameEn}
                                             onChange={(e) => setNewCity(prev => ({ ...prev, nameEn: e.target.value }))}
-                                            placeholder="예: Gangnam"
+                                            placeholder="예: Seoul"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -1284,7 +845,7 @@ export default function RegionsPage() {
                                             value={newCity.code}
                                             readOnly
                                             className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 ${isGeneratingCode ? 'opacity-50' : ''}`}
-                                            placeholder={isGeneratingCode ? "코드 생성 중..." : "시도를 선택하면 자동 생성됩니다"}
+                                            placeholder={isGeneratingCode ? "코드 생성 중..." : "국가를 선택하면 자동 생성됩니다"}
                                         />
                                         {isGeneratingCode && (
                                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1292,7 +853,7 @@ export default function RegionsPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <small className="text-gray-500 text-xs">도시 코드는 자동으로 생성됩니다. (형식: 지방코드_001, 지방코드_002...)</small>
+                                    <small className="text-gray-500 text-xs">도시 코드는 자동으로 생성됩니다. (형식: 국가코드_001, 국가코드_002...)</small>
                                 </div>
                                 <div className="flex items-center">
                                     <label className="flex items-center">
@@ -1313,8 +874,7 @@ export default function RegionsPage() {
                                 type="submit"
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                {activeTab === 'countries' ? '국가 등록' :
-                                    activeTab === 'provinces' ? '지방 등록' : '도시 등록'}
+                                {activeTab === 'countries' ? '국가 등록' : '도시 등록'}
                             </button>
                             <button
                                 type="button"
@@ -1334,7 +894,7 @@ export default function RegionsPage() {
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
                         <h3 className="text-xl font-semibold text-gray-900">
                             {editingItem.type === 'country' ? '국가 수정' :
-                                editingItem.type === 'province' ? '지방 수정' : '도시 수정'}
+                                editingItem.type === 'city' ? '도시 수정' : '도시 수정'}
                         </h3>
                         <button
                             onClick={resetForm}
@@ -1346,8 +906,7 @@ export default function RegionsPage() {
 
                     <form
                         onSubmit={
-                            editingItem.type === 'country' ? handleUpdateCountry :
-                                editingItem.type === 'province' ? handleUpdateProvince : handleUpdateCity
+                            editingItem.type === 'country' ? handleUpdateCountry : handleUpdateCity
                         }
                         className="space-y-6"
                     >
@@ -1400,15 +959,15 @@ export default function RegionsPage() {
                             </>
                         )}
 
-                        {editingItem.type === 'province' && (
+                        {editingItem.type === 'city' && (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label htmlFor="editProvinceCountry" className="block text-sm font-medium text-gray-700">국가 *</label>
+                                        <label htmlFor="editCityCountry" className="block text-sm font-medium text-gray-700">국가 *</label>
                                         <select
-                                            id="editProvinceCountry"
-                                            value={editProvince.countryCode}
-                                            onChange={(e) => setEditProvince(prev => ({ ...prev, countryCode: e.target.value }))}
+                                            id="editCityCountry"
+                                            value={editCity.countryCode}
+                                            onChange={(e) => setEditCity(prev => ({ ...prev, countryCode: e.target.value }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         >
                                             <option value="">국가를 선택하세요</option>
@@ -1422,85 +981,13 @@ export default function RegionsPage() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label htmlFor="editProvinceNameKo" className="block text-sm font-medium text-gray-700">한글명 *</label>
-                                        <input
-                                            type="text"
-                                            id="editProvinceNameKo"
-                                            value={editProvince.name}
-                                            onChange={(e) => setEditProvince(prev => ({ ...prev, name: e.target.value }))}
-                                            placeholder="예: 서울특별시"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="editProvinceNameEn" className="block text-sm font-medium text-gray-700">영어명 *</label>
-                                        <input
-                                            type="text"
-                                            id="editProvinceNameEn"
-                                            value={editProvince.nameEn}
-                                            onChange={(e) => setEditProvince(prev => ({ ...prev, nameEn: e.target.value }))}
-                                            placeholder="예: Seoul"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="editProvinceCode" className="block text-sm font-medium text-gray-700">지방 코드 *</label>
-                                        <input
-                                            type="text"
-                                            id="editProvinceCode"
-                                            value={editProvince.code}
-                                            readOnly
-                                            disabled
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        />
-                                        <p className="text-xs text-gray-500">코드는 수정할 수 없습니다.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={editProvince.isActive}
-                                            onChange={(e) => setEditProvince(prev => ({ ...prev, isActive: e.target.checked }))}
-                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <span className="ml-2 text-sm text-gray-700">활성 상태</span>
-                                    </label>
-                                </div>
-                            </>
-                        )}
-
-                        {editingItem.type === 'city' && (
-                            <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="editCityProvince" className="block text-sm font-medium text-gray-700">지방 *</label>
-                                        <select
-                                            id="editCityProvince"
-                                            value={editCity.provinceCode}
-                                            onChange={(e) => setEditCity(prev => ({ ...prev, provinceCode: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        >
-                                            <option value="">지방을 선택하세요</option>
-                                            {provinces.map(province => (
-                                                <option key={province.id} value={province.id}>
-                                                    {province.name} ({province.countryName})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
                                         <label htmlFor="editCityNameKo" className="block text-sm font-medium text-gray-700">한글명 *</label>
                                         <input
                                             type="text"
                                             id="editCityNameKo"
                                             value={editCity.name}
                                             onChange={(e) => setEditCity(prev => ({ ...prev, name: e.target.value }))}
-                                            placeholder="예: 강남구"
+                                            placeholder="예: 서울특별시"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -1511,7 +998,7 @@ export default function RegionsPage() {
                                             id="editCityNameEn"
                                             value={editCity.nameEn}
                                             onChange={(e) => setEditCity(prev => ({ ...prev, nameEn: e.target.value }))}
-                                            placeholder="예: Gangnam"
+                                            placeholder="예: Seoul"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                     </div>
@@ -1549,8 +1036,7 @@ export default function RegionsPage() {
                                 type="submit"
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                {editingItem.type === 'country' ? '국가 수정' :
-                                    editingItem.type === 'province' ? '지방 수정' : '도시 수정'}
+                                {editingItem.type === 'country' ? '국가 수정' : '도시 수정'}
                             </button>
                             <button
                                 type="button"
@@ -1581,7 +1067,12 @@ export default function RegionsPage() {
                                 <TableRow key={country.id}>
                                     <TableCell>
                                         <div>
-                                            <div className="font-medium text-gray-900">{country.translations?.['ko']?.name || '-'}</div>
+                                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                                                {country.translations?.['ko']?.name || '-'}
+                                                <Badge variant="secondary" className="text-xs">
+                                                    도시 {cityCountByCountry[country.id] || 0}개
+                                                </Badge>
+                                            </div>
                                             <div className="text-sm text-gray-500">{country.translations?.['en']?.name || '-'}</div>
                                         </div>
                                     </TableCell>
@@ -1615,70 +1106,19 @@ export default function RegionsPage() {
                     </Table>
                 )}
 
-                {activeTab === 'provinces' && (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>지방명</TableHead>
-                                <TableHead>지방코드</TableHead>
-                                <TableHead>국가</TableHead>
-                                <TableHead>상태</TableHead>
-                                <TableHead>액션</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredProvinces.map((province) => (
-                                <TableRow key={province.id}>
-                                    <TableCell>
-                                        <div>
-                                            <div className="font-medium text-gray-900">{province.translations?.['ko']?.name || '-'}</div>
-                                            <div className="text-sm text-gray-500">{province.translations?.['en']?.name || '-'}</div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell><span className="font-mono text-sm text-gray-600">{province.id}</span></TableCell>
-                                    <TableCell className="text-gray-600">{province.countryName}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={province.isActive ? 'active' : 'inactive'}>
-                                            {province.isActive ? '활성' : '비활성'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleEditProvince(province)}
-                                            >
-                                                <i className="fas fa-edit"></i>
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => handleDeleteProvince(province.id, province.name)}
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
-
                 {activeTab === 'cities' && (
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>도시명</TableHead>
                                 <TableHead>도시코드</TableHead>
-                                <TableHead>지방</TableHead>
+                                <TableHead>국가</TableHead>
                                 <TableHead>상태</TableHead>
                                 <TableHead>액션</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredCities.map((city) => (
+                            {filteredCitys.map((city) => (
                                 <TableRow key={city.id}>
                                     <TableCell>
                                         <div>
@@ -1687,7 +1127,7 @@ export default function RegionsPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell><span className="font-mono text-sm text-gray-600">{city.id}</span></TableCell>
-                                    <TableCell className="text-gray-600">{city.provinceName}</TableCell>
+                                    <TableCell className="text-gray-600">{city.countryName}</TableCell>
                                     <TableCell>
                                         <Badge variant={city.isActive ? 'active' : 'inactive'}>
                                             {city.isActive ? '활성' : '비활성'}
@@ -1705,7 +1145,7 @@ export default function RegionsPage() {
                                             <Button
                                                 size="sm"
                                                 variant="destructive"
-                                                onClick={() => handleDeleteCity(city.id, city.name)}
+                                                onClick={() => handleDeleteCity(city.id, city.name, city.countryId)}
                                             >
                                                 <i className="fas fa-trash"></i>
                                             </Button>
@@ -1719,14 +1159,13 @@ export default function RegionsPage() {
 
                 {/* 빈 상태 */}
                 {((activeTab === 'countries' && filteredCountries.length === 0) ||
-                    (activeTab === 'provinces' && filteredProvinces.length === 0) ||
-                    (activeTab === 'cities' && filteredCities.length === 0)) && (
+                    (activeTab === 'cities' && filteredCitys.length === 0)) && (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <i className="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
                             <p className="text-gray-500">
-                                {searchTerm || countryFilter !== 'all' || provinceFilter !== 'all' || statusFilter !== 'all'
+                                {searchTerm || countryFilter !== 'all' || statusFilter !== 'all'
                                     ? '검색 조건에 맞는 데이터가 없습니다.'
-                                    : `등록된 ${activeTab === 'countries' ? '국가' : activeTab === 'provinces' ? '지방' : '도시'}가 없습니다.`
+                                    : `등록된 ${activeTab === 'countries' ? '국가' : '도시'}가 없습니다.`
                                 }
                             </p>
                         </div>

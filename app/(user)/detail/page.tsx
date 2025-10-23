@@ -68,10 +68,8 @@ function DetailContent() {
                     id: 'dummy1',
                     name: '더미 골프장',
                     countryId: 'KR',
-                    provinceId: 'KR_001',
                     cityId: 'KR_001_001',
                     countryName: '대한민국',
-                    provinceName: '서울',
                     cityName: '강남구',
                     adminIds: [],
                     isActive: true,
@@ -88,10 +86,8 @@ function DetailContent() {
                 id: 'dummy1',
                 name: '더미 골프장',
                 countryId: 'KR',
-                provinceId: 'KR_001',
                 cityId: 'KR_001_001',
                 countryName: '대한민국',
-                provinceName: '서울',
                 cityName: '강남구',
                 adminIds: [],
                 isActive: true,
@@ -178,7 +174,7 @@ function DetailContent() {
                 <div className="container">
                     <div className="page-header-content">
                         <h1 className="page-title">{course.name || '골프장'}</h1>
-                        <p className="page-subtitle">{course.provinceName} {course.cityName}</p>
+                        <p className="page-subtitle">{course.cityName}</p>
                     </div>
                 </div>
             </section>

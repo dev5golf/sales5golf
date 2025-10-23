@@ -51,7 +51,7 @@ export const useGolfCourses = () => {
     }, []);
 
     const getCoursesByRegion = (region: string) => {
-        return courses.filter(course => course.provinceName === region);
+        return courses.filter(course => course.cityName === region);
     };
 
     const searchCourses = (searchTerm: string) => {
@@ -59,10 +59,10 @@ export const useGolfCourses = () => {
 
         return courses.filter(course => {
             const courseName = course.translations?.ko?.name || course.translations?.en?.name || '';
-            const provinceName = course.provinceName || '';
+            const cityName = course.cityName || '';
 
             return courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                provinceName.toLowerCase().includes(searchTerm.toLowerCase());
+                cityName.toLowerCase().includes(searchTerm.toLowerCase());
         });
     };
 

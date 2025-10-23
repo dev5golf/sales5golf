@@ -44,10 +44,8 @@ export default function ListPage() {
                         id: 'dummy1',
                         name: '더미 골프장 1',
                         countryId: 'KR',
-                        provinceId: 'KR_001',
                         cityId: 'KR_001_001',
                         countryName: '대한민국',
-                        provinceName: '서울',
                         cityName: '강남구',
                         inclusions: [],
                         adminIds: [],
@@ -107,10 +105,8 @@ export default function ListPage() {
                     id: 'dummy1',
                     name: '더미 골프장 1',
                     countryId: 'KR',
-                    provinceId: 'KR_001',
                     cityId: 'KR_001_001',
                     countryName: '대한민국',
-                    provinceName: '서울',
                     cityName: '강남구',
                     inclusions: [],
                     adminIds: [],
@@ -146,7 +142,6 @@ export default function ListPage() {
             const q = search.toLowerCase();
             data = data.filter(c =>
                 (c.name || '').toLowerCase().includes(q) ||
-                c.provinceName.toLowerCase().includes(q) ||
                 c.cityName.toLowerCase().includes(q)
             );
         }
@@ -206,7 +201,7 @@ export default function ListPage() {
                                 </div>
                                 <CardContent className="course-card-content">
                                     <h3 className="course-card-title">{course.name || '골프장'}</h3>
-                                    <div className="course-card-location"><i className="fas fa-map-marker-alt" /> {course.provinceName} {course.cityName}</div>
+                                    <div className="course-card-location"><i className="fas fa-map-marker-alt" /> {course.cityName}</div>
                                     <div className="course-card-rating"><i className="fas fa-star" /> {course.rating} ({course.reviews} reviews)</div>
                                     <p className="course-card-description">아름다운 자연 속에서 즐기는 골프장입니다.</p>
                                     <div className="course-card-features">{course.features.map((f, i) => (<span key={i} className="feature-tag">{f}</span>))}</div>

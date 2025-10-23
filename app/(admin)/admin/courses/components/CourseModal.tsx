@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import Modal from '@/app/(admin)/admin/components/Modal';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCountries, useProvinces, useCities } from '@/hooks/useRegions';
+import { useCountries, useCities } from '@/hooks/useRegions';
 import { getInclusionOptions } from '@/constants/courseConstants';
 
 interface CourseModalProps {
@@ -22,8 +22,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
         nameEn: '',
         countryId: '',
         countryName: '',
-        provinceId: '',
-        provinceName: '',
         cityId: '',
         cityName: '',
         inclusions: [] as string[],
@@ -34,8 +32,7 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
 
     // Custom hooks 사용
     const { countries } = useCountries();
-    const { provinces } = useProvinces(formData.countryId);
-    const { cities } = useCities(formData.provinceId);
+    const { cities } = useCities(formData.countryId);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -46,8 +43,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     nameEn: course.translations?.en?.name || '',
                     countryId: (course as any).countryId || (course as any).countryCode || '',
                     countryName: course.countryName || '',
-                    provinceId: (course as any).provinceId || (course as any).provinceCode || '',
-                    provinceName: course.provinceName || '',
                     cityId: (course as any).cityId || (course as any).cityCode || '',
                     cityName: course.cityName || '',
                     inclusions: course.inclusions || [],
@@ -61,8 +56,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                     nameEn: '',
                     countryId: '',
                     countryName: '',
-                    provinceId: '',
-                    provinceName: '',
                     cityId: '',
                     cityName: '',
                     inclusions: [],
@@ -129,6 +122,8 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
 
                 const { nameKo, nameEn, ...courseData } = formData;
 
+                console.log('저장할 골프장 데이터:', courseData); // 디버깅용
+
                 // 1. 골프장 메인 정보 저장
                 const courseRef = doc(db, 'courses', courseId);
                 await setDoc(courseRef, {
@@ -177,17 +172,6 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
                 ...prev,
                 [name]: value,
                 countryName: selectedCountry?.name || '',
-                provinceId: '',
-                provinceName: '',
-                cityId: '',
-                cityName: ''
-            }));
-        } else if (name === 'provinceId') {
-            const selectedProvince = provinces.find(province => province.id === value);
-            setFormData(prev => ({
-                ...prev,
-                [name]: value,
-                provinceName: selectedProvince?.name || '',
                 cityId: '',
                 cityName: ''
             }));
@@ -268,41 +252,26 @@ export default function CourseModal({ isOpen, onClose, course, onSave }: CourseM
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            지역
+                            도시 *
                         </label>
                         <select
-                            name="provinceId"
-                            value={formData.provinceId}
+                            name="cityId"
+                            value={formData.cityId}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                            disabled={!formData.countryId}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                         >
-                            <option value="">선택하세요</option>
-                            {provinces.map(province => (
-                                <option key={province.id} value={province.id}>
-                                    {province.name}
+                            <option value="">
+                                {!formData.countryId ? '먼저 국가를 선택하세요' : '도시를 선택하세요'}
+                            </option>
+                            {cities.map(city => (
+                                <option key={city.id} value={city.id}>
+                                    {city.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        도시
-                    </label>
-                    <select
-                        name="cityId"
-                        value={formData.cityId}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">선택하세요</option>
-                        {cities.map(city => (
-                            <option key={city.id} value={city.id}>
-                                {city.name}
-                            </option>
-                        ))}
-                    </select>
                 </div>
 
                 <div>

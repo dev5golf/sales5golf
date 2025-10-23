@@ -66,10 +66,8 @@ export interface FilterOption {
 export interface Course {
     id: string;
     countryId: string;
-    provinceId: string;
     cityId: string;
     countryName: string;
-    provinceName: string;
     cityName: string;
     inclusions?: string[];
     adminIds: string[];
@@ -128,46 +126,14 @@ export interface CountryWithTranslations extends Country {
 }
 
 /**
- * 도/주 데이터 구조
- * 국가 하위의 도/주 정보를 담는 인터페이스
- */
-export interface Province {
-    id: string;
-    countryId: string;
-    countryName: string;
-    isActive: boolean;
-    createdAt: any;
-    updatedAt: any;
-}
-
-/**
- * 도/주 번역 데이터 구조
- * 각 언어별 도/주명을 담는 인터페이스
- */
-export interface ProvinceTranslation {
-    name: string;
-}
-
-/**
- * 번역이 포함된 도/주 데이터 (프론트엔드 사용)
- */
-export interface ProvinceWithTranslations extends Province {
-    translations?: {
-        [language: string]: ProvinceTranslation;
-    };
-    name?: string; // 현재 선택된 언어의 이름
-}
-
-/**
- * 도시 데이터 구조
- * 도/주 하위의 도시 정보를 담는 인터페이스
+ * 도시 데이터 구조 (서브컬렉션)
+ * countries/{countryId}/cities/{cityId} 경로에 저장
+ * 국가 하위의 도시 정보를 담는 인터페이스
  */
 export interface City {
     id: string;
     countryId: string;
     countryName: string;
-    provinceId: string;
-    provinceName: string;
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
@@ -191,21 +157,3 @@ export interface CityWithTranslations extends City {
     name?: string; // 현재 선택된 언어의 이름
 }
 
-/**
- * 지역 데이터 구조
- * 국가-도/주-도시의 계층 구조를 담는 인터페이스
- */
-export interface Region {
-    id: string;
-    name: string;
-    countryId: string;
-    countryName: string;
-    provinceId: string;
-    provinceName: string;
-    cityId: string;
-    cityName: string;
-    isActive: boolean;
-    createdAt: any;
-    updatedAt: any;
-    createdBy: string | null;
-}
