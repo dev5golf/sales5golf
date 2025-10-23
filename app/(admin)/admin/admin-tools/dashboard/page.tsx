@@ -2,11 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText } from 'lucide-react';
+import { FileText, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RecruitmentModal } from './components';
+import { useRecruitmentModal } from './hooks/useRecruitmentModal';
+import { DASHBOARD_CONSTANTS } from './constants';
 
 export default function AdminToolsDashboardPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+
+    // 수배 등록 모달 훅
+    const { isOpen, isLoading, openModal, closeModal, handleSubmit } = useRecruitmentModal();
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
     if (!loading && user?.role !== 'super_admin' && user?.role !== 'site_admin') {
@@ -32,7 +39,7 @@ export default function AdminToolsDashboardPage() {
             {/* 헤더 */}
             <div className="mb-8 p-6 bg-white rounded-lg shadow-sm">
                 <div>
-                    <h1 className="text-3xl font-semibold text-gray-800">관리자 도구 대시보드</h1>
+                    <h1 className="text-3xl font-semibold text-gray-800">{DASHBOARD_CONSTANTS.TITLES.MAIN}</h1>
                     <p className="text-gray-600 mt-1"></p>
                 </div>
             </div>
@@ -42,44 +49,50 @@ export default function AdminToolsDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* 수배 */}
                 <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                        수배
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                            {DASHBOARD_CONSTANTS.SECTIONS.RECRUITMENT}
+                        </h3>
+                        <Button size="sm" className="flex items-center gap-2" onClick={openModal}>
+                            <Plus className="h-4 w-4" />
+                            {DASHBOARD_CONSTANTS.BUTTONS.REGISTER}
+                        </Button>
+                    </div>
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500">내용을 추가하세요</p>
+                        <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
                     </div>
                 </div>
 
                 {/* 예약 */}
                 <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                        예약
+                        {DASHBOARD_CONSTANTS.SECTIONS.RESERVATION}
                     </h3>
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500">내용을 추가하세요</p>
+                        <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
                     </div>
                 </div>
             </div>
 
-            {/* 수배, 예약 */}
+            {/* 입금, 출금 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {/* 수배 */}
+                {/* 입금 */}
                 <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                        수배
+                        {DASHBOARD_CONSTANTS.SECTIONS.DEPOSIT}
                     </h3>
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500">내용을 추가하세요</p>
+                        <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
                     </div>
                 </div>
 
-                {/* 예약 */}
+                {/* 출금 */}
                 <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                        예약
+                        {DASHBOARD_CONSTANTS.SECTIONS.WITHDRAWAL}
                     </h3>
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500">내용을 추가하세요</p>
+                        <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
                     </div>
                 </div>
             </div>
@@ -143,13 +156,19 @@ export default function AdminToolsDashboardPage() {
             {/* 안내 메시지 */}
             <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
                 <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                    💡 Tip
+                    {DASHBOARD_CONSTANTS.MESSAGES.TIP_TITLE}
                 </h3>
                 <p className="text-blue-700">
-                    이 대시보드는 관리자 도구의 전체 활동을 한눈에 볼 수 있도록 설계되었습니다.
-                    실제 데이터는 향후 업데이트를 통해 연동될 예정입니다.
+                    {DASHBOARD_CONSTANTS.MESSAGES.TIP_CONTENT}
                 </p>
             </div>
+
+            {/* 수배 등록 모달 */}
+            <RecruitmentModal
+                isOpen={isOpen}
+                onClose={closeModal}
+                onSubmit={handleSubmit}
+            />
         </div>
     );
 }

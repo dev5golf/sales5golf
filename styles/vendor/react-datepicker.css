@@ -117,3 +117,8 @@
 .react-datepicker__month-container {
     padding: 0.5rem;
 }
+
+/* 모달에서 달력이 잘리지 않도록 z-index 설정 */
+.react-datepicker-popper {
+    z-index: 9999 !important;
+}
