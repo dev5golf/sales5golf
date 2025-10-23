@@ -27,6 +27,7 @@ export default function RegionsPage() {
     // 데이터 상태
     const [countries, setCountries] = useState<CountryWithTranslations[]>([]);
     const [cities, setCities] = useState<CityWithTranslations[]>([]);
+    const [cityCountByCountry, setCityCountByCountry] = useState<Record<string, number>>({});
 
     // 로딩 상태
     const [loading, setLoading] = useState(true);
@@ -59,6 +60,11 @@ export default function RegionsPage() {
         fetchAllData();
     }, []);
 
+    // 도시 데이터가 변경될 때마다 도시 수 재계산
+    useEffect(() => {
+        calculateCityCountByCountry();
+    }, [cities]);
+
     const fetchAllData = async () => {
         try {
             setLoading(true);
@@ -66,6 +72,8 @@ export default function RegionsPage() {
                 fetchCountries(),
                 fetchCities()
             ]);
+            // 도시 수 계산
+            calculateCityCountByCountry();
         } finally {
             setLoading(false);
         }
@@ -164,6 +172,19 @@ export default function RegionsPage() {
         }
     };
 
+    // 국가별 도시 수 계산 함수
+    const calculateCityCountByCountry = () => {
+        const countMap: Record<string, number> = {};
+
+        cities.forEach(city => {
+            const countryId = city.countryId;
+            if (countryId) {
+                countMap[countryId] = (countMap[countryId] || 0) + 1;
+            }
+        });
+
+        setCityCountByCountry(countMap);
+    };
 
     // 자동 코드 생성 함수들
     const getLastCityCodeByCountry = async (countryCode: string) => {
@@ -309,6 +330,7 @@ export default function RegionsPage() {
             );
 
             await fetchCities();
+            calculateCityCountByCountry();
 
             setNewCity({ nameKo: '', nameEn: '', code: '', countryCode: '', isActive: true });
             setShowAddForm(false);
@@ -440,6 +462,7 @@ export default function RegionsPage() {
             );
 
             await fetchCities();
+            calculateCityCountByCountry();
 
             setEditingItem(null);
             setErrors({});
@@ -484,6 +507,7 @@ export default function RegionsPage() {
             // 5. 데이터 새로고침
             await fetchCountries();
             await fetchCities();
+            calculateCityCountByCountry();
 
             alert('국가와 관련된 모든 도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
@@ -509,6 +533,7 @@ export default function RegionsPage() {
 
             // 3. 데이터 새로고침
             await fetchCities();
+            calculateCityCountByCountry();
 
             alert('도시 데이터가 성공적으로 삭제되었습니다.');
         } catch (error) {
@@ -1042,7 +1067,12 @@ export default function RegionsPage() {
                                 <TableRow key={country.id}>
                                     <TableCell>
                                         <div>
-                                            <div className="font-medium text-gray-900">{country.translations?.['ko']?.name || '-'}</div>
+                                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                                                {country.translations?.['ko']?.name || '-'}
+                                                <Badge variant="secondary" className="text-xs">
+                                                    도시 {cityCountByCountry[country.id] || 0}개
+                                                </Badge>
+                                            </div>
                                             <div className="text-sm text-gray-500">{country.translations?.['en']?.name || '-'}</div>
                                         </div>
                                     </TableCell>
