@@ -35,6 +35,11 @@ export default function AdminTools() {
     // 기본/일본 선택 상태
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
 
+    // useQuotationData 훅의 regionType도 동기화
+    useEffect(() => {
+        quotation.setRegionType(regionType);
+    }, [regionType]);
+
     // 환율 상태 (1엔 = ?원)
     const [exchangeRate, setExchangeRate] = useState<number>(9);
     const [isLoading, setIsLoading] = useState(false);
