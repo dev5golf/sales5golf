@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { RecruitmentData } from '../components';
 import { RecruitmentService } from '../services/recruitmentService';
 import { RECRUITMENT_CONSTANTS } from '../constants';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useRecruitmentModal = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const { user } = useAuth();
 
     const openModal = () => {
         setIsOpen(true);
@@ -19,6 +21,12 @@ export const useRecruitmentModal = () => {
         setIsLoading(true);
 
         try {
+            // 사용자 정보 확인
+            if (!user) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
             // 필수 필드 검증
             const missingFields = RECRUITMENT_CONSTANTS.VALIDATION.REQUIRED_FIELDS.filter(
                 field => !data[field] || data[field].trim() === ''
@@ -30,7 +38,8 @@ export const useRecruitmentModal = () => {
             }
 
             // 서비스를 통한 데이터 저장
-            const response = await RecruitmentService.createRecruitment(data);
+            const createdBy = user.name || user.email || '알 수 없음';
+            const response = await RecruitmentService.createRecruitment(data, createdBy);
 
             if (response.success) {
                 alert(response.message);

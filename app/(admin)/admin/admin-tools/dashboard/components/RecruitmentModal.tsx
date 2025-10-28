@@ -33,14 +33,49 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
         numberOfPeople: ''
     });
 
+    const [errors, setErrors] = useState<Partial<Record<keyof RecruitmentData, boolean>>>({});
+
     const handleRecruitmentChange = (field: keyof RecruitmentData, value: string) => {
         setRecruitmentData(prev => ({
             ...prev,
             [field]: value
         }));
+        // 에러 상태 초기화
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: false
+            }));
+        }
+    };
+
+    const validateForm = (): boolean => {
+        const newErrors: Partial<Record<keyof RecruitmentData, boolean>> = {};
+
+        if (!recruitmentData.customerName.trim()) {
+            newErrors.customerName = true;
+        }
+        if (!recruitmentData.destination.trim()) {
+            newErrors.destination = true;
+        }
+        if (!recruitmentData.startDate.trim()) {
+            newErrors.startDate = true;
+        }
+        if (!recruitmentData.endDate.trim()) {
+            newErrors.endDate = true;
+        }
+        if (!recruitmentData.numberOfPeople.trim()) {
+            newErrors.numberOfPeople = true;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = () => {
+        if (!validateForm()) {
+            return;
+        }
         onSubmit(recruitmentData);
         // 폼 초기화
         setRecruitmentData({
@@ -50,6 +85,7 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
             endDate: '',
             numberOfPeople: ''
         });
+        setErrors({});
         onClose();
     };
 
@@ -62,6 +98,7 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
             endDate: '',
             numberOfPeople: ''
         });
+        setErrors({});
         onClose();
     };
 
@@ -79,35 +116,45 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
                         {/* 고객명 */}
                         <div>
                             <label className="block text-lg font-medium text-gray-700 mb-2">
-                                {RECRUITMENT_CONSTANTS.LABELS.CUSTOMER_NAME}
+                                {RECRUITMENT_CONSTANTS.LABELS.CUSTOMER_NAME} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
+                                required
                                 value={recruitmentData.customerName}
                                 onChange={(e) => handleRecruitmentChange('customerName', e.target.value)}
                                 placeholder={RECRUITMENT_CONSTANTS.PLACEHOLDERS.CUSTOMER_NAME}
-                                className="w-full px-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className={`w-full px-3 py-2 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.customerName ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                             />
+                            {errors.customerName && (
+                                <p className="mt-1 text-sm text-red-500">고객명을 입력해주세요.</p>
+                            )}
                         </div>
 
                         {/* 여행지 */}
                         <div>
                             <label className="block text-lg font-medium text-gray-700 mb-2">
-                                {RECRUITMENT_CONSTANTS.LABELS.DESTINATION}
+                                {RECRUITMENT_CONSTANTS.LABELS.DESTINATION} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
+                                required
                                 value={recruitmentData.destination}
                                 onChange={(e) => handleRecruitmentChange('destination', e.target.value)}
                                 placeholder={RECRUITMENT_CONSTANTS.PLACEHOLDERS.DESTINATION}
-                                className="w-full px-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className={`w-full px-3 py-2 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.destination ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                             />
+                            {errors.destination && (
+                                <p className="mt-1 text-sm text-red-500">여행지를 입력해주세요.</p>
+                            )}
                         </div>
 
                         {/* 여행기간 시작일 */}
                         <div>
                             <label className="block text-lg font-medium text-gray-700 mb-2">
-                                {RECRUITMENT_CONSTANTS.LABELS.START_DATE}
+                                {RECRUITMENT_CONSTANTS.LABELS.START_DATE} <span className="text-red-500">*</span>
                             </label>
                             <DatePicker
                                 selected={(() => {
@@ -133,16 +180,20 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
                                 dateFormat={RECRUITMENT_CONSTANTS.DATE_FORMAT.DISPLAY}
                                 locale={ko}
                                 placeholderText={RECRUITMENT_CONSTANTS.PLACEHOLDERS.START_DATE}
-                                className="w-full px-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className={`w-full px-3 py-2 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left ${errors.startDate ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 showPopperArrow={false}
                                 popperClassName="react-datepicker-popper"
                             />
+                            {errors.startDate && (
+                                <p className="mt-1 text-sm text-red-500">여행 시작일을 선택해주세요.</p>
+                            )}
                         </div>
 
                         {/* 여행기간 종료일 */}
                         <div>
                             <label className="block text-lg font-medium text-gray-700 mb-2">
-                                {RECRUITMENT_CONSTANTS.LABELS.END_DATE}
+                                {RECRUITMENT_CONSTANTS.LABELS.END_DATE} <span className="text-red-500">*</span>
                             </label>
                             <DatePicker
                                 selected={(() => {
@@ -168,26 +219,35 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
                                 dateFormat={RECRUITMENT_CONSTANTS.DATE_FORMAT.DISPLAY}
                                 locale={ko}
                                 placeholderText={RECRUITMENT_CONSTANTS.PLACEHOLDERS.END_DATE}
-                                className="w-full px-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
+                                className={`w-full px-3 py-2 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left ${errors.endDate ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 showPopperArrow={false}
                                 popperClassName="react-datepicker-popper"
                             />
+                            {errors.endDate && (
+                                <p className="mt-1 text-sm text-red-500">여행 종료일을 선택해주세요.</p>
+                            )}
                         </div>
 
                         {/* 인원 */}
                         <div>
                             <label className="block text-lg font-medium text-gray-700 mb-2">
-                                {RECRUITMENT_CONSTANTS.LABELS.NUMBER_OF_PEOPLE}
+                                {RECRUITMENT_CONSTANTS.LABELS.NUMBER_OF_PEOPLE} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="number"
+                                required
                                 value={recruitmentData.numberOfPeople}
                                 onChange={(e) => handleRecruitmentChange('numberOfPeople', e.target.value)}
                                 placeholder={RECRUITMENT_CONSTANTS.PLACEHOLDERS.NUMBER_OF_PEOPLE}
                                 min={RECRUITMENT_CONSTANTS.VALIDATION.MIN_PEOPLE}
                                 max={RECRUITMENT_CONSTANTS.VALIDATION.MAX_PEOPLE}
-                                className="w-full px-3 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className={`w-full px-3 py-2 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.numberOfPeople ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                             />
+                            {errors.numberOfPeople && (
+                                <p className="mt-1 text-sm text-red-500">인원을 입력해주세요.</p>
+                            )}
                         </div>
                     </div>
 

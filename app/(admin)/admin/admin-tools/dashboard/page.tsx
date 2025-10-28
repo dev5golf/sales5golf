@@ -1,19 +1,67 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RecruitmentModal } from './components';
 import { useRecruitmentModal } from './hooks/useRecruitmentModal';
 import { DASHBOARD_CONSTANTS } from './constants';
+import { RecruitmentService, RecruitmentListItem } from './services/recruitmentService';
+import QuotationContent from '../quotation/components/QuotationContent';
 
 export default function AdminToolsDashboardPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const [recruitments, setRecruitments] = useState<RecruitmentListItem[]>([]);
+    const [loadingRecruitments, setLoadingRecruitments] = useState(true);
 
     // 수배 등록 모달 훅
     const { isOpen, isLoading, openModal, closeModal, handleSubmit } = useRecruitmentModal();
+
+    // 견적서 작성 모달 상태
+    const [isQuotationOpen, setIsQuotationOpen] = useState(false);
+    const [selectedRecruitment, setSelectedRecruitment] = useState<RecruitmentListItem | null>(null);
+
+    // 수배 목록 불러오기
+    useEffect(() => {
+        const loadRecruitments = async () => {
+            setLoadingRecruitments(true);
+            const response = await RecruitmentService.getRecruitments();
+            if (response.success && response.data) {
+                setRecruitments(response.data);
+            }
+            setLoadingRecruitments(false);
+        };
+        loadRecruitments();
+    }, [isOpen]);
+
+    // 대기 버튼 클릭 시 견적서 Dialog 열기
+    const handleCreateQuotation = (recruitment: RecruitmentListItem) => {
+        // 수배 데이터를 견적서 데이터로 변환하여 localStorage에 저장
+        const quotationData = {
+            customerName: recruitment.customerName,
+            destination: recruitment.destination,
+            travelPeriod: `${recruitment.startDate} ~ ${recruitment.endDate}`,
+            startDate: recruitment.startDate,
+            endDate: recruitment.endDate,
+            numberOfPeople: recruitment.numberOfPeople
+        };
+
+        // localStorage에 임시 저장
+        localStorage.setItem('pendingQuotationData', JSON.stringify(quotationData));
+
+        setSelectedRecruitment(recruitment);
+        setIsQuotationOpen(true);
+    };
+
+    // 견적서 Dialog 닫기
+    const handleCloseQuotation = () => {
+        setIsQuotationOpen(false);
+        setSelectedRecruitment(null);
+    };
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
     if (!loading && user?.role !== 'super_admin' && user?.role !== 'site_admin') {
@@ -59,7 +107,38 @@ export default function AdminToolsDashboardPage() {
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
+                        {loadingRecruitments ? (
+                            <div className="flex items-center justify-center py-4">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            </div>
+                        ) : recruitments.length === 0 ? (
+                            <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
+                        ) : (
+                            recruitments.map((recruitment) => (
+                                <div
+                                    key={recruitment.id}
+                                    className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                    <span className="text-xs text-gray-500 w-16 truncate">
+                                        {recruitment.createdBy}
+                                    </span>
+                                    <p className="text-sm font-medium text-gray-800 flex-1 truncate">
+                                        {recruitment.title}
+                                    </p>
+                                    {recruitment.sub_status === 0 && (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleCreateQuotation(recruitment)}
+                                            className="flex items-center gap-1 text-orange-600 border-orange-300 hover:bg-orange-50 flex-shrink-0"
+                                        >
+                                            <Clock className="h-3 w-3" />
+                                            대기
+                                        </Button>
+                                    )}
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -169,6 +248,32 @@ export default function AdminToolsDashboardPage() {
                 onClose={closeModal}
                 onSubmit={handleSubmit}
             />
+
+            {/* 견적서 작성 Dialog */}
+            <Dialog open={isQuotationOpen} onOpenChange={setIsQuotationOpen}>
+                <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] overflow-auto p-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 border-b sticky top-0 bg-white z-10">
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="text-2xl font-semibold text-gray-800">
+                                견적서 작성
+                            </DialogTitle>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleCloseQuotation}
+                                className="h-8 w-8"
+                            >
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </div>
+                    </DialogHeader>
+                    <div className="overflow-auto">
+                        {selectedRecruitment && (
+                            <QuotationContent isModal={true} />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
