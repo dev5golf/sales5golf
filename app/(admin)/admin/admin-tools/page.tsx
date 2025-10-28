@@ -406,6 +406,8 @@ export default function AdminTools() {
                 <AdditionalInfoSection
                     additionalOptions={quotation.additionalOptions}
                     onAdditionalOptionsChange={quotation.setAdditionalOptions}
+                    golfSchedules={quotation.golfSchedules}
+                    golfOnSiteSchedules={quotation.golfOnSiteSchedules}
                 />
             </div>
 

@@ -2,15 +2,21 @@
 import React, { useRef } from 'react';
 import { QUOTATION_NOTES, BANK_INFO } from '@/constants/quotationConstants';
 import { createAdditionalInfoImage, generateAdditionalInfoFilename, downloadImage } from '@/lib/utils/imageUtils';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface AdditionalInfoSectionProps {
     additionalOptions: string;
     onAdditionalOptionsChange: (value: string) => void;
+    golfSchedules: any[];
+    golfOnSiteSchedules: any[];
 }
 
 export default function AdditionalInfoSection({
     additionalOptions,
-    onAdditionalOptionsChange
+    onAdditionalOptionsChange,
+    golfSchedules,
+    golfOnSiteSchedules
 }: AdditionalInfoSectionProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -27,10 +33,87 @@ export default function AdditionalInfoSection({
         }
     };
 
+    const handleCopyMapLink = async () => {
+        try {
+            // 골프장 정보 수집 (중복 제거)
+            const allSchedules = [...golfSchedules, ...golfOnSiteSchedules];
+            const uniqueCourses = new Map<string, { name: string; mapLink?: string }>();
+            const noIdCourses: string[] = [];
+            const noMapLinkCourses: string[] = [];
+
+            // 골프장별로 중복 제거하며 정보 수집
+            for (const schedule of allSchedules) {
+                if (schedule.courseName && !uniqueCourses.has(schedule.courseName)) {
+                    let mapLink = '';
+
+                    // courseId가 없으면 ID 조회 불가
+                    if (!schedule.courseId) {
+                        noIdCourses.push(schedule.courseName);
+                        continue;
+                    }
+
+                    // 골프장 ID로 Firestore에서 지도링크 조회
+                    try {
+                        const courseDoc = await getDoc(doc(db, 'courses', schedule.courseId));
+                        if (courseDoc.exists()) {
+                            mapLink = courseDoc.data()?.googleMapsLink || '';
+                            if (!mapLink) {
+                                noMapLinkCourses.push(schedule.courseName);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('골프장 정보 조회 실패:', error);
+                    }
+
+                    uniqueCourses.set(schedule.courseName, {
+                        name: schedule.courseName,
+                        mapLink: mapLink
+                    });
+                }
+            }
+
+            // 에러 알림
+            if (noIdCourses.length > 0) {
+                alert(`ID 값이 조회되지 않습니다\n${noIdCourses.join(', ')}`);
+            }
+
+            if (noMapLinkCourses.length > 0) {
+                alert(`구글맵링크가 저장되지 않은 골프장이 있습니다\n${noMapLinkCourses.join(', ')}`);
+            }
+
+            // 복사할 텍스트 생성 (지도링크가 있는 경우만)
+            let coursesText = '';
+            uniqueCourses.forEach((course) => {
+                if (course.mapLink) {
+                    coursesText += `${course.name}: ${course.mapLink}\n`;
+                }
+            });
+
+            if (!coursesText) {
+                alert('복사할 지도링크가 없습니다.');
+                return;
+            }
+
+            const textToCopy = coursesText.trim();
+
+            await navigator.clipboard.writeText(textToCopy);
+            alert('지도 링크가 클립보드에 복사되었습니다.');
+        } catch (error) {
+            console.error('클립보드 복사 실패:', error);
+            alert('클립보드 복사에 실패했습니다.');
+        }
+    };
+
     return (
         <div ref={sectionRef} className="additional-info-section px-4 py-4">
             {/* 이미지 저장 버튼 */}
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex justify-end gap-2">
+                <button
+                    onClick={handleCopyMapLink}
+                    className="hidden px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                >
+                    지도 링크 복사
+                </button>
                 <button
                     onClick={handleDownloadImage}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
