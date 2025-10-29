@@ -110,7 +110,7 @@ export default function AdditionalInfoSection({
             <div className="mb-4 flex justify-end gap-2">
                 <button
                     onClick={handleCopyMapLink}
-                    className="hidden px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
                 >
                     지도 링크 복사
                 </button>
