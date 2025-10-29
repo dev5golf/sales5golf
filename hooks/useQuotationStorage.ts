@@ -39,6 +39,7 @@ export const useQuotationStorage = (currentUserId?: string) => {
         paymentInfo: PaymentInfo,
         additionalOptions: string,
         regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
+        isPackageQuotation: boolean = false, // 패키지견적 여부
         title?: string
     ): Promise<string> => {
         setIsLoading(true);
@@ -57,6 +58,7 @@ export const useQuotationStorage = (currentUserId?: string) => {
                 paymentInfo,
                 additionalOptions,
                 regionType, // 지역 타입만 저장
+                isPackageQuotation, // 패키지견적 여부
                 currentQuotationId || undefined,
                 title,
                 currentUserId

@@ -45,6 +45,7 @@ export const useQuotationData = () => {
 
     const [additionalOptions, setAdditionalOptions] = useState('');
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
+    const [isPackageQuotation, setIsPackageQuotation] = useState<boolean>(false);
 
     const updateQuotationData = (field: keyof QuotationData, value: string) => {
         setQuotationData(prev => ({ ...prev, [field]: value }));
@@ -297,19 +298,20 @@ export const useQuotationData = () => {
 
         // 골프 수수료 계산 (1인당 1회 1만원 × 골프 행 수)
         // 기본 지역의 경우 골프수수료는 무료(0원)로 적용
+        // 패키지견적 선택 시 항공 제외 나머지는 0원 처리
         const golfFeePerPerson = regionType === 'japan' ? 10000 : 0;
-        const totalGolfFee = people * (golfSchedules.length + golfOnSiteSchedules.length) * golfFeePerPerson;
+        const totalGolfFee = isPackageQuotation ? 0 : people * (golfSchedules.length + golfOnSiteSchedules.length) * golfFeePerPerson;
 
         // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
         const accommodationFeePerRoom = 10000;
-        const totalAccommodationFee = accommodationSchedules.reduce((total, schedule) => {
+        const totalAccommodationFee = isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
             const rooms = parseInt(schedule.rooms) || 0;
             return total + (rooms * accommodationFeePerRoom);
         }, 0);
 
         // 렌트카 수수료 계산 (1대당 1만원 × 렌트카 행 수)
         const rentalCarFeePerCar = 10000;
-        const totalRentalCarFee = (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
+        const totalRentalCarFee = isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
 
         // 항공 수수료 계산 (첫 번째 항공 행의 인원수 × 1만원)
         const flightFeePerPerson = 10000;
@@ -560,6 +562,7 @@ export const useQuotationData = () => {
         calculatePrepayment,
         calculateTotalFromPerPerson,
         setRegionType,
+        setIsPackageQuotation,
         // 저장/불러오기용 setter 함수들
         setGolfSchedulesData,
         setGolfOnSiteSchedulesData,
