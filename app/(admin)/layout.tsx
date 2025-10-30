@@ -92,10 +92,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         <Link
                             href="/admin/tee-times"
+                            onClick={(e) => {
+                                e.preventDefault();
+                            }}
                             className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname === '/admin/tee-times'
                                 ? 'bg-blue-600 text-white'
                                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                                 }`}
+                            aria-disabled
+                            title="현재 페이지 이동이 비활성화되어 있습니다"
                         >
                             <Calendar className="h-5 w-5" />
                             <span>티타임 관리</span>
@@ -189,22 +194,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 {/* 하위 메뉴 */}
                                 {adminToolsOpen && (
                                     <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-700 pl-3">
-                                        <Link
-                                            href="/admin/admin-tools/dashboard"
-                                            onClick={() => {
-                                                if (window.innerWidth < 375) {
-                                                    setSidebarOpen(false);
-                                                }
-                                            }}
-                                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/dashboard'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                                }`}
-                                        >
-                                            <Home className="h-4 w-4" />
-                                            <span>대시보드</span>
-                                            <span className="ml-auto text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">준비중</span>
-                                        </Link>
+                                        {user?.role === 'super_admin' && (
+                                            <Link
+                                                href="/admin/admin-tools/dashboard"
+                                                onClick={() => {
+                                                    if (window.innerWidth < 375) {
+                                                        setSidebarOpen(false);
+                                                    }
+                                                }}
+                                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/dashboard'
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                    }`}
+                                            >
+                                                <Home className="h-4 w-4" />
+                                                <span>대시보드</span>
+                                                <span className="ml-auto text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">준비중</span>
+                                            </Link>
+                                        )}
 
                                         <Link
                                             href="/admin/admin-tools/quotation"

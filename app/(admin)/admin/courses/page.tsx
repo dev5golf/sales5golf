@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, getDocs, query, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, deleteDoc, doc, limit, QueryDocumentSnapshot, startAfter, DocumentData, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
 import Link from 'next/link';
 import { CourseWithTranslations, CourseTranslation } from '@/types';
@@ -24,6 +24,15 @@ export default function CoursesPage() {
     const [cityFilter, setCityFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
+    // 페이지네이션 상태
+    const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [hasPrevPage, setHasPrevPage] = useState(false);
+    const [pageHistory, setPageHistory] = useState<QueryDocumentSnapshot<DocumentData>[]>([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalCourses, setTotalCourses] = useState(0);
+    const coursesPerPage = 10;
+
     // Custom hooks 사용
     const { countries } = useCountries();
     const { cities } = useCities(countryFilter !== 'all' ? countryFilter : undefined);
@@ -42,8 +51,9 @@ export default function CoursesPage() {
     }
 
     useEffect(() => {
-        fetchCourses();
-    }, []);
+        resetPagination();
+        fetchCourses(true);
+    }, [countryFilter, cityFilter, statusFilter]);
 
     // 국가 필터 변경 시 도시 필터 초기화
     useEffect(() => {
@@ -52,21 +62,103 @@ export default function CoursesPage() {
         }
     }, [countryFilter]);
 
-    const fetchCourses = async () => {
+    // 페이지네이션 초기화
+    const resetPagination = () => {
+        setLastDoc(null);
+        setHasNextPage(false);
+        setHasPrevPage(false);
+        setPageHistory([]);
+        setCurrentPage(0);
+        setCourses([]);
+        setTotalCourses(0);
+    };
+
+    // 총 골프장 개수 가져오기 (필터 조건 반영)
+    const fetchTotalCount = async () => {
         try {
-            setLoading(true);
-            let q = query(collection(db, 'courses'), orderBy('createdAt', 'desc'));
+            let countQuery = query(collection(db, 'courses'));
 
             // 권한에 따른 필터링
             if (!isSuperAdmin && currentUser?.role === 'course_admin') {
-                // 골프장 관리자는 자신의 골프장만 볼 수 있음
+                countQuery = query(countQuery, where('adminIds', 'array-contains', currentUser.id));
+            }
+
+            // 상태 필터
+            if (statusFilter !== 'all') {
+                const isActive = statusFilter === 'active';
+                countQuery = query(countQuery, where('isActive', '==', isActive));
+            }
+
+            // 국가 필터
+            if (countryFilter !== 'all') {
+                countQuery = query(countQuery, where('countryId', '==', countryFilter));
+            }
+
+            // 도시 필터
+            if (countryFilter !== 'all' && cityFilter !== 'all') {
+                countQuery = query(countQuery, where('cityId', '==', cityFilter));
+            }
+
+            const countSnapshot = await getCountFromServer(countQuery);
+            setTotalCourses(countSnapshot.data().count);
+        } catch (error) {
+            console.error('총 골프장 개수 가져오기 실패:', error);
+        }
+    };
+
+    const fetchCourses = async (reset: boolean = false) => {
+        try {
+            setLoading(true);
+
+            // 총 개수 업데이트 (필터가 변경되었거나 reset일 때)
+            if (reset) {
+                await fetchTotalCount();
+            }
+
+            // 쿼리 구성 - 복합 인덱스 사용으로 필터가 있어도 orderBy 사용 가능
+            // 필드 순서: where 조건들이 먼저, orderBy는 마지막에
+            let q = query(collection(db, 'courses'));
+
+            // 권한에 따른 필터링
+            if (!isSuperAdmin && currentUser?.role === 'course_admin') {
                 q = query(q, where('adminIds', 'array-contains', currentUser.id));
+            }
+
+            // 상태 필터 (서버 사이드)
+            if (statusFilter !== 'all') {
+                const isActive = statusFilter === 'active';
+                q = query(q, where('isActive', '==', isActive));
+            }
+
+            // 국가 필터 (서버 사이드)
+            if (countryFilter !== 'all') {
+                q = query(q, where('countryId', '==', countryFilter));
+            }
+
+            // 도시 필터 (서버 사이드, 국가 필터가 있을 때만)
+            if (countryFilter !== 'all' && cityFilter !== 'all') {
+                q = query(q, where('cityId', '==', cityFilter));
+            }
+
+            // orderBy는 항상 마지막에 추가 (복합 인덱스 사용)
+            q = query(q, orderBy('createdAt', 'desc'), limit(11));
+
+            // 페이지네이션: reset이 false이고 lastDoc이 있을 때
+            if (!reset && lastDoc) {
+                q = query(q, startAfter(lastDoc));
             }
 
             const snapshot = await getDocs(q);
 
+            // 다음 페이지 여부 확인 (11개 가져왔는데 11개면 다음 페이지 있음)
+            const hasMore = snapshot.docs.length > 10;
+            setHasNextPage(hasMore);
+
+            // 실제로 사용할 문서는 10개만
+            const docsToProcess = hasMore ? snapshot.docs.slice(0, 10) : snapshot.docs;
+
             // 각 골프장의 번역 데이터도 함께 가져오기
-            const courseDataPromises = snapshot.docs.map(async (courseDoc) => {
+            const courseDataPromises = docsToProcess.map(async (courseDoc) => {
                 const translationsSnapshot = await getDocs(
                     collection(db, 'courses', courseDoc.id, 'translations')
                 );
@@ -80,17 +172,61 @@ export default function CoursesPage() {
                     id: courseDoc.id,
                     ...courseDoc.data(),
                     translations,
-                    name: translations['ko']?.name || translations['en']?.name || courseDoc.id // 기본값으로 한글명 사용
+                    name: translations['ko']?.name || translations['en']?.name || courseDoc.id
                 } as CourseWithTranslations;
             });
 
             const courseData = await Promise.all(courseDataPromises);
             setCourses(courseData);
 
-        } catch (error) {
+            // 마지막 문서 저장 (다음 페이지를 위해)
+            if (docsToProcess.length > 0) {
+                const lastDocument = docsToProcess[docsToProcess.length - 1];
+                setLastDoc(lastDocument);
+            }
+
+        } catch (error: any) {
             console.error('골프장 목록 가져오기 실패:', error);
+
+            // Firestore 인덱스 오류인 경우 인덱스 생성 링크 표시
+            if (error?.code === 'failed-precondition' && error?.message?.includes('index')) {
+                const indexUrl = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s\)]+/)?.[0];
+                if (indexUrl) {
+                    console.log('📌 인덱스 생성 링크:', indexUrl);
+                    console.log('위 링크를 복사하여 브라우저에서 열어주세요.');
+                    alert('인덱스가 필요합니다.\n\n콘솔 로그(개발자 도구 → Console)에서 인덱스 생성 링크를 확인하세요.');
+                } else {
+                    console.error('인덱스 생성 링크를 찾을 수 없습니다. 에러 메시지:', error.message);
+                    alert('복합 인덱스가 필요합니다.\n\n콘솔 로그를 확인하여 Firebase Console에서 인덱스를 생성해주세요.');
+                }
+            } else {
+                alert('골프장 목록을 불러오는데 실패했습니다. 콘솔을 확인해주세요.');
+            }
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 다음 페이지
+    const handleNextPage = () => {
+        if (hasNextPage && lastDoc) {
+            setPageHistory([...pageHistory, lastDoc]);
+            setCurrentPage(currentPage + 1);
+            setHasPrevPage(true);
+            fetchCourses(false);
+        }
+    };
+
+    // 이전 페이지
+    const handlePrevPage = () => {
+        if (currentPage > 0 && pageHistory.length > 0) {
+            const newHistory = [...pageHistory];
+            newHistory.pop();
+            setPageHistory(newHistory);
+            setCurrentPage(currentPage - 1);
+            setLastDoc(newHistory[newHistory.length - 1] || null);
+            setHasPrevPage(currentPage - 1 > 0);
+            fetchCourses(false);
         }
     };
 
@@ -100,39 +236,6 @@ export default function CoursesPage() {
         // 검색 로직은 클라이언트 사이드에서 처리
     };
 
-    const filteredCourses = courses.filter(course => {
-        // 검색어 필터
-        if (searchTerm && !course.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-            return false;
-        }
-
-        // 국가 필터
-        if (countryFilter !== 'all') {
-            const courseCountryId = (course as any).countryId || (course as any).countryCode;
-            console.log('국가 필터 체크:', { courseCountryId, countryFilter, match: courseCountryId === countryFilter });
-            if (courseCountryId !== countryFilter) {
-                return false;
-            }
-        }
-
-        // 도시 필터 (국가가 선택된 경우에만 적용)
-        if (countryFilter !== 'all' && cityFilter !== 'all') {
-            const courseCityId = (course as any).cityId;
-            if (courseCityId !== cityFilter) {
-                return false;
-            }
-        }
-
-        // 상태 필터
-        if (statusFilter !== 'all') {
-            const isActive = statusFilter === 'active';
-            if (course.isActive !== isActive) {
-                return false;
-            }
-        }
-
-        return true;
-    });
 
     const formatDate = (timestamp: any) => {
         if (!timestamp) return '-';
@@ -160,7 +263,8 @@ export default function CoursesPage() {
     };
 
     const handleCourseSaved = () => {
-        fetchCourses(); // 목록 새로고침
+        resetPagination();
+        fetchCourses(true); // 목록 새로고침 (첫 페이지부터)
         handleCloseModals();
     };
 
@@ -200,7 +304,8 @@ export default function CoursesPage() {
             await deleteDoc(courseRef);
 
             // 목록 새로고침
-            fetchCourses();
+            resetPagination();
+            fetchCourses(true);
             handleCloseModals();
 
             alert(`골프장 "${courseToDelete.name}"과 관련된 모든 데이터가 성공적으로 삭제되었습니다.`);
@@ -310,7 +415,13 @@ export default function CoursesPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredCourses.map((course) => (
+                        {courses.filter(course => {
+                            // 검색어 필터 (클라이언트 사이드)
+                            if (searchTerm && !course.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                                return false;
+                            }
+                            return true;
+                        }).map((course) => (
                             <TableRow key={course.id}>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
@@ -383,12 +494,38 @@ export default function CoursesPage() {
                     </TableBody>
                 </Table>
 
-                {filteredCourses.length === 0 && (
+
+                {courses.length === 0 && !loading && (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <i className="fas fa-golf-ball text-6xl text-gray-400 mb-4"></i>
                         <p className="text-gray-500">등록된 골프장이 없습니다.</p>
                     </div>
                 )}
+            </div>
+
+            {/* 페이지네이션 */}
+            <div className="flex justify-center items-center gap-4 mt-8">
+                <Button
+                    onClick={handlePrevPage}
+                    disabled={!hasPrevPage || loading || currentPage === 0}
+                    variant="outline"
+                >
+                    <i className="fas fa-chevron-left"></i>
+                    이전
+                </Button>
+
+                <span className="text-gray-600 text-sm">
+                    페이지 {currentPage + 1} / {Math.ceil(totalCourses / coursesPerPage) || 1}
+                </span>
+
+                <Button
+                    onClick={handleNextPage}
+                    disabled={!hasNextPage || loading}
+                    variant="outline"
+                >
+                    다음
+                    <i className="fas fa-chevron-right"></i>
+                </Button>
             </div>
 
             {/* 골프장 생성 모달 */}

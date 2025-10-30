@@ -38,6 +38,10 @@ export default function RegionsPage() {
     const [countryFilter, setCountryFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
+    // 도시 탭 페이지네이션 상태
+    const [cityCurrentPage, setCityCurrentPage] = useState(0); // 0-based
+    const cityPageSize = 10;
+
     // 폼 상태
     const [showAddForm, setShowAddForm] = useState(false);
     const [newCountry, setNewCountry] = useState({
@@ -591,6 +595,17 @@ export default function RegionsPage() {
         return true;
     });
 
+    // 도시 탭 필터 변경 시 첫 페이지로 이동
+    useEffect(() => {
+        setCityCurrentPage(0);
+    }, [searchTerm, countryFilter, statusFilter]);
+
+    // 도시 페이지네이션 적용 목록
+    const paginatedCities = filteredCitys.slice(
+        cityCurrentPage * cityPageSize,
+        cityCurrentPage * cityPageSize + cityPageSize
+    );
+
 
 
     if (loading) {
@@ -1118,7 +1133,7 @@ export default function RegionsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredCitys.map((city) => (
+                            {paginatedCities.map((city) => (
                                 <TableRow key={city.id}>
                                     <TableCell>
                                         <div>
@@ -1155,6 +1170,30 @@ export default function RegionsPage() {
                             ))}
                         </TableBody>
                     </Table>
+                )}
+
+                {activeTab === 'cities' && (
+                    <div className="flex justify-center items-center gap-4 mt-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCityCurrentPage(prev => Math.max(0, prev - 1))}
+                            disabled={cityCurrentPage === 0}
+                        >
+                            이전
+                        </Button>
+                        <span className="text-sm text-gray-600">
+                            페이지 {cityCurrentPage + 1} / {Math.max(1, Math.ceil(filteredCitys.length / cityPageSize))}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCityCurrentPage(prev => (prev + 1 < Math.ceil(filteredCitys.length / cityPageSize) ? prev + 1 : prev))}
+                            disabled={(cityCurrentPage + 1) >= Math.ceil(filteredCitys.length / cityPageSize)}
+                        >
+                            다음
+                        </Button>
+                    </div>
                 )}
 
                 {/* 빈 상태 */}

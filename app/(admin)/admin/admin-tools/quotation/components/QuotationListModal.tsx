@@ -29,6 +29,8 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation, currentUserId 
     const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [page, setPage] = useState<number>(0); // 0-based
+    const pageSize = 5;
 
     useEffect(() => {
         if (isOpen) {
@@ -97,6 +99,15 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation, currentUserId 
         return matchesSearch && matchesStatus;
     });
 
+    // 검색/필터 변경 시 페이지 리셋
+    useEffect(() => {
+        setPage(0);
+        setSelectedQuotationId(null);
+    }, [searchTerm, statusFilter, isOpen]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredQuotations.length / pageSize));
+    const paginatedQuotations = filteredQuotations.slice(page * pageSize, page * pageSize + pageSize);
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
@@ -155,7 +166,7 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation, currentUserId 
                                 </div>
                             ) : (
                                 <div className="space-y-2 pr-2">
-                                    {filteredQuotations.map((quotation) => (
+                                    {paginatedQuotations.map((quotation) => (
                                         <div
                                             key={quotation.id}
                                             className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedQuotationId === quotation.id
@@ -207,16 +218,38 @@ const QuotationListModal = ({ isOpen, onClose, onSelectQuotation, currentUserId 
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
-                        <Button variant="outline" onClick={onClose}>
-                            취소
-                        </Button>
-                        <Button
-                            onClick={handleLoadQuotation}
-                            disabled={!selectedQuotationId}
-                        >
-                            불러오기
-                        </Button>
+                    <div className="grid grid-cols-3 items-center gap-2 pt-4 border-t flex-shrink-0">
+                        <div />
+                        <div className="justify-self-center flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                disabled={page === 0}
+                            >
+                                이전
+                            </Button>
+                            <span className="text-sm text-gray-500 min-w-[88px] text-center">
+                                페이지 {page + 1} / {totalPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                onClick={() => setPage((p) => (p + 1 < totalPages ? p + 1 : p))}
+                                disabled={page + 1 >= totalPages}
+                            >
+                                다음
+                            </Button>
+                        </div>
+                        <div className="justify-self-end flex gap-2">
+                            <Button variant="outline" onClick={onClose}>
+                                취소
+                            </Button>
+                            <Button
+                                onClick={handleLoadQuotation}
+                                disabled={!selectedQuotationId}
+                            >
+                                불러오기
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </DialogContent>
