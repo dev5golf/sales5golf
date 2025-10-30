@@ -41,6 +41,9 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
     const [exchangeRate, setExchangeRate] = useState<number>(9);
     const [isLoading, setIsLoading] = useState(false);
 
+    // 패키지견적 체크박스 상태
+    const [isPackageQuotation, setIsPackageQuotation] = useState<boolean>(false);
+
     // 모달 상태
     const [isQuotationListOpen, setIsQuotationListOpen] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -52,6 +55,19 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
 
     const regionTypeRef = useRef<'basic' | 'japan'>('basic');
     regionTypeRef.current = regionType;
+
+    const isPackageQuotationRef = useRef<boolean>(false);
+    isPackageQuotationRef.current = isPackageQuotation;
+
+    // useQuotationData 훅의 regionType도 동기화
+    useEffect(() => {
+        quotation.setRegionType(regionType);
+    }, [regionType]);
+
+    // useQuotationData 훅의 isPackageQuotation도 동기화
+    useEffect(() => {
+        quotation.setIsPackageQuotation(isPackageQuotation);
+    }, [isPackageQuotation]);
 
     // 자동 저장 (3분마다) - 최신 quotation 데이터 참조
     useEffect(() => {
@@ -79,6 +95,9 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
     useEffect(() => {
         if (regionType === 'japan') {
             fetchExchangeRate();
+        } else {
+            // 기본 지역으로 변경 시 패키지견적 체크박스 초기화
+            setIsPackageQuotation(false);
         }
     }, [regionType]);
 
@@ -110,7 +129,8 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                 quotationRef.current.rentalCarOnSiteSchedules,
                 quotationRef.current.paymentInfo,
                 quotationRef.current.additionalOptions,
-                regionTypeRef.current
+                regionTypeRef.current, // 지역 타입만 저장
+                isPackageQuotationRef.current // 패키지견적 여부
             );
             setHasUnsavedChanges(false);
 
@@ -157,9 +177,15 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                 quotation.setPaymentInfoData(quotationData.paymentInfo);
                 quotation.setAdditionalOptions(quotationData.additionalOptions);
 
+                // 지역 타입 복원 (기존 데이터 호환성을 위해 기본값 'basic' 사용)
                 const loadedRegionType = quotationData.regionType || 'basic';
                 setRegionType(loadedRegionType);
 
+                // 패키지견적 여부 복원 (기존 데이터 호환성을 위해 기본값 false 사용)
+                const loadedIsPackageQuotation = quotationData.isPackageQuotation || false;
+                setIsPackageQuotation(loadedIsPackageQuotation);
+
+                // 일본 지역이면 자동으로 최신 환율 가져오기
                 if (loadedRegionType === 'japan') {
                     fetchExchangeRate();
                 }
@@ -234,21 +260,33 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                                 <option value="japan">일본</option>
                             </select>
 
+                            {/* 일본 선택 시 환율 입력 폼 */}
                             {regionType === 'japan' && (
-                                <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-300">
-                                    <label className="text-sm font-medium text-gray-700">환율:</label>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-sm text-gray-600">1엔 =</span>
-                                        <input
-                                            type="number"
-                                            value={exchangeRate}
-                                            readOnly
-                                            step="0.01"
-                                            min="0"
-                                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center bg-gray-100 cursor-not-allowed"
-                                        />
-                                        <span className="text-sm text-gray-600">원</span>
+                                <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-300">
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-sm font-medium text-gray-700">환율:</label>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm text-gray-600">1엔 =</span>
+                                            <input
+                                                type="number"
+                                                value={exchangeRate}
+                                                readOnly
+                                                step="0.01"
+                                                min="0"
+                                                className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center bg-gray-100 cursor-not-allowed"
+                                            />
+                                            <span className="text-sm text-gray-600">원</span>
+                                        </div>
                                     </div>
+                                    <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isPackageQuotation}
+                                            onChange={(e) => setIsPackageQuotation(e.target.checked)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="font-medium">패키지견적</span>
+                                    </label>
                                 </div>
                             )}
                         </div>
@@ -358,6 +396,7 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                     </>
                 )}
 
+                {/* 오분골프 수수료 */}
                 <FeeSection
                     numberOfPeople={quotation.quotationData.numberOfPeople}
                     golfSchedules={quotation.golfSchedules}
@@ -367,6 +406,7 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                     rentalCarOnSiteSchedules={quotation.rentalCarOnSiteSchedules}
                     flightSchedules={quotation.flightSchedules}
                     regionType={regionType}
+                    isPackageQuotation={isPackageQuotation}
                 />
 
                 <PaymentSummary
@@ -382,6 +422,8 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                 <AdditionalInfoSection
                     additionalOptions={quotation.additionalOptions}
                     onAdditionalOptionsChange={quotation.setAdditionalOptions}
+                    golfSchedules={quotation.golfSchedules}
+                    golfOnSiteSchedules={quotation.golfOnSiteSchedules}
                 />
             </div>
 
