@@ -44,6 +44,8 @@ export const useQuotationData = () => {
     });
 
     const [additionalOptions, setAdditionalOptions] = useState('');
+    const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
+    const [isPackageQuotation, setIsPackageQuotation] = useState<boolean>(false);
 
     const updateQuotationData = (field: keyof QuotationData, value: string) => {
         setQuotationData(prev => ({ ...prev, [field]: value }));
@@ -290,6 +292,43 @@ export const useQuotationData = () => {
     };
 
 
+    // 오분골프 수수료 계산
+    const calculateFee = () => {
+        const people = parseInt(quotationData.numberOfPeople) || 0;
+
+        // 골프 수수료 계산 (1인당 1회 1만원 × 골프 행 수)
+        // 기본 지역의 경우 골프수수료는 무료(0원)로 적용
+        // 패키지견적 선택 시 항공 제외 나머지는 0원 처리
+        const golfFeePerPerson = regionType === 'japan' ? 10000 : 0;
+        const totalGolfFee = isPackageQuotation ? 0 : people * (golfSchedules.length + golfOnSiteSchedules.length) * golfFeePerPerson;
+
+        // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
+        const accommodationFeePerRoom = 10000;
+        const totalAccommodationFee = isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
+            const rooms = parseInt(schedule.rooms) || 0;
+            return total + (rooms * accommodationFeePerRoom);
+        }, 0);
+
+        // 렌트카 수수료 계산 (1대당 1만원 × 렌트카 행 수)
+        const rentalCarFeePerCar = 10000;
+        const totalRentalCarFee = isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
+
+        // 항공 수수료 계산 (첫 번째 항공 행의 인원수 × 1만원)
+        const flightFeePerPerson = 10000;
+        const firstFlightPeople = flightSchedules.length > 0 ? (parseInt(flightSchedules[0].people) || 0) : 0;
+        const totalFlightFee = firstFlightPeople * flightFeePerPerson;
+
+        // 8인 이상 시 골프 수수료에만 30% 할인 적용
+        const isDiscountEligible = people >= 8;
+        const discountRate = isDiscountEligible ? 0.3 : 0;
+        const golfDiscountAmount = totalGolfFee * discountRate;
+        const finalGolfFee = totalGolfFee - golfDiscountAmount;
+
+        // 총 수수료 (할인 적용된 골프 수수료 + 숙박 수수료 + 렌트카 수수료 + 항공 수수료)
+        const finalFee = finalGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
+        return finalFee;
+    };
+
     // 총 합계 금액 계산 (사전결제 항목만: 골프 + 숙박 + 픽업 + 항공 + 렌트카(사전결제))
     // 현장결제 항목(골프 현장결제, 렌트카 현장결제)은 별도로 처리
     const calculateTotalAmount = () => {
@@ -318,7 +357,10 @@ export const useQuotationData = () => {
             return sum + total;
         }, 0);
 
-        const total = golfTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal;
+        // 오분골프 수수료 추가
+        const fee = calculateFee();
+
+        const total = golfTotal + accommodationTotal + pickupTotal + flightTotal + rentalCarTotal + fee;
         return total;
     };
 
@@ -483,6 +525,7 @@ export const useQuotationData = () => {
         rentalCarOnSiteSchedules,
         paymentInfo,
         additionalOptions,
+        regionType,
         updateQuotationData,
         updatePaymentInfo,
         addGolfSchedule,
@@ -513,10 +556,13 @@ export const useQuotationData = () => {
         calculateTotalAmount,
         calculateBalance,
         calculateOnSiteYenTotal,
+        calculateFee,
         generateInclusions,
         isFormValid,
         calculatePrepayment,
         calculateTotalFromPerPerson,
+        setRegionType,
+        setIsPackageQuotation,
         // 저장/불러오기용 setter 함수들
         setGolfSchedulesData,
         setGolfOnSiteSchedulesData,

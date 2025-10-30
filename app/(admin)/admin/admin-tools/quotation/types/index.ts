@@ -33,6 +33,7 @@ export interface GolfSchedule {
     id: string;
     date: string;
     courseName: string;
+    courseId?: string; // 골프장 ID (지도링크 조회용)
     holes: string;
     inclusions: string[];
     teeOff: string;
