@@ -569,10 +569,10 @@ export const createAdditionalInfoImage = async (element: HTMLElement): Promise<s
         // DOM 복제
         const clonedElement = element.cloneNode(true) as HTMLElement;
 
-        // 이미지 저장 버튼 제거
-        const imageSaveButton = clonedElement.querySelector('button');
-        if (imageSaveButton) {
-            imageSaveButton.remove();
+        // 버튼 컨테이너 전체 제거 (지도 링크 복사, 추가정보 이미지 저장 버튼 포함)
+        const buttonContainer = clonedElement.querySelector('.flex.justify-end.gap-2');
+        if (buttonContainer) {
+            buttonContainer.remove();
         }
 
         // 입력 필드를 텍스트로 변환

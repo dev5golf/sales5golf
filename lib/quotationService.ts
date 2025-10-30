@@ -29,6 +29,7 @@ export interface QuotationDocument {
     createdBy: string;
     status: 'draft' | 'completed';
     regionType: 'basic' | 'japan'; // 지역 타입만 저장
+    isPackageQuotation?: boolean; // 패키지견적 여부
 
     // 견적서 데이터
     quotationData: QuotationData;
@@ -67,6 +68,7 @@ export const saveQuotation = async (
     paymentInfo: PaymentInfo,
     additionalOptions: string,
     regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
+    isPackageQuotation: boolean = false, // 패키지견적 여부
     quotationId?: string,
     title?: string,
     currentUserId?: string
@@ -114,6 +116,7 @@ export const saveQuotation = async (
             createdBy: currentUserId || 'admin',
             status: 'draft',
             regionType, // 지역 타입만 저장
+            isPackageQuotation, // 패키지견적 여부
             quotationData,
             golfSchedules,
             golfOnSiteSchedules,
@@ -172,6 +175,7 @@ export const getQuotation = async (quotationId: string): Promise<QuotationDocume
                 id: docSnap.id,
                 ...data,
                 regionType: data.regionType || 'basic', // 기존 견적서에 regionType이 없는 경우 'basic'으로 설정
+                isPackageQuotation: data.isPackageQuotation || false, // 기존 견적서에 isPackageQuotation이 없는 경우 false로 설정
                 flightSchedules: data.flightSchedules || [], // 기존 견적서에 flightSchedules가 없는 경우 빈 배열로 설정
                 rentalCarSchedules: data.rentalCarSchedules || [], // 기존 견적서에 rentalCarSchedules가 없는 경우 빈 배열로 설정
                 rentalCarOnSiteSchedules: data.rentalCarOnSiteSchedules || [] // 기존 견적서에 rentalCarOnSiteSchedules가 없는 경우 빈 배열로 설정

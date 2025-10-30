@@ -34,16 +34,33 @@ export const createInclusionChangeHandler = (schedules: any[], onUpdate: Functio
  */
 export const createCourseSelectHandler = (onUpdate: Function) =>
     (id: string, course: CourseWithTranslations) => {
+        // 골프장 ID 저장 (지도링크 조회용)
+        onUpdate(id, 'courseId', course.id);
+
         // 골프장명 업데이트 (한글명 우선)
         const courseName = course.translations?.ko?.name || course.translations?.en?.name || course.id;
         onUpdate(id, 'courseName', courseName);
 
         // 포함사항 자동 설정 (골프장의 inclusions가 있으면 사용, 없으면 기본값)
-        const inclusions = course.inclusions && course.inclusions.length > 0
-            ? course.inclusions
-            : [...INCLUSION_OPTIONS];
-
-        onUpdate(id, 'inclusions', inclusions);
+        if (course.inclusions && course.inclusions.length > 0) {
+            // Firestore에 저장된 inclusion 코드를 한글명으로 변환
+            const mappedInclusions = course.inclusions
+                .filter(code => code) // 빈 값 제거
+                .map(code => {
+                    // 영문 코드를 한글명으로 매핑
+                    const codeToKoreanMap: { [key: string]: string } = {
+                        'GREEN_FEE': '그린피',
+                        'CADDY_FEE': '캐디피',
+                        'CART_FEE': '카트비',
+                        'MEAL': '식사'
+                    };
+                    return codeToKoreanMap[code] || code;
+                });
+            onUpdate(id, 'inclusions', mappedInclusions);
+        } else {
+            // 기본값: 모든 옵션 선택
+            onUpdate(id, 'inclusions', [...INCLUSION_OPTIONS]);
+        }
     };
 
 /**
