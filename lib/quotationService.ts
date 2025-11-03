@@ -71,7 +71,9 @@ export const saveQuotation = async (
     isPackageQuotation: boolean = false, // 패키지견적 여부
     quotationId?: string,
     title?: string,
-    currentUserId?: string
+    currentUserId?: string,
+    targetCollection: 'quotations' | 'test' = 'quotations', // 저장할 컬렉션 이름
+    testDocumentId?: string // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
 ): Promise<string> => {
     try {
         const now = Timestamp.now();
@@ -109,9 +111,30 @@ export const saveQuotation = async (
             return `${customerName}_${destination}_${formattedDate}`;
         };
 
+        // test 컬렉션일 때는 서브컬렉션 경로 사용, 아닐 때는 기본 컬렉션 경로 사용
+        const getCollectionPath = () => {
+            if (targetCollection === 'test' && testDocumentId) {
+                // test/{testDocumentId}/quotations 서브컬렉션 사용
+                return collection(db, 'test', testDocumentId, 'quotations');
+            }
+            // 기본 컬렉션 사용
+            return collection(db, targetCollection);
+        };
+
+        const getDocPath = (id: string) => {
+            if (targetCollection === 'test' && testDocumentId) {
+                // test/{testDocumentId}/quotations/{quotationId} 경로 사용
+                return doc(db, 'test', testDocumentId, 'quotations', id);
+            }
+            // 기본 컬렉션 경로 사용
+            return doc(db, targetCollection, id);
+        };
+
+        const collectionRef = getCollectionPath();
+        
         const quotationDoc: Omit<QuotationDocument, 'id'> = {
             title: generateTitle(),
-            createdAt: quotationId ? (await getDoc(doc(db, 'quotations', quotationId))).data()?.createdAt || now : now,
+            createdAt: quotationId ? (await getDoc(getDocPath(quotationId))).data()?.createdAt || now : now,
             updatedAt: now,
             createdBy: currentUserId || 'admin',
             status: 'draft',
@@ -131,11 +154,11 @@ export const saveQuotation = async (
 
         if (quotationId) {
             // 기존 견적서 업데이트
-            await updateDoc(doc(db, 'quotations', quotationId), quotationDoc);
+            await updateDoc(getDocPath(quotationId), quotationDoc);
             return quotationId;
         } else {
             // 새 견적서 생성
-            const docRef = await addDoc(collection(db, 'quotations'), quotationDoc);
+            const docRef = await addDoc(collectionRef, quotationDoc);
             return docRef.id;
         }
     } catch (error) {

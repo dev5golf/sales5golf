@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, Plus, Clock, X } from 'lucide-react';
+import { FileText, Plus, Clock, X, Download, Calendar, CheckCircle, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RecruitmentModal } from './components';
 import { useRecruitmentModal } from './hooks/useRecruitmentModal';
 import { DASHBOARD_CONSTANTS } from './constants';
-import { RecruitmentService, RecruitmentListItem } from './services/recruitmentService';
+import { RecruitmentService, RecruitmentListItem, QuotationSubItem } from './services/recruitmentService';
+import { RecruitmentData } from './components/RecruitmentModal';
 import QuotationContent from '../quotation/components/QuotationContent';
 
 export default function AdminToolsDashboardPage() {
@@ -17,24 +18,35 @@ export default function AdminToolsDashboardPage() {
     const router = useRouter();
     const [recruitments, setRecruitments] = useState<RecruitmentListItem[]>([]);
     const [loadingRecruitments, setLoadingRecruitments] = useState(true);
+    const [quotationsByRecruitment, setQuotationsByRecruitment] = useState<Record<string, QuotationSubItem[]>>({});
+    const [loadingQuotations, setLoadingQuotations] = useState<Record<string, boolean>>({});
 
     // 수배 등록 모달 훅
-    const { isOpen, isLoading, openModal, closeModal, handleSubmit } = useRecruitmentModal();
+    const { isOpen, isLoading, editMode, initialData, openModal, openEditModal, closeModal, handleSubmit } = useRecruitmentModal();
 
     // 견적서 작성 모달 상태
     const [isQuotationOpen, setIsQuotationOpen] = useState(false);
     const [selectedRecruitment, setSelectedRecruitment] = useState<RecruitmentListItem | null>(null);
 
+    // 수배 목록 불러오기 함수
+    const loadRecruitments = async () => {
+        setLoadingRecruitments(true);
+        const response = await RecruitmentService.getRecruitments();
+        if (response.success && response.data) {
+            setRecruitments(response.data);
+            // 각 수배의 견적서 목록도 함께 불러오기
+            response.data.forEach(async (recruitment) => {
+                setLoadingQuotations(prev => ({ ...prev, [recruitment.id]: true }));
+                const quotations = await RecruitmentService.getQuotationsByRecruitmentId(recruitment.id);
+                setQuotationsByRecruitment(prev => ({ ...prev, [recruitment.id]: quotations }));
+                setLoadingQuotations(prev => ({ ...prev, [recruitment.id]: false }));
+            });
+        }
+        setLoadingRecruitments(false);
+    };
+
     // 수배 목록 불러오기
     useEffect(() => {
-        const loadRecruitments = async () => {
-            setLoadingRecruitments(true);
-            const response = await RecruitmentService.getRecruitments();
-            if (response.success && response.data) {
-                setRecruitments(response.data);
-            }
-            setLoadingRecruitments(false);
-        };
         loadRecruitments();
     }, [isOpen]);
 
@@ -57,10 +69,53 @@ export default function AdminToolsDashboardPage() {
         setIsQuotationOpen(true);
     };
 
+    // 수배 목록 새로고침 함수
+    const refreshRecruitments = async () => {
+        setLoadingRecruitments(true);
+        const response = await RecruitmentService.getRecruitments();
+        if (response.success && response.data) {
+            setRecruitments(response.data);
+            // 각 수배의 견적서 목록도 함께 불러오기
+            response.data.forEach(async (recruitment) => {
+                setLoadingQuotations(prev => ({ ...prev, [recruitment.id]: true }));
+                const quotations = await RecruitmentService.getQuotationsByRecruitmentId(recruitment.id);
+                setQuotationsByRecruitment(prev => ({ ...prev, [recruitment.id]: quotations }));
+                setLoadingQuotations(prev => ({ ...prev, [recruitment.id]: false }));
+            });
+        }
+        setLoadingRecruitments(false);
+    };
+
     // 견적서 Dialog 닫기
     const handleCloseQuotation = () => {
+        const currentRecruitmentId = selectedRecruitment?.id;
         setIsQuotationOpen(false);
         setSelectedRecruitment(null);
+        // 견적서 목록 새로고침
+        if (currentRecruitmentId) {
+            loadQuotationsForRecruitment(currentRecruitmentId);
+        }
+    };
+
+    // 특정 수배의 견적서 목록 불러오기
+    const loadQuotationsForRecruitment = async (recruitmentId: string) => {
+        setLoadingQuotations(prev => ({ ...prev, [recruitmentId]: true }));
+        const quotations = await RecruitmentService.getQuotationsByRecruitmentId(recruitmentId);
+        setQuotationsByRecruitment(prev => ({ ...prev, [recruitmentId]: quotations }));
+        setLoadingQuotations(prev => ({ ...prev, [recruitmentId]: false }));
+    };
+
+    // 견적서 다운로드 핸들러
+    const handleDownloadQuotation = async (recruitmentId: string, quotationId: string) => {
+        // 견적서를 불러와서 다운로드하는 로직은 추후 구현
+        // 현재는 경로만 설정
+        alert(`견적서 다운로드 기능은 추후 구현 예정입니다. (수배 ID: ${recruitmentId}, 견적서 ID: ${quotationId})`);
+    };
+
+    // 예약 버튼 핸들러
+    const handleReserveQuotation = async (recruitmentId: string, quotationId: string) => {
+        // 예약 기능은 추후 구현
+        alert(`예약 기능은 추후 구현 예정입니다. (수배 ID: ${recruitmentId}, 견적서 ID: ${quotationId})`);
     };
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
@@ -114,30 +169,110 @@ export default function AdminToolsDashboardPage() {
                         ) : recruitments.length === 0 ? (
                             <p className="text-sm text-gray-500">{DASHBOARD_CONSTANTS.MESSAGES.NO_DATA}</p>
                         ) : (
-                            recruitments.map((recruitment) => (
-                                <div
-                                    key={recruitment.id}
-                                    className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                                >
-                                    <span className="text-xs text-gray-500 w-16 truncate">
-                                        {recruitment.createdBy}
-                                    </span>
-                                    <p className="text-sm font-medium text-gray-800 flex-1 truncate">
-                                        {recruitment.title}
-                                    </p>
-                                    {recruitment.sub_status === 0 && (
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => handleCreateQuotation(recruitment)}
-                                            className="flex items-center gap-1 text-orange-600 border-orange-300 hover:bg-orange-50 flex-shrink-0"
-                                        >
-                                            <Clock className="h-3 w-3" />
-                                            대기
-                                        </Button>
-                                    )}
-                                </div>
-                            ))
+                            <>
+                                {recruitments.map((recruitment) => (
+                                    <div key={recruitment.id} className="space-y-2">
+                                        <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                            <span className="text-xs text-gray-500 w-16 truncate">
+                                                {recruitment.createdBy}
+                                            </span>
+                                            <p className="text-sm font-medium text-gray-800 flex-1 truncate">
+                                                {recruitment.title}
+                                            </p>
+                                            {recruitment.sub_status === 0 && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => handleCreateQuotation(recruitment)}
+                                                    className="flex items-center gap-1 text-orange-600 border-orange-300 hover:bg-orange-50 flex-shrink-0"
+                                                >
+                                                    <Clock className="h-3 w-3" />
+                                                    대기
+                                                </Button>
+                                            )}
+                                            {recruitment.sub_status === 1 && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="default"
+                                                        disabled
+                                                        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white flex-shrink-0 cursor-default"
+                                                    >
+                                                        <CheckCircle className="h-3 w-3" />
+                                                        완료
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            // 수배 데이터를 RecruitmentData 형식으로 변환
+                                                            const recruitmentData: RecruitmentData = {
+                                                                customerName: recruitment.customerName || '',
+                                                                destination: recruitment.destination || '',
+                                                                startDate: recruitment.startDate || '',
+                                                                endDate: recruitment.endDate || '',
+                                                                numberOfPeople: recruitment.numberOfPeople || ''
+                                                            };
+                                                            openEditModal(recruitment.id, recruitmentData);
+                                                        }}
+                                                        className="flex items-center gap-1 text-blue-600 border-blue-300 hover:bg-blue-50 flex-shrink-0"
+                                                    >
+                                                        <Edit className="h-3 w-3" />
+                                                        수정
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* 견적서 목록 표시 */}
+                                        {quotationsByRecruitment[recruitment.id] && quotationsByRecruitment[recruitment.id].length > 0 && (
+                                            <div className="ml-4 space-y-2 border-l-2 border-gray-200 pl-4">
+                                                {loadingQuotations[recruitment.id] ? (
+                                                    <div className="flex items-center justify-center py-2">
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                                    </div>
+                                                ) : (
+                                                    quotationsByRecruitment[recruitment.id].map((quotation) => (
+                                                        <div
+                                                            key={quotation.id}
+                                                            className="flex items-center justify-between gap-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                                <span className="text-xs text-gray-500 w-20 truncate flex-shrink-0">
+                                                                    {quotation.createdBy}
+                                                                </span>
+                                                                <p className="text-xs font-medium text-gray-800 flex-1 truncate">
+                                                                    {quotation.title}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => handleDownloadQuotation(recruitment.id, quotation.id)}
+                                                                    className="h-7 px-2 text-xs"
+                                                                >
+                                                                    <Download className="h-3 w-3 mr-1" />
+                                                                    다운
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="default"
+                                                                    onClick={() => handleReserveQuotation(recruitment.id, quotation.id)}
+                                                                    className="h-7 px-2 text-xs"
+                                                                >
+                                                                    <Calendar className="h-3 w-3 mr-1" />
+                                                                    예약
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </>
                         )}
                     </div>
                 </div>
@@ -247,6 +382,8 @@ export default function AdminToolsDashboardPage() {
                 isOpen={isOpen}
                 onClose={closeModal}
                 onSubmit={handleSubmit}
+                initialData={initialData}
+                isEditMode={editMode}
             />
 
             {/* 견적서 작성 Dialog */}
@@ -269,7 +406,11 @@ export default function AdminToolsDashboardPage() {
                     </DialogHeader>
                     <div className="overflow-auto">
                         {selectedRecruitment && (
-                            <QuotationContent isModal={true} />
+                            <QuotationContent
+                                isModal={true}
+                                testDocumentId={selectedRecruitment.id}
+                                onSaveSuccess={refreshRecruitments}
+                            />
                         )}
                     </div>
                 </DialogContent>

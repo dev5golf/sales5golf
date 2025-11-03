@@ -1,5 +1,5 @@
 import { RecruitmentData } from '../components';
-import { collection, addDoc, serverTimestamp, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface RecruitmentResponse {
@@ -33,6 +33,15 @@ export interface RecruitmentListItem {
     endDate: string;
     numberOfPeople: string;
     createdAt: any;
+}
+
+export interface QuotationSubItem {
+    id: string;
+    title: string;
+    createdBy: string;
+    createdAt: any;
+    updatedAt: any;
+    status: 'draft' | 'completed';
 }
 
 export class RecruitmentService {
@@ -108,15 +117,34 @@ export class RecruitmentService {
     /**
      * 수배 데이터 업데이트
      */
-    static async updateRecruitment(id: string, data: Partial<RecruitmentData>): Promise<RecruitmentResponse> {
+    static async updateRecruitment(id: string, data: Partial<RecruitmentData>, createdBy?: string): Promise<RecruitmentResponse> {
         try {
-            // TODO: 실제 Firebase API 호출로 교체
-            // await updateDoc(doc(db, 'recruitments', id), {
-            //     ...data,
-            //     updatedAt: serverTimestamp()
-            // });
+            // title 생성: 고객명_여행지_여행기간_인원
+            let updateData: any = {};
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (data.customerName || data.destination || data.startDate || data.endDate || data.numberOfPeople) {
+                const travelPeriod = `${data.startDate || ''}~${data.endDate || ''}`;
+                const customerName = data.customerName || '';
+                const destination = data.destination || '';
+                const numberOfPeople = data.numberOfPeople || '';
+                const title = `${customerName}_${destination}_${travelPeriod}_${numberOfPeople}명`;
+                updateData.title = title;
+            }
+
+            // 업데이트할 데이터 구성
+            if (data.customerName !== undefined) updateData.customerName = data.customerName;
+            if (data.destination !== undefined) updateData.destination = data.destination;
+            if (data.startDate !== undefined) updateData.startDate = data.startDate;
+            if (data.endDate !== undefined) updateData.endDate = data.endDate;
+            if (data.numberOfPeople !== undefined) updateData.numberOfPeople = data.numberOfPeople;
+            if (createdBy) updateData.createdBy = createdBy;
+
+            // 수정 완료 시 sub_status를 0으로 변경
+            updateData.sub_status = 0;
+
+            // Firebase에 업데이트
+            const docRef = doc(db, 'test', id);
+            await updateDoc(docRef, updateData);
 
             return {
                 success: true,
@@ -150,6 +178,50 @@ export class RecruitmentService {
             return {
                 success: false,
                 message: '수배 삭제에 실패했습니다.'
+            };
+        }
+    }
+
+    /**
+     * 수배의 서브컬렉션 견적서 목록 조회
+     */
+    static async getQuotationsByRecruitmentId(recruitmentId: string): Promise<QuotationSubItem[]> {
+        try {
+            const quotationsRef = collection(db, 'test', recruitmentId, 'quotations');
+            const q = query(quotationsRef, orderBy('updatedAt', 'desc'));
+            const snapshot = await getDocs(q);
+
+            const quotations = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as QuotationSubItem));
+
+            return quotations;
+        } catch (error) {
+            console.error('견적서 목록 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 수배의 sub_status 업데이트
+     */
+    static async updateRecruitmentSubStatus(recruitmentId: string, subStatus: number): Promise<RecruitmentResponse> {
+        try {
+            const docRef = doc(db, 'test', recruitmentId);
+            await updateDoc(docRef, {
+                sub_status: subStatus
+            });
+
+            return {
+                success: true,
+                message: '수배 상태가 성공적으로 업데이트되었습니다.'
+            };
+        } catch (error) {
+            console.error('수배 상태 업데이트 실패:', error);
+            return {
+                success: false,
+                message: '수배 상태 업데이트에 실패했습니다.'
             };
         }
     }

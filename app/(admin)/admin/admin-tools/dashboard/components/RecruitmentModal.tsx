@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -22,9 +22,11 @@ interface RecruitmentModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: RecruitmentData) => void;
+    initialData?: RecruitmentData;
+    isEditMode?: boolean;
 }
 
-export default function RecruitmentModal({ isOpen, onClose, onSubmit }: RecruitmentModalProps) {
+export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialData, isEditMode = false }: RecruitmentModalProps) {
     const [recruitmentData, setRecruitmentData] = useState<RecruitmentData>({
         customerName: '',
         destination: '',
@@ -34,6 +36,23 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof RecruitmentData, boolean>>>({});
+
+    // 수정 모드일 때 initialData로 폼 초기화
+    useEffect(() => {
+        if (isOpen && isEditMode && initialData) {
+            setRecruitmentData(initialData);
+        } else if (isOpen && !isEditMode) {
+            // 등록 모드일 때는 초기화
+            setRecruitmentData({
+                customerName: '',
+                destination: '',
+                startDate: '',
+                endDate: '',
+                numberOfPeople: ''
+            });
+        }
+        setErrors({});
+    }, [isOpen, isEditMode, initialData]);
 
     const handleRecruitmentChange = (field: keyof RecruitmentData, value: string) => {
         setRecruitmentData(prev => ({
@@ -107,7 +126,7 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-visible">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-gray-800">
-                        {DASHBOARD_CONSTANTS.TITLES.RECRUITMENT_MODAL}
+                        {isEditMode ? '수배 수정' : DASHBOARD_CONSTANTS.TITLES.RECRUITMENT_MODAL}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -266,7 +285,7 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit }: Recruitm
                             className="flex items-center gap-2"
                         >
                             <Plus className="h-4 w-4" />
-                            {DASHBOARD_CONSTANTS.BUTTONS.REGISTER}
+                            {isEditMode ? '수정' : DASHBOARD_CONSTANTS.BUTTONS.REGISTER}
                         </Button>
                     </div>
                 </div>

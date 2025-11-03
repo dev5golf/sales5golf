@@ -7,6 +7,7 @@ import { usePreview } from '@/hooks/usePreview';
 import { useQuotationStorage } from '@/hooks/useQuotationStorage';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, Save, FolderOpen, Plus } from 'lucide-react';
+import { RecruitmentService } from '@/app/(admin)/admin/admin-tools/dashboard/services/recruitmentService';
 import QuotationForm from './QuotationForm';
 import GolfScheduleTable from './GolfScheduleTable';
 import GolfOnSiteTable from './GolfOnSiteTable';
@@ -24,9 +25,11 @@ import QuotationListModal from './QuotationListModal';
 interface QuotationContentProps {
     onClose?: () => void;
     isModal?: boolean;
+    testDocumentId?: string; // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+    onSaveSuccess?: () => void; // 저장 성공 후 콜백
 }
 
-export default function QuotationContent({ onClose, isModal = false }: QuotationContentProps) {
+export default function QuotationContent({ onClose, isModal = false, testDocumentId, onSaveSuccess }: QuotationContentProps) {
     const { user } = useAuth();
 
     // 커스텀 훅 사용
@@ -118,6 +121,9 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
     // 견적서 저장
     const handleSaveQuotation = async () => {
         try {
+            // isModal이 true면 test 컬렉션, false면 quotations 컬렉션에 저장
+            const targetCollection = isModal ? 'test' : 'quotations';
+
             await storage.saveQuotationData(
                 quotationRef.current.quotationData,
                 quotationRef.current.golfSchedules,
@@ -130,9 +136,26 @@ export default function QuotationContent({ onClose, isModal = false }: Quotation
                 quotationRef.current.paymentInfo,
                 quotationRef.current.additionalOptions,
                 regionTypeRef.current, // 지역 타입만 저장
-                isPackageQuotationRef.current // 패키지견적 여부
+                isPackageQuotationRef.current, // 패키지견적 여부
+                undefined, // title (optional)
+                targetCollection, // 저장할 컬렉션 이름
+                testDocumentId // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
             );
             setHasUnsavedChanges(false);
+
+            // test 컬렉션에 저장했을 때 sub_status를 1로 업데이트
+            if (isModal && testDocumentId) {
+                try {
+                    await RecruitmentService.updateRecruitmentSubStatus(testDocumentId, 1);
+                    // 저장 성공 후 콜백 호출하여 수배 목록 새로고침
+                    if (onSaveSuccess) {
+                        onSaveSuccess();
+                    }
+                } catch (error) {
+                    console.error('수배 상태 업데이트 실패:', error);
+                    // 상태 업데이트 실패해도 견적서 저장은 성공했으므로 계속 진행
+                }
+            }
 
             // 저장 성공 팝업 표시
             setShowSaveSuccess(true);
