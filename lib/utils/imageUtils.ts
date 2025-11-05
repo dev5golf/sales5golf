@@ -533,7 +533,7 @@ export const generatePreviewImage = async (element: HTMLElement): Promise<string
 
         const dataUrl = await toPng(actualElement, {
             quality: 1.0,
-            pixelRatio: 2,
+            pixelRatio: 1,
             backgroundColor: '#ffffff',
         });
 
@@ -590,7 +590,7 @@ export const createAdditionalInfoImage = async (element: HTMLElement): Promise<s
         // 이미지 생성
         const dataUrl = await toPng(clonedElement, {
             quality: 1,
-            pixelRatio: 2,
+            pixelRatio: 1,
             backgroundColor: '#ffffff',
             // width: 800,
             // height: clonedElement.scrollHeight
