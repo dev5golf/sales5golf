@@ -614,7 +614,7 @@ export const createAdditionalInfoImage = async (element: HTMLElement): Promise<s
 /**
  * 추가 정보 섹션 파일명 생성
  */
-export const generateAdditionalInfoFilename = (): string => {
+export const generateAdditionalInfoFilename = (customerName?: string): string => {
     const date = new Date().toISOString().split('T')[0];
-    return `추가정보_${date}.png`;
+    return customerName ? `추가정보_${customerName}_${date}.png` : `추가정보_${date}.png`;
 };

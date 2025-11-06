@@ -8,6 +8,8 @@ import { useQuotationStorage } from '@/hooks/useQuotationStorage';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, Save, FolderOpen, Plus } from 'lucide-react';
 import { RecruitmentService } from '@/app/(admin)/admin/admin-tools/dashboard/services/recruitmentService';
+import { ActivityLogService } from '@/app/(admin)/admin/admin-tools/dashboard/services/activityLogService';
+import { getQuotation } from '@/lib/quotationService';
 import QuotationForm from './QuotationForm';
 import GolfScheduleTable from './GolfScheduleTable';
 import GolfOnSiteTable from './GolfOnSiteTable';
@@ -27,15 +29,17 @@ interface QuotationContentProps {
     isModal?: boolean;
     testDocumentId?: string; // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
     onSaveSuccess?: () => void; // 저장 성공 후 콜백
+    initialQuotationId?: string; // 초기 로드할 견적서 ID (다운로드용)
 }
 
-export default function QuotationContent({ onClose, isModal = false, testDocumentId, onSaveSuccess }: QuotationContentProps) {
+export default function QuotationContent({ onClose, isModal = false, testDocumentId, onSaveSuccess, initialQuotationId }: QuotationContentProps) {
     const { user } = useAuth();
 
     // 커스텀 훅 사용
     const quotation = useQuotationData();
     const preview = usePreview();
-    const storage = useQuotationStorage(user?.id);
+    const userName = user?.name || user?.email || '관리자';
+    const storage = useQuotationStorage(userName, user?.id);
 
     // 기본/일본 선택 상태
     const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
@@ -104,19 +108,46 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
         }
     }, [regionType]);
 
-    // localStorage에서 pendingQuotationData 불러오기
+    // localStorage에서 pendingQuotationData 불러오기 또는 초기 견적서 로드
     useEffect(() => {
-        const pendingData = localStorage.getItem('pendingQuotationData');
-        if (pendingData) {
-            try {
-                const data = JSON.parse(pendingData);
-                quotation.setQuotationDataData(data);
-                localStorage.removeItem('pendingQuotationData');
-            } catch (error) {
-                console.error('데이터 불러오기 실패:', error);
+        // 초기 견적서 ID가 있으면 해당 견적서 로드
+        if (initialQuotationId && testDocumentId) {
+            const loadInitialQuotation = async () => {
+                try {
+                    const quotationData = await getQuotation(initialQuotationId, testDocumentId);
+                    if (quotationData) {
+                        quotation.setQuotationDataData(quotationData.quotationData);
+                        quotation.setGolfSchedulesData(quotationData.golfSchedules);
+                        quotation.setGolfOnSiteSchedulesData(quotationData.golfOnSiteSchedules);
+                        quotation.setAccommodationSchedulesData(quotationData.accommodationSchedules);
+                        quotation.setPickupSchedulesData(quotationData.pickupSchedules);
+                        quotation.setFlightSchedulesData(quotationData.flightSchedules);
+                        quotation.setRentalCarSchedulesData(quotationData.rentalCarSchedules);
+                        quotation.setRentalCarOnSiteSchedulesData(quotationData.rentalCarOnSiteSchedules);
+                        quotation.setPaymentInfoData(quotationData.paymentInfo);
+                        quotation.setAdditionalOptions(quotationData.additionalOptions);
+                        setRegionType(quotationData.regionType || 'basic');
+                        setIsPackageQuotation(quotationData.isPackageQuotation || false);
+                    }
+                } catch (error) {
+                    console.error('초기 견적서 로드 실패:', error);
+                }
+            };
+            loadInitialQuotation();
+        } else {
+            // localStorage에서 pendingQuotationData 불러오기
+            const pendingData = localStorage.getItem('pendingQuotationData');
+            if (pendingData) {
+                try {
+                    const data = JSON.parse(pendingData);
+                    quotation.setQuotationDataData(data);
+                    localStorage.removeItem('pendingQuotationData');
+                } catch (error) {
+                    console.error('데이터 불러오기 실패:', error);
+                }
             }
         }
-    }, []);
+    }, [initialQuotationId, testDocumentId]);
 
     // 견적서 저장
     const handleSaveQuotation = async () => {
@@ -124,7 +155,7 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
             // isModal이 true면 test 컬렉션, false면 quotations 컬렉션에 저장
             const targetCollection = isModal ? 'test' : 'quotations';
 
-            await storage.saveQuotationData(
+            const quotationId = await storage.saveQuotationData(
                 quotationRef.current.quotationData,
                 quotationRef.current.golfSchedules,
                 quotationRef.current.golfOnSiteSchedules,
@@ -142,6 +173,23 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
                 testDocumentId // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
             );
             setHasUnsavedChanges(false);
+
+            // 견적서 저장 로그 기록
+            if (user) {
+                const userName = user.name || user.email || '알 수 없음';
+                const quotationData = quotationRef.current.quotationData;
+                const targetTitle = quotationData.customerName
+                    ? `${quotationData.customerName}_${quotationData.destination}_${quotationData.travelPeriod}`
+                    : undefined;
+
+                await ActivityLogService.createLog({
+                    action: 'quotation_save',
+                    userId: user.id,
+                    userName: userName,
+                    targetId: quotationId,
+                    targetTitle: targetTitle
+                });
+            }
 
             // test 컬렉션에 저장했을 때 sub_status를 1로 업데이트
             if (isModal && testDocumentId) {
@@ -318,7 +366,7 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
             </div>
 
             {/* 견적서 컨테이너 */}
-            <div ref={preview.quotationRef} className="bg-white rounded-lg shadow-sm p-8">
+            <div ref={preview.quotationRef} data-quotation-render className="bg-white rounded-lg shadow-sm p-8">
                 <QuotationForm
                     quotationData={quotation.quotationData}
                     inclusions={quotation.generateInclusions()}

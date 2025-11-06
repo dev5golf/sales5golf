@@ -82,6 +82,70 @@ export const DASHBOARD_CONSTANTS = {
     }
 } as const;
 
+// 액티비티 로그 관련 상수들
+export const ACTIVITY_LOG_CONSTANTS = {
+    // 섹션 제목
+    SECTIONS: {
+        TITLE: '활동 로그'
+    },
+
+    // 액션 타입
+    ACTIONS: {
+        LABELS: {
+            recruitment_create: '수배 등록',
+            recruitment_update: '수배 수정',
+            quotation_save: '견적서 저장',
+            quotation_download: '견적서 다운로드',
+            reservation_create: '예약 등록',
+            deposit_create: '입금 등록',
+            withdrawal_create: '출금 등록'
+        },
+        COLORS: {
+            recruitment_create: {
+                bg: 'bg-blue-100',
+                text: 'text-blue-600',
+                badge: 'bg-blue-100 text-blue-700'
+            },
+            recruitment_update: {
+                bg: 'bg-yellow-100',
+                text: 'text-yellow-600',
+                badge: 'bg-yellow-100 text-yellow-700'
+            },
+            quotation_save: {
+                bg: 'bg-green-100',
+                text: 'text-green-600',
+                badge: 'bg-green-100 text-green-700'
+            },
+            quotation_download: {
+                bg: 'bg-purple-100',
+                text: 'text-purple-600',
+                badge: 'bg-purple-100 text-purple-700'
+            },
+            reservation_create: {
+                bg: 'bg-orange-100',
+                text: 'text-orange-600',
+                badge: 'bg-orange-100 text-orange-700'
+            },
+            deposit_create: {
+                bg: 'bg-emerald-100',
+                text: 'text-emerald-600',
+                badge: 'bg-emerald-100 text-emerald-700'
+            },
+            withdrawal_create: {
+                bg: 'bg-red-100',
+                text: 'text-red-600',
+                badge: 'bg-red-100 text-red-700'
+            }
+        }
+    },
+
+    // 메시지
+    MESSAGES: {
+        NO_DATA: '활동 로그가 없습니다.',
+        LOADING: '로딩 중...'
+    }
+} as const;
+
 // 타입 정의
 export type RecruitmentLabels = typeof RECRUITMENT_CONSTANTS.LABELS;
 export type RecruitmentPlaceholders = typeof RECRUITMENT_CONSTANTS.PLACEHOLDERS;

@@ -105,7 +105,7 @@ export default function AdditionalInfoSection({
     };
 
     return (
-        <div ref={sectionRef} className="additional-info-section px-4 py-4">
+        <div ref={sectionRef} data-additional-info-section className="additional-info-section px-4 py-4">
             {/* 이미지 저장 버튼 */}
             <div className="mb-4 flex justify-end gap-2">
                 <button

@@ -20,7 +20,7 @@ import {
 } from '@/app/(admin)/admin/admin-tools/quotation/types';
 import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
 
-export const useQuotationStorage = (currentUserId?: string) => {
+export const useQuotationStorage = (currentUserName?: string, currentUserId?: string) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [quotationList, setQuotationList] = useState<QuotationListItem[]>([]);
@@ -63,6 +63,7 @@ export const useQuotationStorage = (currentUserId?: string) => {
                 isPackageQuotation, // 패키지견적 여부
                 currentQuotationId || undefined,
                 title,
+                currentUserName,
                 currentUserId,
                 targetCollection, // 저장할 컬렉션 이름
                 testDocumentId // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
@@ -77,7 +78,7 @@ export const useQuotationStorage = (currentUserId?: string) => {
         } finally {
             setIsLoading(false);
         }
-    }, [currentQuotationId]);
+    }, [currentQuotationId, currentUserName, currentUserId]);
 
     // 견적서 목록 불러오기
     const loadQuotationList = useCallback(async () => {

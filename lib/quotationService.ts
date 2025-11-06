@@ -26,7 +26,8 @@ export interface QuotationDocument {
     title: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
-    createdBy: string;
+    createdBy: string; // 사용자 이름
+    userId?: string; // 사용자 ID (선택적, 기존 데이터 호환성)
     status: 'draft' | 'completed';
     regionType: 'basic' | 'japan'; // 지역 타입만 저장
     isPackageQuotation?: boolean; // 패키지견적 여부
@@ -52,7 +53,8 @@ export interface QuotationListItem {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     status: 'draft' | 'completed';
-    createdBy: string;
+    createdBy: string; // 사용자 이름
+    userId?: string; // 사용자 ID (선택적, 기존 데이터 호환성)
 }
 
 // 견적서 저장
@@ -71,7 +73,8 @@ export const saveQuotation = async (
     isPackageQuotation: boolean = false, // 패키지견적 여부
     quotationId?: string,
     title?: string,
-    currentUserId?: string,
+    currentUserName?: string,
+    currentUserId?: string, // 사용자 ID
     targetCollection: 'quotations' | 'test' = 'quotations', // 저장할 컬렉션 이름
     testDocumentId?: string // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
 ): Promise<string> => {
@@ -131,12 +134,13 @@ export const saveQuotation = async (
         };
 
         const collectionRef = getCollectionPath();
-        
+
         const quotationDoc: Omit<QuotationDocument, 'id'> = {
             title: generateTitle(),
             createdAt: quotationId ? (await getDoc(getDocPath(quotationId))).data()?.createdAt || now : now,
             updatedAt: now,
-            createdBy: currentUserId || 'admin',
+            createdBy: currentUserName || '관리자',
+            userId: currentUserId, // 사용자 ID 저장
             status: 'draft',
             regionType, // 지역 타입만 저장
             isPackageQuotation, // 패키지견적 여부
@@ -187,9 +191,12 @@ export const getQuotationList = async (): Promise<QuotationListItem[]> => {
 };
 
 // 견적서 상세 조회
-export const getQuotation = async (quotationId: string): Promise<QuotationDocument | null> => {
+export const getQuotation = async (quotationId: string, recruitmentId?: string): Promise<QuotationDocument | null> => {
     try {
-        const docRef = doc(db, 'quotations', quotationId);
+        // recruitmentId가 있으면 test 컬렉션의 서브컬렉션에서 가져오기
+        const docRef = recruitmentId
+            ? doc(db, 'test', recruitmentId, 'quotations', quotationId)
+            : doc(db, 'quotations', quotationId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {

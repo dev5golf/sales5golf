@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { RecruitmentData } from '../components';
 import { RecruitmentService } from '../services/recruitmentService';
+import { ActivityLogService } from '../services/activityLogService';
 import { RECRUITMENT_CONSTANTS } from '../constants';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const useRecruitmentModal = () => {
+interface UseRecruitmentModalOptions {
+    onLogCreated?: () => void; // 로그 생성 후 콜백
+}
+
+export const useRecruitmentModal = (options?: UseRecruitmentModalOptions) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -53,12 +58,28 @@ export const useRecruitmentModal = () => {
                 return;
             }
 
+            const createdBy = user.name || user.email || '알 수 없음';
+
             if (editMode && editId) {
                 // 수정 모드
-                const createdBy = user.name || user.email || '알 수 없음';
                 const response = await RecruitmentService.updateRecruitment(editId, data, createdBy);
 
                 if (response.success) {
+                    // 수배 수정 로그 기록
+                    const title = `${data.customerName}_${data.destination}_${data.startDate}~${data.endDate}_${data.numberOfPeople}명`;
+                    await ActivityLogService.createLog({
+                        action: 'recruitment_update',
+                        userId: user.id,
+                        userName: createdBy,
+                        targetId: editId,
+                        targetTitle: title
+                    });
+
+                    // 로그 생성 후 콜백 호출
+                    if (options?.onLogCreated) {
+                        options.onLogCreated();
+                    }
+
                     alert(response.message);
                     closeModal();
                 } else {
@@ -66,10 +87,23 @@ export const useRecruitmentModal = () => {
                 }
             } else {
                 // 등록 모드
-                const createdBy = user.name || user.email || '알 수 없음';
                 const response = await RecruitmentService.createRecruitment(data, createdBy);
 
-                if (response.success) {
+                if (response.success && response.data) {
+                    // 수배 등록 로그 기록
+                    await ActivityLogService.createLog({
+                        action: 'recruitment_create',
+                        userId: user.id,
+                        userName: createdBy,
+                        targetId: response.data.id,
+                        targetTitle: response.data.title
+                    });
+
+                    // 로그 생성 후 콜백 호출
+                    if (options?.onLogCreated) {
+                        options.onLogCreated();
+                    }
+
                     alert(response.message);
                     closeModal();
                 } else {
