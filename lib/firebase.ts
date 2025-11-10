@@ -92,6 +92,24 @@ try {
                     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
                     const snapshot = await getDocs(q);
                     console.log('✅ orders 컬렉션 접근 성공:', snapshot.size, '개 문서');
+                    
+                    // 서브컬렉션 접근 테스트 (실제 앱에서 사용하는 쿼리)
+                    if (snapshot.size > 0) {
+                        const firstOrderId = snapshot.docs[0].id;
+                        console.log('🔄 서브컬렉션 접근 시도 중 (orders/' + firstOrderId + '/quotations)...');
+                        try {
+                            const quotationsRef = collection(db, 'orders', firstOrderId, 'quotations');
+                            const quotationsQuery = query(quotationsRef, orderBy('updatedAt', 'desc'));
+                            const quotationsSnapshot = await getDocs(quotationsQuery);
+                            console.log('✅ 서브컬렉션 접근 성공:', quotationsSnapshot.size, '개 문서');
+                        } catch (subError: any) {
+                            console.error('❌ 서브컬렉션 접근 실패:', subError);
+                            console.error('에러 코드:', subError.code);
+                            console.error('에러 메시지:', subError.message);
+                            return { success: false, error: '서브컬렉션 접근 실패: ' + subError.message, code: subError.code };
+                        }
+                    }
+                    
                     return { success: true, count: snapshot.size };
                 } catch (error: any) {
                     console.error('❌ orders 컬렉션 접근 실패:', error);
