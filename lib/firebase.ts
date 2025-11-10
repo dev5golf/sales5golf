@@ -38,6 +38,52 @@ try {
     } else {
         console.log('🔥 Firebase 프로덕션 환경 연결:', firebaseConfig.projectId);
     }
+
+    // 디버깅용: 브라우저 콘솔에서 인증 상태 확인 가능하도록
+    if (typeof window !== 'undefined') {
+        (window as any).__firebaseDebug = {
+            auth,
+            db,
+            projectId: firebaseConfig.projectId,
+            isDevelopment,
+            checkAuth: () => {
+                if (auth?.currentUser) {
+                    console.log('✅ 인증됨:', {
+                        uid: auth.currentUser.uid,
+                        email: auth.currentUser.email,
+                        emailVerified: auth.currentUser.emailVerified
+                    });
+                    return auth.currentUser;
+                } else {
+                    console.log('❌ 인증되지 않음');
+                    return null;
+                }
+            },
+            checkUserDoc: async () => {
+                if (!auth?.currentUser) {
+                    console.log('❌ 먼저 로그인하세요');
+                    return null;
+                }
+                try {
+                    const { doc, getDoc } = await import('firebase/firestore');
+                    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                    if (userDoc.exists()) {
+                        console.log('✅ 사용자 문서 존재:', userDoc.data());
+                        return userDoc.data();
+                    } else {
+                        console.log('❌ 사용자 문서 없음');
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('❌ 사용자 문서 조회 실패:', error);
+                    return null;
+                }
+            }
+        };
+        console.log('🔍 디버깅 도구 사용법:');
+        console.log('  window.__firebaseDebug.checkAuth() - 인증 상태 확인');
+        console.log('  window.__firebaseDebug.checkUserDoc() - 사용자 문서 확인');
+    }
 } catch (error) {
     console.warn('Firebase 초기화 실패. 더미 설정을 사용합니다:', error);
     // 더미 객체 생성
