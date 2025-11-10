@@ -85,16 +85,24 @@ try {
                     return null;
                 }
                 try {
-                    const { collection, getDocs } = await import('firebase/firestore');
-                    console.log('🔄 orders 컬렉션 접근 시도 중...');
-                    const ordersRef = collection(db, 'orders');
-                    const snapshot = await getDocs(ordersRef);
+                    const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+                    
+                    // 실제 앱에서 사용하는 쿼리와 동일하게 테스트
+                    console.log('🔄 orders 컬렉션 접근 시도 중 (orderBy 포함)...');
+                    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+                    const snapshot = await getDocs(q);
                     console.log('✅ orders 컬렉션 접근 성공:', snapshot.size, '개 문서');
                     return { success: true, count: snapshot.size };
                 } catch (error: any) {
                     console.error('❌ orders 컬렉션 접근 실패:', error);
                     console.error('에러 코드:', error.code);
                     console.error('에러 메시지:', error.message);
+                    
+                    // 인덱스 오류인지 확인
+                    if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+                        console.error('⚠️ Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성하세요.');
+                    }
+                    
                     return { success: false, error: error.message, code: error.code };
                 }
             }
