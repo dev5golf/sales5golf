@@ -18,7 +18,11 @@
         "build:watch": "next build --watch",
         "create-user": "node scripts/create-user.js",
         "create-course": "node scripts/create-course.js",
-        "create-locations": "node scripts/create-locations.js"
+        "create-locations": "node scripts/create-locations.js",
+        "sync:firestore": "tsx scripts/sync-firestore.ts",
+        "sync:users": "tsx scripts/sync-users.ts",
+        "sync:storage": "tsx scripts/sync-storage.ts",
+        "sync:all": "npm run sync:firestore && npm run sync:users && npm run sync:storage"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.1",
@@ -56,6 +60,7 @@
         "rimraf": "^5.0.10",
         "serve": "14.2.1",
         "tailwindcss": "^3.4.0",
+        "tsx": "^4.19.2",
         "typescript": "5.9.2"
     }
 }

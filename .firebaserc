@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "sales5golf"
+    "default": "sales5golf",
+    "dev": "sales5golf-dev",
+    "prod": "sales5golf"
   }
 }
