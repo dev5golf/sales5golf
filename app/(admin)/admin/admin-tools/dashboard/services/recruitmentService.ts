@@ -106,18 +106,9 @@ export class RecruitmentService {
             };
         } catch (error: any) {
             console.error('수배 목록 조회 실패:', error);
-            console.error('에러 코드:', error?.code);
-            console.error('에러 메시지:', error?.message);
-            console.error('에러 스택:', error?.stack);
-            
-            // 인덱스 오류인지 확인
-            if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
-                console.error('⚠️ Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성하세요.');
-            }
-            
             return {
                 success: false,
-                message: `수배 목록 조회에 실패했습니다. ${error?.code || ''} ${error?.message || ''}`,
+                message: '수배 목록 조회에 실패했습니다.',
                 data: []
             };
         }
@@ -206,17 +197,8 @@ export class RecruitmentService {
             } as QuotationSubItem));
 
             return quotations;
-        } catch (error: any) {
+        } catch (error) {
             console.error('견적서 목록 조회 실패:', error);
-            console.error('에러 코드:', error?.code);
-            console.error('에러 메시지:', error?.message);
-            console.error('에러 스택:', error?.stack);
-            
-            // 인덱스 오류인지 확인
-            if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
-                console.error('⚠️ Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성하세요.');
-            }
-            
             return [];
         }
     }
