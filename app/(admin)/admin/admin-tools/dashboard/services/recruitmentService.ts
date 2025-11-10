@@ -69,7 +69,7 @@ export class RecruitmentService {
             };
 
             // Firebase에 저장
-            const docRef = await addDoc(collection(db, 'test'), payload);
+            const docRef = await addDoc(collection(db, 'orders'), payload);
 
             return {
                 success: true,
@@ -90,8 +90,8 @@ export class RecruitmentService {
      */
     static async getRecruitments(): Promise<RecruitmentResponse> {
         try {
-            // Firebase에서 test 컬렉션의 모든 데이터 가져오기
-            const q = query(collection(db, 'test'), orderBy('createdAt', 'desc'));
+            // Firebase에서 orders 컬렉션의 모든 데이터 가져오기
+            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
             const snapshot = await getDocs(q);
 
             const recruitments = snapshot.docs.map(doc => ({
@@ -104,11 +104,20 @@ export class RecruitmentService {
                 message: '수배 목록을 성공적으로 조회했습니다.',
                 data: recruitments
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('수배 목록 조회 실패:', error);
+            console.error('에러 코드:', error?.code);
+            console.error('에러 메시지:', error?.message);
+            console.error('에러 스택:', error?.stack);
+            
+            // 인덱스 오류인지 확인
+            if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+                console.error('⚠️ Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성하세요.');
+            }
+            
             return {
                 success: false,
-                message: '수배 목록 조회에 실패했습니다.',
+                message: `수배 목록 조회에 실패했습니다. ${error?.code || ''} ${error?.message || ''}`,
                 data: []
             };
         }
@@ -143,7 +152,7 @@ export class RecruitmentService {
             updateData.sub_status = 0;
 
             // Firebase에 업데이트
-            const docRef = doc(db, 'test', id);
+            const docRef = doc(db, 'orders', id);
             await updateDoc(docRef, updateData);
 
             return {
@@ -187,7 +196,7 @@ export class RecruitmentService {
      */
     static async getQuotationsByRecruitmentId(recruitmentId: string): Promise<QuotationSubItem[]> {
         try {
-            const quotationsRef = collection(db, 'test', recruitmentId, 'quotations');
+            const quotationsRef = collection(db, 'orders', recruitmentId, 'quotations');
             const q = query(quotationsRef, orderBy('updatedAt', 'desc'));
             const snapshot = await getDocs(q);
 
@@ -197,8 +206,17 @@ export class RecruitmentService {
             } as QuotationSubItem));
 
             return quotations;
-        } catch (error) {
+        } catch (error: any) {
             console.error('견적서 목록 조회 실패:', error);
+            console.error('에러 코드:', error?.code);
+            console.error('에러 메시지:', error?.message);
+            console.error('에러 스택:', error?.stack);
+            
+            // 인덱스 오류인지 확인
+            if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+                console.error('⚠️ Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성하세요.');
+            }
+            
             return [];
         }
     }
@@ -208,7 +226,7 @@ export class RecruitmentService {
      */
     static async updateRecruitmentSubStatus(recruitmentId: string, subStatus: number): Promise<RecruitmentResponse> {
         try {
-            const docRef = doc(db, 'test', recruitmentId);
+            const docRef = doc(db, 'orders', recruitmentId);
             await updateDoc(docRef, {
                 sub_status: subStatus
             });
