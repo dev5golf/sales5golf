@@ -78,11 +78,31 @@ try {
                     console.error('❌ 사용자 문서 조회 실패:', error);
                     return null;
                 }
+            },
+            testOrdersAccess: async () => {
+                if (!auth?.currentUser) {
+                    console.log('❌ 먼저 로그인하세요');
+                    return null;
+                }
+                try {
+                    const { collection, getDocs } = await import('firebase/firestore');
+                    console.log('🔄 orders 컬렉션 접근 시도 중...');
+                    const ordersRef = collection(db, 'orders');
+                    const snapshot = await getDocs(ordersRef);
+                    console.log('✅ orders 컬렉션 접근 성공:', snapshot.size, '개 문서');
+                    return { success: true, count: snapshot.size };
+                } catch (error: any) {
+                    console.error('❌ orders 컬렉션 접근 실패:', error);
+                    console.error('에러 코드:', error.code);
+                    console.error('에러 메시지:', error.message);
+                    return { success: false, error: error.message, code: error.code };
+                }
             }
         };
         console.log('🔍 디버깅 도구 사용법:');
         console.log('  window.__firebaseDebug.checkAuth() - 인증 상태 확인');
         console.log('  window.__firebaseDebug.checkUserDoc() - 사용자 문서 확인');
+        console.log('  window.__firebaseDebug.testOrdersAccess() - orders 컬렉션 접근 테스트');
     }
 } catch (error) {
     console.warn('Firebase 초기화 실패. 더미 설정을 사용합니다:', error);
