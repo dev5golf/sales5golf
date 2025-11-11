@@ -11,7 +11,7 @@ import {
     where,
     Timestamp
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import {
     QuotationData,
     GolfSchedule,
@@ -75,10 +75,16 @@ export const saveQuotation = async (
     title?: string,
     currentUserName?: string,
     currentUserId?: string, // 사용자 ID
-    targetCollection: 'quotations' | 'test' = 'quotations', // 저장할 컬렉션 이름
-    testDocumentId?: string // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+    targetCollection: 'quotations' | 'orders' = 'quotations', // 저장할 컬렉션 이름
+    orderDocumentId?: string // orders 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
 ): Promise<string> => {
     try {
+        // 인증 상태 확인 (Vercel 프리뷰에서 인증 토큰 문제 방지)
+        if (!auth || !auth.currentUser) {
+            console.error('인증되지 않은 사용자입니다.');
+            throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
+        }
+
         const now = Timestamp.now();
 
         // 타이틀 생성: 고객명_여행지_여행기간시작일
@@ -114,20 +120,20 @@ export const saveQuotation = async (
             return `${customerName}_${destination}_${formattedDate}`;
         };
 
-        // test 컬렉션일 때는 서브컬렉션 경로 사용, 아닐 때는 기본 컬렉션 경로 사용
+        // orders 컬렉션일 때는 서브컬렉션 경로 사용, 아닐 때는 기본 컬렉션 경로 사용
         const getCollectionPath = () => {
-            if (targetCollection === 'test' && testDocumentId) {
-                // test/{testDocumentId}/quotations 서브컬렉션 사용
-                return collection(db, 'test', testDocumentId, 'quotations');
+            if (targetCollection === 'orders' && orderDocumentId) {
+                // orders/{orderDocumentId}/quotations 서브컬렉션 사용
+                return collection(db, 'orders', orderDocumentId, 'quotations');
             }
             // 기본 컬렉션 사용
             return collection(db, targetCollection);
         };
 
         const getDocPath = (id: string) => {
-            if (targetCollection === 'test' && testDocumentId) {
-                // test/{testDocumentId}/quotations/{quotationId} 경로 사용
-                return doc(db, 'test', testDocumentId, 'quotations', id);
+            if (targetCollection === 'orders' && orderDocumentId) {
+                // orders/{orderDocumentId}/quotations/{quotationId} 경로 사용
+                return doc(db, 'orders', orderDocumentId, 'quotations', id);
             }
             // 기본 컬렉션 경로 사용
             return doc(db, targetCollection, id);
@@ -162,11 +168,35 @@ export const saveQuotation = async (
             return quotationId;
         } else {
             // 새 견적서 생성
+            console.log('견적서 저장 시도:', {
+                targetCollection,
+                orderDocumentId,
+                collectionPath: targetCollection === 'orders' && orderDocumentId
+                    ? `orders/${orderDocumentId}/quotations`
+                    : targetCollection,
+                userId: auth.currentUser?.uid,
+                userRole: currentUserId ? '확인됨' : '없음'
+            });
+
             const docRef = await addDoc(collectionRef, quotationDoc);
             return docRef.id;
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('견적서 저장 실패:', error);
+        console.error('에러 상세:', {
+            code: error?.code,
+            message: error?.message,
+            targetCollection,
+            orderDocumentId,
+            userId: auth.currentUser?.uid,
+            authState: auth.currentUser ? '인증됨' : '인증 안됨'
+        });
+
+        // 권한 오류인 경우 더 자세한 메시지
+        if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+            throw new Error(`권한 오류: ${error.message}. 인증 상태를 확인해주세요.`);
+        }
+
         throw new Error('견적서 저장에 실패했습니다.');
     }
 };
@@ -193,9 +223,9 @@ export const getQuotationList = async (): Promise<QuotationListItem[]> => {
 // 견적서 상세 조회
 export const getQuotation = async (quotationId: string, recruitmentId?: string): Promise<QuotationDocument | null> => {
     try {
-        // recruitmentId가 있으면 test 컬렉션의 서브컬렉션에서 가져오기
+        // recruitmentId가 있으면 orders 컬렉션의 서브컬렉션에서 가져오기
         const docRef = recruitmentId
-            ? doc(db, 'test', recruitmentId, 'quotations', quotationId)
+            ? doc(db, 'orders', recruitmentId, 'quotations', quotationId)
             : doc(db, 'quotations', quotationId);
         const docSnap = await getDoc(docRef);
 
