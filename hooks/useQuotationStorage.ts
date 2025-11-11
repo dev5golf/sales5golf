@@ -41,8 +41,8 @@ export const useQuotationStorage = (currentUserName?: string, currentUserId?: st
         regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
         isPackageQuotation: boolean = false, // 패키지견적 여부
         title?: string,
-        targetCollection: 'quotations' | 'test' = 'quotations', // 저장할 컬렉션 이름
-        testDocumentId?: string // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+        targetCollection: 'quotations' | 'orders' = 'quotations', // 저장할 컬렉션 이름
+        orderDocumentId?: string // orders 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
     ): Promise<string> => {
         setIsLoading(true);
         setError(null);
@@ -66,7 +66,7 @@ export const useQuotationStorage = (currentUserName?: string, currentUserId?: st
                 currentUserName,
                 currentUserId,
                 targetCollection, // 저장할 컬렉션 이름
-                testDocumentId // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+                orderDocumentId // orders 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
             );
 
             setCurrentQuotationId(quotationId);
