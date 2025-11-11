@@ -27,12 +27,12 @@ import QuotationListModal from './QuotationListModal';
 interface QuotationContentProps {
     onClose?: () => void;
     isModal?: boolean;
-    testDocumentId?: string; // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+    orderDocumentId?: string; // orders 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
     onSaveSuccess?: () => void; // 저장 성공 후 콜백
     initialQuotationId?: string; // 초기 로드할 견적서 ID (다운로드용)
 }
 
-export default function QuotationContent({ onClose, isModal = false, testDocumentId, onSaveSuccess, initialQuotationId }: QuotationContentProps) {
+export default function QuotationContent({ onClose, isModal = false, orderDocumentId, onSaveSuccess, initialQuotationId }: QuotationContentProps) {
     const { user } = useAuth();
 
     // 커스텀 훅 사용
@@ -111,10 +111,10 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
     // localStorage에서 pendingQuotationData 불러오기 또는 초기 견적서 로드
     useEffect(() => {
         // 초기 견적서 ID가 있으면 해당 견적서 로드
-        if (initialQuotationId && testDocumentId) {
+        if (initialQuotationId && orderDocumentId) {
             const loadInitialQuotation = async () => {
                 try {
-                    const quotationData = await getQuotation(initialQuotationId, testDocumentId);
+                    const quotationData = await getQuotation(initialQuotationId, orderDocumentId);
                     if (quotationData) {
                         quotation.setQuotationDataData(quotationData.quotationData);
                         quotation.setGolfSchedulesData(quotationData.golfSchedules);
@@ -147,13 +147,13 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
                 }
             }
         }
-    }, [initialQuotationId, testDocumentId]);
+    }, [initialQuotationId, orderDocumentId]);
 
     // 견적서 저장
     const handleSaveQuotation = async () => {
         try {
-            // isModal이 true면 test 컬렉션, false면 quotations 컬렉션에 저장
-            const targetCollection = isModal ? 'test' : 'quotations';
+            // isModal이 true면 orders 컬렉션, false면 quotations 컬렉션에 저장
+            const targetCollection = isModal ? 'orders' : 'quotations';
 
             const quotationId = await storage.saveQuotationData(
                 quotationRef.current.quotationData,
@@ -170,7 +170,7 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
                 isPackageQuotationRef.current, // 패키지견적 여부
                 undefined, // title (optional)
                 targetCollection, // 저장할 컬렉션 이름
-                testDocumentId // test 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
+                orderDocumentId // orders 컬렉션의 문서 ID (서브컬렉션 사용 시 필요)
             );
             setHasUnsavedChanges(false);
 
@@ -191,10 +191,10 @@ export default function QuotationContent({ onClose, isModal = false, testDocumen
                 });
             }
 
-            // test 컬렉션에 저장했을 때 sub_status를 1로 업데이트
-            if (isModal && testDocumentId) {
+            // orders 컬렉션에 저장했을 때 sub_status를 1로 업데이트
+            if (isModal && orderDocumentId) {
                 try {
-                    await RecruitmentService.updateRecruitmentSubStatus(testDocumentId, 1);
+                    await RecruitmentService.updateRecruitmentSubStatus(orderDocumentId, 1);
                     // 저장 성공 후 콜백 호출하여 수배 목록 새로고침
                     if (onSaveSuccess) {
                         onSaveSuccess();

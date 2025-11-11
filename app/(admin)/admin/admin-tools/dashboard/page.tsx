@@ -539,7 +539,7 @@ export default function AdminToolsDashboardPage() {
                         {selectedRecruitment && (
                             <QuotationContent
                                 isModal={true}
-                                testDocumentId={selectedRecruitment.id}
+                                orderDocumentId={selectedRecruitment.id}
                                 onSaveSuccess={refreshRecruitments}
                             />
                         )}
@@ -556,7 +556,7 @@ export default function AdminToolsDashboardPage() {
                 >
                     <QuotationContent
                         isModal={false}
-                        testDocumentId={hiddenQuotationRef.recruitmentId}
+                        orderDocumentId={hiddenQuotationRef.recruitmentId}
                         initialQuotationId={hiddenQuotationRef.quotationId}
                         onClose={() => { }}
                     />
