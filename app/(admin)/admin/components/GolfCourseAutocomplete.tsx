@@ -107,6 +107,17 @@ export default function GolfCourseAutocomplete({
         fetchCourses();
     }, [fetchCourses]);
 
+    // value prop에서 제어 문자 제거 (DB에서 불러온 값 정제)
+    useEffect(() => {
+        if (value) {
+            const sanitizedValue = value.replace(/[\x00-\x1F\x7F]/g, '');
+            if (sanitizedValue !== value) {
+                // 제어 문자가 제거된 경우에만 onChange 호출
+                onChange(sanitizedValue);
+            }
+        }
+    }, [value, onChange]);
+
     // 필터링된 골프장 목록 (메모이제이션)
     const filteredCourses = useMemo(() => {
         if (!value.trim()) return courses;
@@ -136,7 +147,11 @@ export default function GolfCourseAutocomplete({
 
     // 입력값 변경 핸들러
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value;
+        let newValue = e.target.value;
+
+        // 제어 문자 제거 (백스페이스 0x08 포함)
+        newValue = newValue.replace(/[\x00-\x1F\x7F]/g, '');
+
         onChange(newValue);
 
         // 입력값이 변경되면 선택 인덱스 리셋하고 드롭다운 열기
@@ -181,7 +196,11 @@ export default function GolfCourseAutocomplete({
         });
 
         // 값 업데이트 (한글명 우선)
-        const courseName = course.translations?.ko?.name || course.translations?.en?.name || course.id;
+        let courseName = course.translations?.ko?.name || course.translations?.en?.name || course.id;
+
+        // 제어 문자 제거 (백스페이스 0x08 포함)
+        courseName = courseName.replace(/[\x00-\x1F\x7F]/g, '');
+
         onChange(courseName);
 
         // onSelect 콜백 호출
