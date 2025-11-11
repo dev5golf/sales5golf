@@ -13,6 +13,7 @@ export interface RecruitmentPayload {
     status: number;
     sub_status: number;
     createdBy: string;
+    userId?: string; // 사용자 ID 추가
     customerName: string;
     destination: string;
     startDate: string;
@@ -27,6 +28,7 @@ export interface RecruitmentListItem {
     status: number;
     sub_status: number;
     createdBy: string;
+    userId?: string; // 사용자 ID 추가
     customerName: string;
     destination: string;
     startDate: string;
@@ -48,7 +50,7 @@ export class RecruitmentService {
     /**
      * 수배 데이터를 서버에 저장
      */
-    static async createRecruitment(data: RecruitmentData, createdBy: string): Promise<RecruitmentResponse> {
+    static async createRecruitment(data: RecruitmentData, createdBy: string, userId?: string): Promise<RecruitmentResponse> {
         try {
             // title 생성: 고객명_여행지_여행기간_인원
             const travelPeriod = `${data.startDate}~${data.endDate}`;
@@ -60,6 +62,7 @@ export class RecruitmentService {
                 status: 0, // 수배
                 sub_status: 0, // 대기
                 createdBy,
+                userId, // 사용자 ID 추가
                 customerName: data.customerName,
                 destination: data.destination,
                 startDate: data.startDate,
@@ -117,7 +120,7 @@ export class RecruitmentService {
     /**
      * 수배 데이터 업데이트
      */
-    static async updateRecruitment(id: string, data: Partial<RecruitmentData>, createdBy?: string): Promise<RecruitmentResponse> {
+    static async updateRecruitment(id: string, data: Partial<RecruitmentData>, createdBy?: string, userId?: string): Promise<RecruitmentResponse> {
         try {
             // title 생성: 고객명_여행지_여행기간_인원
             let updateData: any = {};
@@ -138,6 +141,7 @@ export class RecruitmentService {
             if (data.endDate !== undefined) updateData.endDate = data.endDate;
             if (data.numberOfPeople !== undefined) updateData.numberOfPeople = data.numberOfPeople;
             if (createdBy) updateData.createdBy = createdBy;
+            if (userId) updateData.userId = userId; // 사용자 ID 업데이트
 
             // 수정 완료 시 sub_status를 0으로 변경
             updateData.sub_status = 0;

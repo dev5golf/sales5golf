@@ -62,7 +62,7 @@ export const useRecruitmentModal = (options?: UseRecruitmentModalOptions) => {
 
             if (editMode && editId) {
                 // 수정 모드
-                const response = await RecruitmentService.updateRecruitment(editId, data, createdBy);
+                const response = await RecruitmentService.updateRecruitment(editId, data, createdBy, user.id);
 
                 if (response.success) {
                     // 수배 수정 로그 기록
@@ -87,7 +87,7 @@ export const useRecruitmentModal = (options?: UseRecruitmentModalOptions) => {
                 }
             } else {
                 // 등록 모드
-                const response = await RecruitmentService.createRecruitment(data, createdBy);
+                const response = await RecruitmentService.createRecruitment(data, createdBy, user.id);
 
                 if (response.success && response.data) {
                     // 수배 등록 로그 기록
