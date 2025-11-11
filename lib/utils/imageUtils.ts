@@ -408,7 +408,6 @@ const extractFontSizeFromClasses = (element: Element): string | null => {
     // 클래스에서 폰트 크기 찾기
     for (const [tailwindClass, fontSize] of Object.entries(fontSizeMap)) {
         if (className.includes(tailwindClass)) {
-            console.log(`Found Tailwind class: ${tailwindClass} -> ${fontSize}`);
             return fontSize;
         }
     }
@@ -418,7 +417,6 @@ const extractFontSizeFromClasses = (element: Element): string | null => {
     if (parentElement) {
         const parentFontSize = extractFontSizeFromClasses(parentElement);
         if (parentFontSize) {
-            console.log(`Inherited from parent: ${parentFontSize}`);
             return parentFontSize;
         }
     }
@@ -450,36 +448,27 @@ const scaleTextSize = (element: HTMLElement): void => {
             }
         }
 
-        // 로그 출력
-        console.log('Element:', el.tagName, 'Classes:', el.className, 'Text:', el.textContent?.trim().substring(0, 20));
-
         // Tailwind 클래스에서 폰트 크기 추출
         let fontSize = extractFontSizeFromClasses(el);
 
         // 폰트 크기가 없으면 기본값 사용
         if (!fontSize) {
             fontSize = '1rem';
-            console.log('Using default fontSize: 1rem');
         }
-
-        console.log('Final fontSize to process:', fontSize);
 
         // rem 단위인 경우 처리
         if (fontSize.includes('rem')) {
             const remValue = parseFloat(fontSize);
             const newRemValue = remValue * 1.2;
             htmlElement.style.fontSize = `${newRemValue}rem`;
-            console.log('Rem scaled:', remValue, '->', newRemValue);
         }
         // px 단위인 경우 처리
         else if (fontSize.includes('px')) {
             const pxValue = parseFloat(fontSize);
             const newPxValue = pxValue * 1.2;
             htmlElement.style.fontSize = `${newPxValue}px`;
-            console.log('Px scaled:', pxValue, '->', newPxValue);
         }
         else {
-            console.log('Unsupported unit, applying default 1.2rem:', fontSize);
             htmlElement.style.fontSize = '1.2rem';
         }
     });
