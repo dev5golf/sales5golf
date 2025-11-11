@@ -174,25 +174,25 @@ export default function QuotationContent({ onClose, isModal = false, orderDocume
             );
             setHasUnsavedChanges(false);
 
-            // 견적서 저장 로그 기록
-            if (user) {
-                const userName = user.name || user.email || '알 수 없음';
-                const quotationData = quotationRef.current.quotationData;
-                const targetTitle = quotationData.customerName
-                    ? `${quotationData.customerName}_${quotationData.destination}_${quotationData.travelPeriod}`
-                    : undefined;
-
-                await ActivityLogService.createLog({
-                    action: 'quotation_save',
-                    userId: user.id,
-                    userName: userName,
-                    targetId: quotationId,
-                    targetTitle: targetTitle
-                });
-            }
-
             // orders 컬렉션에 저장했을 때 sub_status를 1로 업데이트
             if (isModal && orderDocumentId) {
+                // 수배 대기에서 견적서 저장 시에만 활동 로그 기록 (대시보드용)
+                if (user) {
+                    const userName = user.name || user.email || '알 수 없음';
+                    const quotationData = quotationRef.current.quotationData;
+                    const targetTitle = quotationData.customerName
+                        ? `${quotationData.customerName}_${quotationData.destination}_${quotationData.travelPeriod}`
+                        : undefined;
+
+                    await ActivityLogService.createLog({
+                        action: 'quotation_save',
+                        userId: user.id,
+                        userName: userName,
+                        targetId: quotationId,
+                        targetTitle: targetTitle
+                    });
+                }
+
                 try {
                     await RecruitmentService.updateRecruitmentSubStatus(orderDocumentId, 1);
                     // 저장 성공 후 콜백 호출하여 수배 목록 새로고침
