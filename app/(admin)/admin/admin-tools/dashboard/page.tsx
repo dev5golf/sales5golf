@@ -301,10 +301,10 @@ export default function AdminToolsDashboardPage() {
                                     {recruitments.map((recruitment) => (
                                         <div key={recruitment.id} className="space-y-2">
                                             <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                                <span className="text-xs text-gray-500 w-16 truncate">
+                                                <span className="text-xs text-gray-500 w-fit max-w-10 truncate flex-shrink-0">
                                                     {recruitment.createdBy}
                                                 </span>
-                                                <p className="text-sm font-medium text-gray-800 flex-1 truncate">
+                                                <p className="text-sm font-medium text-gray-800 flex-1 truncate min-w-0">
                                                     {recruitment.title}
                                                 </p>
                                                 {recruitment.sub_status === 0 && (
@@ -366,10 +366,10 @@ export default function AdminToolsDashboardPage() {
                                                                 className="flex items-center justify-between gap-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                                                             >
                                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                                    <span className="text-xs text-gray-500 w-20 truncate flex-shrink-0">
+                                                                    <span className="text-xs text-gray-500 w-fit max-w-10 truncate flex-shrink-0">
                                                                         {quotation.createdBy}
                                                                     </span>
-                                                                    <p className="text-xs font-medium text-gray-800 flex-1 truncate">
+                                                                    <p className="text-xs font-medium text-gray-800 flex-1 truncate min-w-0">
                                                                         {quotation.title}
                                                                     </p>
                                                                 </div>
