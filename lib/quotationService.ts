@@ -81,7 +81,6 @@ export const saveQuotation = async (
     try {
         // 인증 상태 확인 (Vercel 프리뷰에서 인증 토큰 문제 방지)
         if (!auth || !auth.currentUser) {
-            console.error('인증되지 않은 사용자입니다.');
             throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
         }
 
@@ -168,35 +167,15 @@ export const saveQuotation = async (
             return quotationId;
         } else {
             // 새 견적서 생성
-            console.log('견적서 저장 시도:', {
-                targetCollection,
-                orderDocumentId,
-                collectionPath: targetCollection === 'orders' && orderDocumentId
-                    ? `orders/${orderDocumentId}/quotations`
-                    : targetCollection,
-                userId: auth.currentUser?.uid,
-                userRole: currentUserId ? '확인됨' : '없음'
-            });
-
             const docRef = await addDoc(collectionRef, quotationDoc);
             return docRef.id;
         }
     } catch (error: any) {
-        console.error('견적서 저장 실패:', error);
-        console.error('에러 상세:', {
-            code: error?.code,
-            message: error?.message,
-            targetCollection,
-            orderDocumentId,
-            userId: auth.currentUser?.uid,
-            authState: auth.currentUser ? '인증됨' : '인증 안됨'
-        });
-
         // 권한 오류인 경우 더 자세한 메시지
         if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
             throw new Error(`권한 오류: ${error.message}. 인증 상태를 확인해주세요.`);
         }
-
+        
         throw new Error('견적서 저장에 실패했습니다.');
     }
 };
