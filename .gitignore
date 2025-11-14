@@ -22,7 +22,8 @@ dist/
 firebase-debug.log
 firebase-debug.*.log
 firebase-adminsdk-*.json
-firebase-service-account*.json
+firebase-service-account.json
+firebase-service-account-*.json
 
 # IDE
 .vscode/

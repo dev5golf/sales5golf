@@ -125,9 +125,9 @@ export default function PickupTable({
                                                 onUpdate(schedule.id, 'date', '');
                                             }
                                         }}
-                                        dateFormat="MM/dd"
+                                        dateFormat="MM/dd (E)"
                                         locale={ko}
-                                        placeholderText="MM/DD"
+                                        placeholderText="MM/DD (요일)"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
