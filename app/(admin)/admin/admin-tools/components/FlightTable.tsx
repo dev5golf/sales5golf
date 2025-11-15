@@ -100,11 +100,20 @@ export default function FlightTable({
                                         selected={(() => {
                                             if (!schedule.date) return null;
 
-                                            // MM/DD 형식인 경우 Date 객체로 변환
+                                            // YY/MM/DD 또는 MM/DD 형식인 경우 Date 객체로 변환
                                             if (schedule.date.includes('/')) {
-                                                const [month, day] = schedule.date.split('/');
-                                                const currentYear = new Date().getFullYear();
-                                                return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                                const parts = schedule.date.split('/');
+                                                if (parts.length === 3) {
+                                                    // YY/MM/DD 형식
+                                                    const [year, month, day] = parts;
+                                                    const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                                    return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                                } else if (parts.length === 2) {
+                                                    // MM/DD 형식 (기존 호환성)
+                                                    const [month, day] = parts;
+                                                    const currentYear = new Date().getFullYear();
+                                                    return new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                                }
                                             }
 
                                             return null;
@@ -114,17 +123,18 @@ export default function FlightTable({
                                             if (date) {
                                                 // 마지막 선택한 날짜 업데이트
                                                 setLastSelectedDate(date);
+                                                const year = String(date.getFullYear()).slice(-2); // 마지막 2자리
                                                 const month = String(date.getMonth() + 1).padStart(2, '0');
                                                 const day = String(date.getDate()).padStart(2, '0');
-                                                const formattedDate = `${month}/${day}`;
+                                                const formattedDate = `${year}/${month}/${day}`;
                                                 onUpdate(schedule.id, 'date', formattedDate);
                                             } else {
                                                 onUpdate(schedule.id, 'date', '');
                                             }
                                         }}
-                                        dateFormat="MM/dd (E)"
+                                        dateFormat="yy/MM/dd (E)"
                                         locale={ko}
-                                        placeholderText="MM/DD (요일)"
+                                        placeholderText="YY/MM/DD (요일)"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                         showPopperArrow={false}
                                         popperClassName="react-datepicker-popper"
