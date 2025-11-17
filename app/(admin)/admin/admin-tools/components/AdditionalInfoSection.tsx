@@ -10,13 +10,15 @@ interface AdditionalInfoSectionProps {
     onAdditionalOptionsChange: (value: string) => void;
     golfSchedules: any[];
     golfOnSiteSchedules: any[];
+    regionType?: 'basic' | 'japan';
 }
 
 export default function AdditionalInfoSection({
     additionalOptions,
     onAdditionalOptionsChange,
     golfSchedules,
-    golfOnSiteSchedules
+    golfOnSiteSchedules,
+    regionType = 'basic'
 }: AdditionalInfoSectionProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +144,12 @@ export default function AdditionalInfoSection({
                             <span>{note}</span>
                         </li>
                     ))}
+                    {regionType === 'basic' && (
+                        <li className="flex items-start">
+                            <span className="text-gray-400 mr-2">•</span>
+                            <span>동남아 골프장 특성 상 당일 현장 취소 진행 시, 현지 직원의 구두 상의 안내만으로는 취소/환불 불가하며 골프장으로부터 취소 가능 안내받은 직원 성함 또는 취소확인서를 오분골프 측으로 전달부탁드립니다. 해당 과정 없이 구장 이탈하신 경우 취소/환불 불가합니다.</span>
+                        </li>
+                    )}
                 </ul>
             </div>
 

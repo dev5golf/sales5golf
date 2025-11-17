@@ -439,6 +439,7 @@ export default function AdminTools() {
                     onAdditionalOptionsChange={quotation.setAdditionalOptions}
                     golfSchedules={quotation.golfSchedules}
                     golfOnSiteSchedules={quotation.golfOnSiteSchedules}
+                    regionType={regionType}
                 />
             </div>
 
