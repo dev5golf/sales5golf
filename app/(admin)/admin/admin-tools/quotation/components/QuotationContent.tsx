@@ -495,6 +495,7 @@ export default function QuotationContent({ onClose, isModal = false, orderDocume
                     onAdditionalOptionsChange={quotation.setAdditionalOptions}
                     golfSchedules={quotation.golfSchedules}
                     golfOnSiteSchedules={quotation.golfOnSiteSchedules}
+                    regionType={regionType}
                 />
             </div>
 
