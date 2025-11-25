@@ -56,7 +56,7 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
             </div>
 
             <div className="bg-white rounded-lg shadow-sm">
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-4">
                     {/* 골프 수수료 */}
                     {(golfSchedules.length > 0 || golfOnSiteSchedules.length > 0) && (regionType === 'basic' || finalGolfFee > 0) && (
                         <div className="flex items-center gap-2">
