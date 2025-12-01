@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, BarChart3, Settings, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { FileText, BarChart3, Settings, ArrowRight, LayoutDashboard, TestTube } from 'lucide-react';
 
 export default function AdminToolsPage() {
     const { user, loading } = useAuth();
@@ -42,6 +42,14 @@ export default function AdminToolsPage() {
             icon: FileText,
             href: '/admin/admin-tools/quotation',
             color: 'blue',
+            available: true
+        },
+        {
+            title: 'API 테스트',
+            description: 'Bankda 은행 거래내역 조회 API를 테스트합니다',
+            icon: TestTube,
+            href: '/admin/admin-tools/api-test',
+            color: 'purple',
             available: true
         }
     ];
@@ -148,6 +156,7 @@ export default function AdminToolsPage() {
                 <div className="space-y-2 text-gray-600">
                     <p>• <strong>대시보드:</strong> 관리자 도구의 전체 통계 및 요약 정보를 확인할 수 있습니다.</p>
                     <p>• <strong>견적서 작성:</strong> 골프 여행 견적서를 생성하고 이미지로 다운로드할 수 있습니다.</p>
+                    <p>• <strong>API 테스트:</strong> 외부 API 연동을 테스트하고 응답값을 확인할 수 있습니다.</p>
                 </div>
             </div>
         </div>
