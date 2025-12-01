@@ -84,6 +84,16 @@ export const useQuotationData = () => {
         setGolfSchedules(prev => prev.filter(schedule => schedule.id !== id));
     };
 
+    // 골프 일정 위로 이동
+    const moveGolfScheduleUp = (id: string) => {
+        moveScheduleUp(id, setGolfSchedules);
+    };
+
+    // 골프 일정 아래로 이동
+    const moveGolfScheduleDown = (id: string) => {
+        moveScheduleDown(id, setGolfSchedules);
+    };
+
     // 범용 복사 함수 - 모든 일정 복사용 (골프, 픽업, 숙박 등)
     const copySchedule = <T extends { id: string }>(id: string, schedules: T[], setSchedules: React.Dispatch<React.SetStateAction<T[]>>) => {
         const scheduleToCopy = schedules.find(schedule => schedule.id === id);
@@ -94,6 +104,34 @@ export const useQuotationData = () => {
             };
             setSchedules(prev => [...prev, copiedSchedule]);
         }
+    };
+
+    // 범용 위로 이동 함수 - 모든 일정 이동용
+    const moveScheduleUp = <T extends { id: string }>(
+        id: string,
+        setSchedules: React.Dispatch<React.SetStateAction<T[]>>
+    ) => {
+        setSchedules(prev => {
+            const index = prev.findIndex(schedule => schedule.id === id);
+            if (index <= 0) return prev; // 첫 번째 항목이면 이동하지 않음
+            const newSchedules = [...prev];
+            [newSchedules[index - 1], newSchedules[index]] = [newSchedules[index], newSchedules[index - 1]];
+            return newSchedules;
+        });
+    };
+
+    // 범용 아래로 이동 함수 - 모든 일정 이동용
+    const moveScheduleDown = <T extends { id: string }>(
+        id: string,
+        setSchedules: React.Dispatch<React.SetStateAction<T[]>>
+    ) => {
+        setSchedules(prev => {
+            const index = prev.findIndex(schedule => schedule.id === id);
+            if (index < 0 || index >= prev.length - 1) return prev; // 마지막 항목이면 이동하지 않음
+            const newSchedules = [...prev];
+            [newSchedules[index], newSchedules[index + 1]] = [newSchedules[index + 1], newSchedules[index]];
+            return newSchedules;
+        });
     };
 
     // 골프 사전결제 복사 함수
@@ -133,6 +171,16 @@ export const useQuotationData = () => {
     // 골프 현장결제 복사 함수
     const copyGolfOnSiteSchedule = (id: string) => {
         copySchedule(id, golfOnSiteSchedules, setGolfOnSiteSchedules);
+    };
+
+    // 골프 현장결제 위로 이동
+    const moveGolfOnSiteScheduleUp = (id: string) => {
+        moveScheduleUp(id, setGolfOnSiteSchedules);
+    };
+
+    // 골프 현장결제 아래로 이동
+    const moveGolfOnSiteScheduleDown = (id: string) => {
+        moveScheduleDown(id, setGolfOnSiteSchedules);
     };
 
     const addAccommodationSchedule = () => {
@@ -198,6 +246,16 @@ export const useQuotationData = () => {
     // 픽업 복사 함수
     const copyPickupSchedule = (id: string) => {
         copySchedule(id, pickupSchedules, setPickupSchedules);
+    };
+
+    // 픽업 위로 이동
+    const movePickupScheduleUp = (id: string) => {
+        moveScheduleUp(id, setPickupSchedules);
+    };
+
+    // 픽업 아래로 이동
+    const movePickupScheduleDown = (id: string) => {
+        moveScheduleDown(id, setPickupSchedules);
     };
 
     const addFlightSchedule = () => {
@@ -531,8 +589,12 @@ export const useQuotationData = () => {
         addGolfSchedule,
         updateGolfSchedule,
         removeGolfSchedule,
+        moveGolfScheduleUp,
+        moveGolfScheduleDown,
         copyGolfSchedule,
         copyGolfOnSiteSchedule,
+        moveGolfOnSiteScheduleUp,
+        moveGolfOnSiteScheduleDown,
         addGolfOnSiteSchedule,
         updateGolfOnSiteSchedule,
         removeGolfOnSiteSchedule,
@@ -543,6 +605,8 @@ export const useQuotationData = () => {
         updatePickupSchedule,
         removePickupSchedule,
         copyPickupSchedule,
+        movePickupScheduleUp,
+        movePickupScheduleDown,
         addFlightSchedule,
         updateFlightSchedule,
         removeFlightSchedule,

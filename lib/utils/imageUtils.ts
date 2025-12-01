@@ -111,10 +111,11 @@ const removeDeleteColumns = (element: HTMLElement): void => {
             const cells = row.querySelectorAll('td, th');
             if (cells.length > 0) {
                 if (hasCopyColumn) {
-                    // 골프 사전결제 테이블: 마지막 2개 컬럼 제거 (복사+삭제)
-                    if (cells.length >= 2) {
+                    // 골프 사전결제 테이블: 마지막 3개 컬럼 제거 (이동+복사+삭제)
+                    if (cells.length >= 3) {
                         cells[cells.length - 1].remove(); // 삭제
                         cells[cells.length - 2].remove(); // 복사
+                        cells[cells.length - 3].remove(); // 이동
                     }
                 } else {
                     // 다른 테이블들: 마지막 1개 컬럼만 제거 (삭제)
