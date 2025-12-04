@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Copy } from 'lucide-react';
+import { Plus, Trash2, Copy, ChevronUp, ChevronDown } from 'lucide-react';
 import { GolfSchedule } from '@/app/(admin)/admin/admin-tools/quotation/types';
 import { INCLUSION_OPTIONS } from '@/constants/quotationConstants';
 import GolfCourseAutocomplete from '@/app/(admin)/admin/components/GolfCourseAutocomplete';
@@ -21,6 +21,8 @@ interface GolfOnSiteTableProps {
     onUpdate: (id: string, field: keyof GolfSchedule, value: string | string[]) => void;
     onRemove: (id: string) => void;
     onCopy: (id: string) => void;
+    onMoveUp: (id: string) => void;
+    onMoveDown: (id: string) => void;
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
@@ -35,6 +37,8 @@ export default function GolfOnSiteTable({
     onUpdate,
     onRemove,
     onCopy,
+    onMoveUp,
+    onMoveDown,
     numberOfPeople,
     isFormValid,
     calculatePrepayment,
@@ -141,6 +145,7 @@ export default function GolfOnSiteTable({
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-32">
                                 현장결제(1인)
                             </th>
+                            <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">이동</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">복사</th>
                             <th className="px-1 py-1 text-center text-lg font-semibold text-gray-700 w-20">삭제</th>
                         </tr>
@@ -308,6 +313,30 @@ export default function GolfOnSiteTable({
                                     )}
                                 </td>
                                 <td className="px-1 py-1 text-center w-20 text-lg">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Button
+                                            onClick={() => onMoveUp(schedule.id)}
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={index === 0}
+                                            className="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed p-1"
+                                            title="위로 이동"
+                                        >
+                                            <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            onClick={() => onMoveDown(schedule.id)}
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={index === schedules.length - 1}
+                                            className="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed p-1"
+                                            title="아래로 이동"
+                                        >
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </td>
+                                <td className="px-1 py-1 text-center w-20 text-lg">
                                     <Button
                                         onClick={() => onCopy(schedule.id)}
                                         variant="outline"
@@ -346,6 +375,7 @@ export default function GolfOnSiteTable({
                                         return sum + yenAmount;
                                     }, 0) / parseInt(numberOfPeople))}
                                 </td>
+                                <td className="px-1 py-1 w-20"></td>
                                 <td className="px-1 py-1 w-20"></td>
                                 <td className="px-1 py-1 w-20"></td>
                             </tr>
