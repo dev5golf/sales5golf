@@ -12,6 +12,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/vendor/react-datepicker.css';
 
 export interface DepositFormRow {
+    country: string; // 국가: 대한민국, 베트남
     type: string; // 종류: 계좌이체, 카드, 가상계좌, 포인트
     depositDate: string; // 거래일자 (YYYYMMDD)
     depositor: string; // 입금자
@@ -25,11 +26,13 @@ interface DepositModalProps {
 }
 
 const DEPOSIT_TYPES = ['계좌이체', '카드', '가상계좌', '포인트'];
+const COUNTRIES = ['대한민국', '베트남'];
 
 export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModalProps) {
     const { user } = useAuth();
     const [rows, setRows] = useState<DepositFormRow[]>([
         {
+            country: '대한민국',
             type: '계좌이체',
             depositDate: '',
             depositor: '',
@@ -43,6 +46,7 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
     useEffect(() => {
         if (isOpen) {
             setRows([{
+                country: '대한민국',
                 type: '계좌이체',
                 depositDate: '',
                 depositor: '',
@@ -69,6 +73,7 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
 
     const handleAddRow = () => {
         setRows(prev => [...prev, {
+            country: '대한민국',
             type: '계좌이체',
             depositDate: '',
             depositor: '',
@@ -104,6 +109,10 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
         rows.forEach((row, index) => {
             const rowErrors: Partial<Record<keyof DepositFormRow, boolean>> = {};
 
+            if (!row.country) {
+                rowErrors.country = true;
+                isValid = false;
+            }
             if (!row.type) {
                 rowErrors.type = true;
                 isValid = false;
@@ -137,6 +146,7 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
         onSubmit(rows);
         // 폼 초기화
         setRows([{
+            country: '대한민국',
             type: '계좌이체',
             depositDate: '',
             depositor: '',
@@ -149,6 +159,7 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
     const handleClose = () => {
         // 폼 초기화
         setRows([{
+            country: '대한민국',
             type: '계좌이체',
             depositDate: '',
             depositor: '',
@@ -217,7 +228,27 @@ export default function DepositModal({ isOpen, onClose, onSubmit }: DepositModal
                                     )}
                                 </div>
 
-                                <div className="grid grid-cols-4 gap-4">
+                                <div className="grid grid-cols-5 gap-4">
+                                    {/* 국가 */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            국가 <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={row.country}
+                                            onChange={(e) => handleRowChange(index, 'country', e.target.value)}
+                                            className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[index]?.country ? 'border-red-500' : 'border-gray-300'
+                                                }`}
+                                        >
+                                            {COUNTRIES.map(country => (
+                                                <option key={country} value={country}>{country}</option>
+                                            ))}
+                                        </select>
+                                        {errors[index]?.country && (
+                                            <p className="mt-1 text-xs text-red-500">국가를 선택해주세요.</p>
+                                        )}
+                                    </div>
+
                                     {/* 종류 */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">

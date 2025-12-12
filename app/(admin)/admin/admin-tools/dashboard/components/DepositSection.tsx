@@ -55,6 +55,8 @@ export default function DepositSection() {
                     representative: '', // 빈값
                     manager: '', // 빈값
                     reservationId: '', // 빈값
+                    country: row.country, // 국가
+                    category: '', // 분류 (빈값)
                     status: 'pending' as const, // 기본값: 대기
                 };
 
@@ -152,28 +154,38 @@ export default function DepositSection() {
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="border-b border-gray-200">
-                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">종류</th>
+                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">국가</th>
                                     <th className="text-left py-2 px-2 font-semibold text-gray-700">거래일자</th>
-                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">거래시간</th>
                                     <th className="text-left py-2 px-2 font-semibold text-gray-700">입금자</th>
-                                    <th className="text-right py-2 px-2 font-semibold text-gray-700">입금액</th>
                                     <th className="text-left py-2 px-2 font-semibold text-gray-700">대표자</th>
+                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">분류</th>
+                                </tr>
+                                <tr className="border-b border-gray-200">
+                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">종류</th>
+                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">거래시간</th>
+                                    <th className="text-left py-2 px-2 font-semibold text-gray-700">입금액</th>
                                     <th className="text-left py-2 px-2 font-semibold text-gray-700">담당자</th>
                                     <th className="text-left py-2 px-2 font-semibold text-gray-700">상태</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {deposits.map((deposit: DepositListItem) => (
-                                    <tr key={deposit.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="py-2 px-2 text-gray-800">{deposit.type || '-'}</td>
-                                        <td className="py-2 px-2 text-gray-800">{formatDate(deposit.depositDate)}</td>
-                                        <td className="py-2 px-2 text-gray-800">{formatTime(deposit.depositTime)}</td>
-                                        <td className="py-2 px-2 text-gray-800">{deposit.depositor || '-'}</td>
-                                        <td className="py-2 px-2 text-gray-800 text-right">{formatAmount(deposit.amount)}</td>
-                                        <td className="py-2 px-2 text-gray-800">{deposit.representative || '-'}</td>
-                                        <td className="py-2 px-2 text-gray-800">{deposit.manager || deposit.createdBy || '-'}</td>
-                                        <td className="py-2 px-2">{getStatusBadge(deposit.status)}</td>
-                                    </tr>
+                                    <>
+                                        <tr key={`${deposit.id}-row1`} className="border-b border-gray-100 transition-colors">
+                                            <td className="py-2 px-2 text-gray-800">{deposit.country || '-'}</td>
+                                            <td className="py-2 px-2 text-gray-800">{formatDate(deposit.depositDate)}</td>
+                                            <td className="py-2 px-2 text-gray-800">{deposit.depositor || '-'}</td>
+                                            <td className="py-2 px-2 text-gray-800">{deposit.representative || '-'}</td>
+                                            <td className="py-2 px-2 text-gray-800">{deposit.category || '-'}</td>
+                                        </tr>
+                                        <tr key={`${deposit.id}-row2`} className="border-b border-gray-100 transition-colors">
+                                            <td className="py-2 px-2 text-gray-800">{deposit.type || '-'}</td>
+                                            <td className="py-2 px-2 text-gray-800">{formatTime(deposit.depositTime)}</td>
+                                            <td className="py-2 px-2 text-gray-800">{formatAmount(deposit.amount)}</td>
+                                            <td className="py-2 px-2 text-gray-800">{deposit.manager || deposit.createdBy || '-'}</td>
+                                            <td className="py-2 px-2">{getStatusBadge(deposit.status)}</td>
+                                        </tr>
+                                    </>
                                 ))}
                             </tbody>
                         </table>

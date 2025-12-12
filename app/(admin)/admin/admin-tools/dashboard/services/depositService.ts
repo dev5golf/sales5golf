@@ -18,6 +18,8 @@ export interface DepositPayload {
     manager?: string; // 담당자
     status?: 'pending' | 'completed'; // 상태 (대기/완료)
     bkcode?: string;
+    country?: string; // 국가
+    category?: string; // 분류
     createdBy: string;
     userId?: string;
     createdAt: any;
@@ -35,6 +37,8 @@ export interface DepositListItem {
     manager?: string; // 담당자
     status?: 'pending' | 'completed'; // 상태 (대기/완료)
     bkcode?: string;
+    country?: string; // 국가
+    category?: string; // 분류
     createdBy: string;
     userId?: string;
     createdAt: any;
@@ -56,6 +60,8 @@ export class DepositService {
             manager?: string; // 담당자
             status?: 'pending' | 'completed'; // 상태 (대기/완료)
             bkcode?: string;
+            country?: string; // 국가
+            category?: string; // 분류
         },
         createdBy: string,
         userId?: string
@@ -75,6 +81,8 @@ export class DepositService {
                 reservationId: data.reservationId ?? '', // 빈 문자열로 통일
                 userId: userId ?? '', // 빈 문자열로 통일
                 bkcode: data.bkcode ?? '', // 빈 문자열로 통일
+                country: data.country ?? '', // 국가 (빈 문자열로 기본값)
+                category: data.category ?? '', // 분류 (빈 문자열로 기본값)
                 createdBy,
                 createdAt: serverTimestamp()
             };

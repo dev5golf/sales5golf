@@ -181,6 +181,8 @@ export async function GET(request: NextRequest) {
                     manager: '', // 담당자 (빈값, 나중에 추가 가능)
                     reservationId: '', // 예약ID (빈값, 나중에 추가 가능)
                     userId: '', // 사용자ID (빈값, 나중에 추가 가능)
+                    country: '대한민국', // 국가 (뱅크다 API는 대한민국으로 고정)
+                    category: '', // 분류 (빈값)
                     status: 'pending', // 기본값: 대기
                     createdBy: 'bankda-sync',
                     createdAt: FieldValue.serverTimestamp()
