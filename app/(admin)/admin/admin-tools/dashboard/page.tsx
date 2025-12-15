@@ -46,9 +46,9 @@ export default function AdminToolsDashboardPage() {
 
 
             {/* 메인 그리드: 왼쪽(수배/예약/입금/출금), 오른쪽(활동 로그) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 mb-6">
                 {/* 왼쪽: 수배, 예약, 입금, 출금 (2x2 그리드) */}
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-1">
                     <RecruitmentSection onActivityLogRefresh={handleActivityLogRefresh} />
                     <ReservationSection />
                     <DepositSection />

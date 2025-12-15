@@ -221,8 +221,8 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
 
     return (
         <>
-            <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
+            <div className="p-1 bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="flex items-center justify-between mb-1">
                     <h3 className="text-lg font-semibold text-gray-800">
                         {DASHBOARD_CONSTANTS.SECTIONS.RECRUITMENT}
                     </h3>
@@ -242,7 +242,7 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
                         <>
                             {recruitments.map((recruitment) => (
                                 <div key={recruitment.id} className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <div className="flex items-center justify-between gap-1 p-1 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                         <span className="text-xs text-gray-500 w-fit max-w-10 truncate flex-shrink-0">
                                             {recruitment.createdBy}
                                         </span>
@@ -304,9 +304,9 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
                                                 quotationsByRecruitment[recruitment.id].map((quotation) => (
                                                     <div
                                                         key={quotation.id}
-                                                        className="flex items-center justify-between gap-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
+                                                        className="flex items-center justify-between gap-1 p-1 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                                                     >
-                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1 flex-1 min-w-0">
                                                             <span className="text-xs text-gray-500 w-fit max-w-10 truncate flex-shrink-0">
                                                                 {quotation.createdBy}
                                                             </span>

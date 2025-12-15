@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
-import { LogOut, Home, Calendar, Users, Map, Building, Globe, Settings, Menu, ChevronDown, ChevronRight, FileText, BarChart3, Wrench } from 'lucide-react';
+import { LogOut, Home, Calendar, Users, Map, Building, Globe, Settings, Menu, ChevronDown, ChevronRight, FileText, BarChart3, Wrench, Building2 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading, logout, isAdmin, isSiteAdmin } = useAuth();
@@ -122,6 +122,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             >
                                 <Users className="h-5 w-5" />
                                 <span>회원 관리</span>
+                            </Link>
+                        )}
+
+                        {(user?.role === 'super_admin' || user?.role === 'site_admin') && (
+                            <Link
+                                href="/admin/vendors"
+                                onClick={() => {
+                                    // 모바일에서만 사이드바 닫기
+                                    if (window.innerWidth < 375) {
+                                        setSidebarOpen(false);
+                                    }
+                                }}
+                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${pathname.startsWith('/admin/vendors')
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                    }`}
+                            >
+                                <Building2 className="h-5 w-5" />
+                                <span>거래처 관리</span>
                             </Link>
                         )}
 

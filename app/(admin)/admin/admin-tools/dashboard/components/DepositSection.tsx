@@ -132,8 +132,8 @@ export default function DepositSection() {
     };
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+        <div className="p-1 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between mb-1">
                 <h3 className="text-lg font-semibold text-gray-800">
                     {DASHBOARD_CONSTANTS.SECTIONS.DEPOSIT}
                 </h3>
