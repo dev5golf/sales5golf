@@ -145,10 +145,16 @@ export default function AdditionalInfoSection({
                         </li>
                     ))}
                     {regionType === 'basic' && (
-                        <li className="flex items-start">
-                            <span className="text-gray-400 mr-2">•</span>
-                            <span>동남아 골프장 특성 상 당일 현장 취소 진행 시, 현지 직원의 구두 상의 안내만으로는 취소/환불 불가하며 골프장으로부터 취소 가능 안내받은 직원 성함 또는 취소확인서를 오분골프 측으로 전달부탁드립니다. 해당 과정 없이 구장 이탈하신 경우 취소/환불 불가합니다.</span>
-                        </li>
+                        <>
+                            <li className="flex items-start">
+                                <span className="text-gray-400 mr-2">•</span>
+                                <span>동남아 골프장 특성 상 당일 현장 취소 진행 시, 현지 직원의 구두 상의 안내만으로는 취소/환불 불가합니다. 현장에서 취소 가능 안내받은 직원 성함 또는 취소확인서를 즉시 전달부탁드립니다. 해당 과정 없이 구장 이탈하신 경우 취소/환불 불가합니다.</span>
+                            </li>
+                            <li className="flex items-start">
+                                <span className="text-gray-400 mr-2">•</span>
+                                <span>동남아 골프 1팀/4인 플레이 기준입니다. 현장상황에 따라 조인 될 수 있습니다. 홀수 인원 예약 시 조인이 안되거나 1인 카트/캐디 이용 시, 별도 결제 해야하는 점 참고부탁드립니다.</span>
+                            </li>
+                        </>
                     )}
                 </ul>
             </div>
