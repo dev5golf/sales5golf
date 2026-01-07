@@ -148,6 +148,24 @@ export default function QuotationForm({
                                 className="w-full px-1 py-1 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent !text-left"
                                 showPopperArrow={false}
                                 popperClassName="react-datepicker-popper"
+                                minDate={(() => {
+                                    if (!quotationData.startDate) return undefined;
+                                    if (quotationData.startDate.includes('/')) {
+                                        const [year, month, day] = quotationData.startDate.split('/');
+                                        const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                        return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                    }
+                                    return undefined;
+                                })()}
+                                openToDate={(() => {
+                                    if (!quotationData.startDate) return undefined;
+                                    if (quotationData.startDate.includes('/')) {
+                                        const [year, month, day] = quotationData.startDate.split('/');
+                                        const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+                                        return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                                    }
+                                    return undefined;
+                                })()}
                             />
                         </div>
 
