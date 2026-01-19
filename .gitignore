@@ -106,3 +106,6 @@ temp/
 
 # Development notes (private)
 DEVELOPMENT_NOTES.md
+
+# Password files (sensitive)
+sync-users-passwords-*.txt

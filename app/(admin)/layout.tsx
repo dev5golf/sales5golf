@@ -213,24 +213,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 {/* 하위 메뉴 */}
                                 {adminToolsOpen && (
                                     <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-700 pl-3">
-                                        {user?.role === 'super_admin' && (
-                                            <Link
-                                                href="/admin/admin-tools/dashboard"
-                                                onClick={() => {
-                                                    if (window.innerWidth < 375) {
-                                                        setSidebarOpen(false);
-                                                    }
-                                                }}
-                                                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/dashboard'
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                                    }`}
-                                            >
-                                                <Home className="h-4 w-4" />
-                                                <span>대시보드</span>
-                                                <span className="ml-auto text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">준비중</span>
-                                            </Link>
-                                        )}
+                                        <Link
+                                            href="/admin/admin-tools/dashboard"
+                                            onClick={() => {
+                                                if (window.innerWidth < 375) {
+                                                    setSidebarOpen(false);
+                                                }
+                                            }}
+                                            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm ${pathname === '/admin/admin-tools/dashboard'
+                                                ? 'bg-blue-500 text-white'
+                                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                                }`}
+                                        >
+                                            <Home className="h-4 w-4" />
+                                            <span>대시보드</span>
+                                            <span className="ml-auto text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">준비중</span>
+                                        </Link>
 
                                         <Link
                                             href="/admin/admin-tools/quotation"
