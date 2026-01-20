@@ -167,6 +167,7 @@ export default function PickupTable({
                                         {directInputMode[schedule.id]?.destination ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.destination}
                                                 onChange={(e) => onUpdate(schedule.id, 'destination', e.target.value)}
                                                 placeholder="직접 입력"
@@ -191,6 +192,7 @@ export default function PickupTable({
                                         <div>
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.pickupLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'pickupLocation', e.target.value)}
                                                 placeholder="탑승지"
@@ -217,6 +219,7 @@ export default function PickupTable({
                                         <div>
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.dropoffLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'dropoffLocation', e.target.value)}
                                                 placeholder="하차장소"
@@ -262,6 +265,7 @@ export default function PickupTable({
                                         {directInputMode[schedule.id]?.vehicleType ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.vehicleType}
                                                 onChange={(e) => onUpdate(schedule.id, 'vehicleType', e.target.value)}
                                                 placeholder="직접 입력"
@@ -284,6 +288,7 @@ export default function PickupTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         value={schedule.total}

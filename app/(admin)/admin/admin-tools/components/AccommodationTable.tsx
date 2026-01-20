@@ -152,6 +152,7 @@ export default function AccommodationTable({
                                 <td className="px-1 py-1 text-lg text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.hotelName}
                                         onChange={(e) => onUpdate(schedule.id, 'hotelName', e.target.value)}
                                         placeholder="호텔명"
@@ -179,6 +180,7 @@ export default function AccommodationTable({
                                 <td className="px-1 py-1 text-lg w-24 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.roomType}
                                         onChange={(e) => onUpdate(schedule.id, 'roomType', e.target.value)}
                                         placeholder="슈페리어룸"
@@ -188,6 +190,7 @@ export default function AccommodationTable({
                                 <td className="px-1 py-1 text-lg w-24 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.meals}
                                         onChange={(e) => onUpdate(schedule.id, 'meals', e.target.value)}
                                         placeholder="조식"
@@ -197,6 +200,7 @@ export default function AccommodationTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         value={schedule.total}

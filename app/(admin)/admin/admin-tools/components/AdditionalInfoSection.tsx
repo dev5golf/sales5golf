@@ -127,6 +127,7 @@ export default function AdditionalInfoSection({
             <div className="mt-6 p-6 rounded-lg">
                 <h3 className="text-2xl font-semibold text-gray-800 mb-4">추가선택사항</h3>
                 <textarea
+                    lang="ko"
                     value={additionalOptions}
                     onChange={(e) => onAdditionalOptionsChange(e.target.value)}
                     placeholder=""
