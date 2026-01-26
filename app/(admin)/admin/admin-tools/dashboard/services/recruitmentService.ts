@@ -1,5 +1,5 @@
 import { RecruitmentData } from '../components';
-import { collection, addDoc, serverTimestamp, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, orderBy, query, doc, updateDoc, getDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface RecruitmentResponse {
@@ -19,6 +19,7 @@ export interface RecruitmentPayload {
     startDate: string;
     endDate: string;
     numberOfPeople: string;
+    memo?: string;
     createdAt: any;
 }
 
@@ -34,6 +35,7 @@ export interface RecruitmentListItem {
     startDate: string;
     endDate: string;
     numberOfPeople: string;
+    memo?: string;
     createdAt: any;
 }
 
@@ -68,6 +70,7 @@ export class RecruitmentService {
                 startDate: data.startDate,
                 endDate: data.endDate,
                 numberOfPeople: data.numberOfPeople,
+                memo: data.memo,
                 createdAt: serverTimestamp()
             };
 
@@ -89,12 +92,16 @@ export class RecruitmentService {
     }
 
     /**
-     * 수배 목록 조회
+     * 수배 목록 조회 (status가 0인 것만)
      */
     static async getRecruitments(): Promise<RecruitmentResponse> {
         try {
-            // Firebase에서 orders 컬렉션의 모든 데이터 가져오기
-            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+            // Firebase에서 orders 컬렉션의 status가 0인 데이터만 가져오기
+            const q = query(
+                collection(db, 'orders'),
+                where('status', '==', 0),
+                orderBy('createdAt', 'desc')
+            );
             const snapshot = await getDocs(q);
 
             const recruitments = snapshot.docs.map(doc => ({
@@ -114,6 +121,27 @@ export class RecruitmentService {
                 message: '수배 목록 조회에 실패했습니다.',
                 data: []
             };
+        }
+    }
+
+    /**
+     * 수배 단일 조회
+     */
+    static async getRecruitment(id: string): Promise<RecruitmentListItem | null> {
+        try {
+            const docRef = doc(db, 'orders', id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                return {
+                    id: docSnap.id,
+                    ...docSnap.data()
+                } as RecruitmentListItem;
+            }
+            return null;
+        } catch (error) {
+            console.error('수배 조회 실패:', error);
+            return null;
         }
     }
 
@@ -140,6 +168,7 @@ export class RecruitmentService {
             if (data.startDate !== undefined) updateData.startDate = data.startDate;
             if (data.endDate !== undefined) updateData.endDate = data.endDate;
             if (data.numberOfPeople !== undefined) updateData.numberOfPeople = data.numberOfPeople;
+            if (data.memo !== undefined) updateData.memo = data.memo;
             if (createdBy) updateData.createdBy = createdBy;
             if (userId) updateData.userId = userId; // 사용자 ID 업데이트
 
@@ -226,6 +255,62 @@ export class RecruitmentService {
             return {
                 success: false,
                 message: '수배 상태 업데이트에 실패했습니다.'
+            };
+        }
+    }
+
+    /**
+     * 수배의 status 업데이트
+     */
+    static async updateRecruitmentStatus(recruitmentId: string, status: number): Promise<RecruitmentResponse> {
+        try {
+            const docRef = doc(db, 'orders', recruitmentId);
+            await updateDoc(docRef, {
+                status: status
+            });
+
+            return {
+                success: true,
+                message: '수배 상태가 성공적으로 업데이트되었습니다.'
+            };
+        } catch (error) {
+            console.error('수배 상태 업데이트 실패:', error);
+            return {
+                success: false,
+                message: '수배 상태 업데이트에 실패했습니다.'
+            };
+        }
+    }
+
+    /**
+     * 예약 목록 조회 (status가 1인 것만)
+     */
+    static async getReservations(): Promise<RecruitmentResponse> {
+        try {
+            // Firebase에서 orders 컬렉션의 status가 1인 데이터만 가져오기
+            const q = query(
+                collection(db, 'orders'),
+                where('status', '==', 1),
+                orderBy('createdAt', 'desc')
+            );
+            const snapshot = await getDocs(q);
+
+            const reservations = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as RecruitmentListItem[];
+
+            return {
+                success: true,
+                message: '예약 목록을 성공적으로 조회했습니다.',
+                data: reservations
+            };
+        } catch (error: any) {
+            console.error('예약 목록 조회 실패:', error);
+            return {
+                success: false,
+                message: '예약 목록 조회에 실패했습니다.',
+                data: []
             };
         }
     }

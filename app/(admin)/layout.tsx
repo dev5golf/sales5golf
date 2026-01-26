@@ -277,7 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 </header>
 
-                <div className="flex-1 p-4 lg:p-6">
+                <div className={`flex-1 ${pathname === '/admin/admin-tools/dashboard' ? '' : 'p-4 lg:p-6'}`}>
                     {children}
                 </div>
             </main>

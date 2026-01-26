@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Clock, FileText, Download, Calendar, Edit, Plus, DollarSign, Minus } from 'lucide-react';
+import { Clock, FileText, Download, Calendar, Edit, Plus, DollarSign, Minus, X } from 'lucide-react';
 import { ACTIVITY_LOG_CONSTANTS } from '../constants';
 import { ActivityLogService, ActivityLog as ActivityLogType } from '../services/activityLogService';
 import { Timestamp } from 'firebase/firestore';
@@ -13,6 +13,7 @@ const actionIcons = {
     quotation_save: FileText,
     quotation_download: Download,
     reservation_create: Calendar,
+    reservation_cancel: X,
     deposit_create: DollarSign,
     withdrawal_create: Minus
 };

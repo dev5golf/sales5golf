@@ -18,9 +18,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface RecruitmentSectionProps {
     onActivityLogRefresh?: () => void;
+    onReservationRefresh?: () => void;
+    refreshTrigger?: number;
 }
 
-export default function RecruitmentSection({ onActivityLogRefresh }: RecruitmentSectionProps) {
+export default function RecruitmentSection({ onActivityLogRefresh, onReservationRefresh, refreshTrigger }: RecruitmentSectionProps) {
     const { user } = useAuth();
     const [recruitments, setRecruitments] = useState<RecruitmentListItem[]>([]);
     const [loadingRecruitments, setLoadingRecruitments] = useState(true);
@@ -61,7 +63,7 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
         if (!isOpen) {
             onActivityLogRefresh?.();
         }
-    }, [isOpen]);
+    }, [isOpen, refreshTrigger]);
 
     // 대기 버튼 클릭 시 견적서 Dialog 열기
     const handleCreateQuotation = (recruitment: RecruitmentListItem) => {
@@ -196,8 +198,24 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
 
     // 예약 버튼 핸들러
     const handleReserveQuotation = async (recruitmentId: string, quotationId: string) => {
+        if (!confirm('예약하시겠습니까?')) {
+            return;
+        }
+
         try {
-            alert(`예약 기능은 추후 구현 예정입니다. (수배 ID: ${recruitmentId}, 견적서 ID: ${quotationId})`);
+            // 수배의 status를 1로 변경
+            const statusResponse = await RecruitmentService.updateRecruitmentStatus(recruitmentId, 1);
+
+            if (!statusResponse.success) {
+                alert('수배 상태 업데이트에 실패했습니다.');
+                return;
+            }
+
+            // 수배 목록 새로고침
+            await refreshRecruitments();
+
+            // 예약 섹션도 새로고침
+            onReservationRefresh?.();
 
             if (user) {
                 const userName = user.name || user.email || '알 수 없음';
@@ -214,8 +232,11 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
 
                 onActivityLogRefresh?.();
             }
+
+            alert('예약이 완료되었습니다.');
         } catch (error) {
-            console.error('예약 로그 기록 실패:', error);
+            console.error('예약 처리 실패:', error);
+            alert('예약 처리에 실패했습니다.');
         }
     };
 
@@ -280,7 +301,8 @@ export default function RecruitmentSection({ onActivityLogRefresh }: Recruitment
                                                             destination: recruitment.destination || '',
                                                             startDate: recruitment.startDate || '',
                                                             endDate: recruitment.endDate || '',
-                                                            numberOfPeople: recruitment.numberOfPeople || ''
+                                                            numberOfPeople: recruitment.numberOfPeople || '',
+                                                            memo: recruitment.memo || ''
                                                         };
                                                         openEditModal(recruitment.id, recruitmentData);
                                                     }}

@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase';
 // 액티비티 로그 타입 정의 (최종 권장 타입)
 export interface ActivityLog {
     id: string;
-    action: 'recruitment_create' | 'recruitment_update' | 'quotation_save' | 'quotation_download' | 'reservation_create' | 'deposit_create' | 'withdrawal_create';
+    action: 'recruitment_create' | 'recruitment_update' | 'quotation_save' | 'quotation_download' | 'reservation_create' | 'reservation_cancel' | 'deposit_create' | 'withdrawal_create';
     userId: string;
     userName: string;
     targetId?: string;

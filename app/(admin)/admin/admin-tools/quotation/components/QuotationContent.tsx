@@ -7,7 +7,7 @@ import { usePreview } from '@/hooks/usePreview';
 import { useQuotationStorage } from '@/hooks/useQuotationStorage';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, Save, FolderOpen, Plus } from 'lucide-react';
-import { RecruitmentService } from '@/app/(admin)/admin/admin-tools/dashboard/services/recruitmentService';
+import { RecruitmentService, RecruitmentListItem } from '@/app/(admin)/admin/admin-tools/dashboard/services/recruitmentService';
 import { ActivityLogService } from '@/app/(admin)/admin/admin-tools/dashboard/services/activityLogService';
 import { getQuotation } from '@/lib/quotationService';
 import QuotationForm from './QuotationForm';
@@ -50,6 +50,9 @@ export default function QuotationContent({ onClose, isModal = false, orderDocume
 
     // 패키지견적 체크박스 상태
     const [isPackageQuotation, setIsPackageQuotation] = useState<boolean>(false);
+
+    // 수배 메모 상태
+    const [recruitmentMemo, setRecruitmentMemo] = useState<string>('');
 
     // 모달 상태
     const [isQuotationListOpen, setIsQuotationListOpen] = useState(false);
@@ -107,6 +110,28 @@ export default function QuotationContent({ onClose, isModal = false, orderDocume
             setIsPackageQuotation(false);
         }
     }, [regionType]);
+
+    // 수배 메모 불러오기
+    useEffect(() => {
+        const loadRecruitmentMemo = async () => {
+            if (orderDocumentId && isModal) {
+                try {
+                    const recruitment = await RecruitmentService.getRecruitment(orderDocumentId);
+                    if (recruitment && recruitment.memo) {
+                        setRecruitmentMemo(recruitment.memo);
+                    } else {
+                        setRecruitmentMemo('');
+                    }
+                } catch (error) {
+                    console.error('수배 메모 불러오기 실패:', error);
+                    setRecruitmentMemo('');
+                }
+            } else {
+                setRecruitmentMemo('');
+            }
+        };
+        loadRecruitmentMemo();
+    }, [orderDocumentId, isModal]);
 
     // localStorage에서 pendingQuotationData 불러오기 또는 초기 견적서 로드
     useEffect(() => {
@@ -315,12 +340,24 @@ export default function QuotationContent({ onClose, isModal = false, orderDocume
                 </div>
             )}
 
-            {/* 지역 선택 */}
+            {/* 지역 선택 및 메모 */}
             <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className={`${isModal ? '' : 'max-w-7xl'} mx-auto`}>
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold text-gray-900"></h1>
-                        <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        {/* 좌측: 메모 */}
+                        {recruitmentMemo ? (
+                            <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="flex items-start gap-2">
+                                    <span className="text-sm font-semibold text-blue-700 min-w-fit">메모:</span>
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{recruitmentMemo}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex-1"></div>
+                        )}
+
+                        {/* 우측: 지역 선택 */}
+                        <div className="flex items-center gap-4 flex-shrink-0">
                             <label className="text-sm font-medium text-gray-700">지역:</label>
                             <select
                                 value={regionType}

@@ -97,6 +97,7 @@ export const ACTIVITY_LOG_CONSTANTS = {
             quotation_save: '견적서 저장',
             quotation_download: '견적서 다운로드',
             reservation_create: '예약 등록',
+            reservation_cancel: '예약 취소',
             deposit_create: '입금 등록',
             withdrawal_create: '출금 등록'
         },
@@ -125,6 +126,11 @@ export const ACTIVITY_LOG_CONSTANTS = {
                 bg: 'bg-orange-100',
                 text: 'text-orange-600',
                 badge: 'bg-orange-100 text-orange-700'
+            },
+            reservation_cancel: {
+                bg: 'bg-red-100',
+                text: 'text-red-600',
+                badge: 'bg-red-100 text-red-700'
             },
             deposit_create: {
                 bg: 'bg-emerald-100',

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActivityLog, RecruitmentSection, ReservationSection, DepositSection, WithdrawalSection } from './components';
@@ -10,9 +10,19 @@ export default function AdminToolsDashboardPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [activityLogRefreshTrigger, setActivityLogRefreshTrigger] = useState(0);
+    const [recruitmentRefreshTrigger, setRecruitmentRefreshTrigger] = useState(0);
+    const [reservationRefreshTrigger, setReservationRefreshTrigger] = useState(0);
 
     const handleActivityLogRefresh = () => {
         setActivityLogRefreshTrigger(prev => prev + 1);
+    };
+
+    const handleRecruitmentRefresh = () => {
+        setRecruitmentRefreshTrigger(prev => prev + 1);
+    };
+
+    const handleReservationRefresh = () => {
+        setReservationRefreshTrigger(prev => prev + 1);
     };
 
     // 권한 검사 - 수퍼관리자와 사이트관리자만 접근 가능
@@ -37,7 +47,7 @@ export default function AdminToolsDashboardPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* 헤더 */}
-            <div className="mb-8 p-6 bg-white rounded-lg shadow-sm">
+            <div className="mb-1 p-6 bg-white rounded-lg shadow-sm">
                 <div>
                     <h1 className="text-3xl font-semibold text-gray-800">{DASHBOARD_CONSTANTS.TITLES.MAIN}</h1>
                     <p className="text-gray-600 mt-1"></p>
@@ -45,21 +55,33 @@ export default function AdminToolsDashboardPage() {
             </div>
 
 
-            {/* 메인 그리드: 왼쪽(수배/예약/입금/출금), 오른쪽(활동 로그) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 mb-6">
-                {/* 왼쪽: 수배, 예약, 입금, 출금 (2x2 그리드) */}
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-1">
-                    <RecruitmentSection onActivityLogRefresh={handleActivityLogRefresh} />
-                    <ReservationSection />
-                    <DepositSection />
-                    <WithdrawalSection />
+            {/* 메인 그리드: 수배(4)/예약(6) | 입금(3)/출금(5)/활동로그(2) */}
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-1 mb-6">
+                {/* 첫 번째 줄: 수배(4) / 예약(6) */}
+                <div className="lg:col-span-4">
+                    <RecruitmentSection
+                        onActivityLogRefresh={handleActivityLogRefresh}
+                        onReservationRefresh={handleReservationRefresh}
+                        refreshTrigger={recruitmentRefreshTrigger}
+                    />
+                </div>
+                <div className="lg:col-span-6">
+                    <ReservationSection
+                        onActivityLogRefresh={handleActivityLogRefresh}
+                        onRecruitmentRefresh={handleRecruitmentRefresh}
+                        refreshTrigger={reservationRefreshTrigger}
+                    />
                 </div>
 
-                {/* 오른쪽: 활동 로그 (전체 높이) */}
-                <div className="lg:col-span-1 flex">
-                    <div className="w-full">
-                        <ActivityLog refreshTrigger={activityLogRefreshTrigger} />
-                    </div>
+                {/* 두 번째 줄: 입금(3) / 출금(5) / 활동로그(2) */}
+                <div className="lg:col-span-3">
+                    <DepositSection />
+                </div>
+                <div className="lg:col-span-5">
+                    <WithdrawalSection />
+                </div>
+                <div className="lg:col-span-2">
+                    <ActivityLog refreshTrigger={activityLogRefreshTrigger} />
                 </div>
             </div>
         </div>

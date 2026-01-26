@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { RECRUITMENT_CONSTANTS, DASHBOARD_CONSTANTS } from '../constants';
@@ -16,6 +17,7 @@ export interface RecruitmentData {
     startDate: string;
     endDate: string;
     numberOfPeople: string;
+    memo?: string;
 }
 
 interface RecruitmentModalProps {
@@ -32,7 +34,8 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
         destination: '',
         startDate: '',
         endDate: '',
-        numberOfPeople: ''
+        numberOfPeople: '',
+        memo: ''
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof RecruitmentData, boolean>>>({});
@@ -48,7 +51,8 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
                 destination: '',
                 startDate: '',
                 endDate: '',
-                numberOfPeople: ''
+                numberOfPeople: '',
+                memo: ''
             });
         }
         setErrors({});
@@ -102,7 +106,8 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
             destination: '',
             startDate: '',
             endDate: '',
-            numberOfPeople: ''
+            numberOfPeople: '',
+            memo: ''
         });
         setErrors({});
         onClose();
@@ -115,7 +120,8 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
             destination: '',
             startDate: '',
             endDate: '',
-            numberOfPeople: ''
+            numberOfPeople: '',
+            memo: ''
         });
         setErrors({});
         onClose();
@@ -123,14 +129,14 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-visible">
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-gray-800">
                         {isEditMode ? '수배 수정' : DASHBOARD_CONSTANTS.TITLES.RECRUITMENT_MODAL}
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="mt-6">
+                <div className="mt-6 flex-1 overflow-y-auto pr-2 pl-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 고객명 */}
                         <div>
@@ -270,24 +276,39 @@ export default function RecruitmentModal({ isOpen, onClose, onSubmit, initialDat
                         </div>
                     </div>
 
-                    {/* 버튼 영역 */}
-                    <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
-                        <Button
-                            variant="outline"
-                            onClick={handleClose}
-                            className="flex items-center gap-2"
-                        >
-                            <X className="h-4 w-4" />
-                            {DASHBOARD_CONSTANTS.BUTTONS.CANCEL}
-                        </Button>
-                        <Button
-                            onClick={handleSubmit}
-                            className="flex items-center gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            {isEditMode ? '수정' : DASHBOARD_CONSTANTS.BUTTONS.REGISTER}
-                        </Button>
+                    {/* 메모 */}
+                    <div className="mt-6">
+                        <label className="block text-lg font-medium text-gray-700 mb-2">
+                            메모
+                        </label>
+                        <Textarea
+                            lang="ko"
+                            value={recruitmentData.memo || ''}
+                            onChange={(e) => handleRecruitmentChange('memo', e.target.value)}
+                            placeholder="메모를 입력하세요"
+                            className="w-full min-h-[120px] text-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        />
                     </div>
+
+                </div>
+
+                {/* 버튼 영역 - 고정 */}
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 flex-shrink-0">
+                    <Button
+                        variant="outline"
+                        onClick={handleClose}
+                        className="flex items-center gap-2"
+                    >
+                        <X className="h-4 w-4" />
+                        {DASHBOARD_CONSTANTS.BUTTONS.CANCEL}
+                    </Button>
+                    <Button
+                        onClick={handleSubmit}
+                        className="flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {isEditMode ? '수정' : DASHBOARD_CONSTANTS.BUTTONS.REGISTER}
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
