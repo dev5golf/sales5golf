@@ -254,6 +254,7 @@ export default function GolfOnSiteTable({
                                         {directInputMode[schedule.id] ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.teeOff}
                                                 onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
                                                 placeholder="직접 입력"
@@ -281,6 +282,7 @@ export default function GolfOnSiteTable({
                                     ) : (
                                         <input
                                             type="text"
+                                            lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.yenAmount ? `¥${schedule.yenAmount}` : ''}
@@ -295,6 +297,7 @@ export default function GolfOnSiteTable({
                                     {regionType === 'japan' ? (
                                         <input
                                             type="text"
+                                            lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.yenAmount ? `¥${Math.round(parseInt(schedule.yenAmount) / parseInt(numberOfPeople))}` : ''}

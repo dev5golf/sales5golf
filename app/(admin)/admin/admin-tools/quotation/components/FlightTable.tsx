@@ -143,6 +143,7 @@ export default function FlightTable({
                                 <td className="px-1 py-1 text-lg w-40 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.flightSchedule}
                                         onChange={(e) => onUpdate(schedule.id, 'flightSchedule', e.target.value)}
                                         placeholder="항공일정"
@@ -161,6 +162,7 @@ export default function FlightTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.airline}
                                         onChange={(e) => onUpdate(schedule.id, 'airline', e.target.value)}
                                         placeholder="항공사"
@@ -170,6 +172,7 @@ export default function FlightTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.flightNumber}
                                         onChange={(e) => onUpdate(schedule.id, 'flightNumber', e.target.value)}
                                         placeholder="항공편명"
@@ -179,6 +182,7 @@ export default function FlightTable({
                                 <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.baggage}
                                         onChange={(e) => onUpdate(schedule.id, 'baggage', e.target.value)}
                                         placeholder="수화물"
@@ -188,6 +192,7 @@ export default function FlightTable({
                                 <td className="px-1 py-1 text-lg w-28 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         value={schedule.duration}
                                         onChange={(e) => onUpdate(schedule.id, 'duration', e.target.value)}
                                         placeholder="소요시간"
@@ -202,6 +207,7 @@ export default function FlightTable({
                                     ) : (
                                         <input
                                             type="text"
+                                            lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.total}
@@ -216,6 +222,7 @@ export default function FlightTable({
                                     {regionType === 'japan' ? (
                                         <input
                                             type="text"
+                                            lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.total ? calculatePrepayment(schedule.total, parseInt(numberOfPeople)) : ''}

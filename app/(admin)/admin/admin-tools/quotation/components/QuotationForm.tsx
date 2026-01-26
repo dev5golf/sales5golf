@@ -63,6 +63,7 @@ export default function QuotationForm({
                             </label>
                             <input
                                 type="text"
+                                lang="ko"
                                 value={quotationData.customerName}
                                 onChange={(e) => onQuotationChange('customerName', e.target.value)}
                                 placeholder="고객명을 입력하세요"
@@ -76,6 +77,7 @@ export default function QuotationForm({
                             </label>
                             <input
                                 type="text"
+                                lang="ko"
                                 value={quotationData.destination}
                                 onChange={(e) => onQuotationChange('destination', e.target.value)}
                                 placeholder="태국/치앙마이"

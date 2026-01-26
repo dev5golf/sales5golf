@@ -240,6 +240,7 @@ export default function GolfScheduleTable({
                                         {directInputMode[schedule.id] ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.teeOff}
                                                 onChange={(e) => onUpdate(schedule.id, 'teeOff', e.target.value)}
                                                 placeholder="직접 입력"
@@ -269,6 +270,7 @@ export default function GolfScheduleTable({
                                         ) : (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 inputMode="numeric"
                                                 pattern="[0-9]*"
                                                 value={schedule.total}
@@ -296,6 +298,7 @@ export default function GolfScheduleTable({
                                     {regionType === 'japan' ? (
                                         <input
                                             type="text"
+                                            lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : ''}

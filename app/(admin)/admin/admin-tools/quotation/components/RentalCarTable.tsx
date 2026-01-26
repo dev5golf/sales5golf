@@ -195,6 +195,7 @@ export default function RentalCarTable({
                                         {directInputMode[schedule.id]?.pickupLocation ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.pickupLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'pickupLocation', e.target.value)}
                                                 placeholder="픽업장소 입력"
@@ -245,6 +246,7 @@ export default function RentalCarTable({
                                         {directInputMode[schedule.id]?.returnLocation ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.returnLocation}
                                                 onChange={(e) => onUpdate(schedule.id, 'returnLocation', e.target.value)}
                                                 placeholder="반납장소 입력"
@@ -313,6 +315,7 @@ export default function RentalCarTable({
                                         {directInputMode[schedule.id]?.carType ? (
                                             <input
                                                 type="text"
+                                                lang="ko"
                                                 value={schedule.carType}
                                                 onChange={(e) => onUpdate(schedule.id, 'carType', e.target.value)}
                                                 placeholder="차종 입력"
@@ -335,6 +338,7 @@ export default function RentalCarTable({
                                 <td className="px-1 py-1 text-lg w-32 text-center">
                                     <input
                                         type="text"
+                                        lang="ko"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         value={schedule.total}
