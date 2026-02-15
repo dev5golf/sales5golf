@@ -37,8 +37,8 @@ export const RENTAL_CAR_RETURN_TIMES = [
 
 
 export const BANK_INFO = {
-    BANK_NAME: '우리은행',
-    ACCOUNT_NUMBER: '1005-304-415722',
+    BANK_NAME: '경남은행',
+    ACCOUNT_NUMBER: '207-0138-8721-07',
     ACCOUNT_HOLDER: '(주)엠오엠트래블'
 } as const;
 
