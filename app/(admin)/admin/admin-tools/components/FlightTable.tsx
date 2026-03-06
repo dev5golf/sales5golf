@@ -40,7 +40,7 @@ export default function FlightTable({
     const handleAddClick = createAddClickHandler(isFormValid, onAdd);
     const handleTotalChange = createTotalChangeHandler(onUpdate);
 
-    // 일본 지역일 때 사전결제(1인) 입력 시 합계 자동 계산 핸들러
+    // 일본 지역일 때 사전결제(1인) 입력 시 합계 자동 계산 핸들러 (해당 행의 인원수 사용)
     const handlePerPersonInputChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
 
@@ -48,9 +48,10 @@ export default function FlightTable({
         const numericValue = value.replace(/[^\d]/g, '');
 
         if (numericValue && calculateTotalFromPerPerson) {
-            // 1인당 요금으로부터 총액 계산
+            const schedule = schedules.find((s) => s.id === id);
+            const people = parseInt(schedule?.people || '0') || 1;
             const perPersonValue = `₩${numericValue}`;
-            const totalValue = calculateTotalFromPerPerson(perPersonValue, parseInt(numberOfPeople));
+            const totalValue = calculateTotalFromPerPerson(perPersonValue, people);
             onUpdate(id, 'total', totalValue);
         } else {
             onUpdate(id, 'total', '');
@@ -225,7 +226,7 @@ export default function FlightTable({
                                             lang="ko"
                                             inputMode="numeric"
                                             pattern="[0-9]*"
-                                            value={schedule.total ? calculatePrepayment(schedule.total, parseInt(numberOfPeople)) : ''}
+                                            value={schedule.total ? calculatePrepayment(schedule.total, parseInt(schedule.people || '0') || 1) : ''}
                                             onChange={(e) => handlePerPersonInputChange(schedule.id, e)}
                                             placeholder="₩0"
                                             className="w-full px-3 py-2 border border-gray-200 rounded-md text-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -233,7 +234,7 @@ export default function FlightTable({
                                         />
                                     ) : (
                                         <span className="text-lg font-medium text-gray-900" translate="no">
-                                            {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(numberOfPeople))}` : '-'}
+                                            {schedule.total ? `₩${calculatePrepayment(schedule.total, parseInt(schedule.people || '0') || 1)}` : '-'}
                                         </span>
                                     )}
                                 </td>
@@ -262,7 +263,8 @@ export default function FlightTable({
                                 </td>
                                 <td className="px-1 py-1 text-xl font-bold text-blue-900 w-32 text-center" translate="no">
                                     ₩{schedules.reduce((sum, schedule) => {
-                                        const prepayment = calculatePrepayment(schedule.total, parseInt(numberOfPeople));
+                                        const people = parseInt(schedule.people || '0') || 1;
+                                        const prepayment = calculatePrepayment(schedule.total, people);
                                         return sum + parseInt(prepayment) || 0;
                                     }, 0)}
                                 </td>
