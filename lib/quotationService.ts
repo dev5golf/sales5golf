@@ -20,6 +20,7 @@ import {
     PaymentInfo
 } from '@/hooks/useQuotationData';
 import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
+import type { RegionType } from '@/app/(admin)/admin/admin-tools/types';
 
 export interface QuotationDocument {
     id: string;
@@ -28,7 +29,7 @@ export interface QuotationDocument {
     updatedAt: Timestamp;
     createdBy: string;
     status: 'draft' | 'completed';
-    regionType: 'basic' | 'japan'; // 지역 타입만 저장
+    regionType: RegionType; // 지역 타입만 저장
     isPackageQuotation?: boolean; // 패키지견적 여부
 
     // 견적서 데이터
@@ -67,7 +68,7 @@ export const saveQuotation = async (
     rentalCarOnSiteSchedules: RentalCarSchedule[],
     paymentInfo: PaymentInfo,
     additionalOptions: string,
-    regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
+    regionType: RegionType = 'basic', // 지역 타입만 저장
     isPackageQuotation: boolean = false, // 패키지견적 여부
     quotationId?: string,
     title?: string,

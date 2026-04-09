@@ -20,7 +20,7 @@ interface FlightTableProps {
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
     calculateTotalFromPerPerson?: (perPersonValue: string, numberOfPeople: number) => string;
-    regionType?: 'basic' | 'japan';
+    regionType?: 'basic' | 'japan' | 'jeju';
 }
 
 export default function FlightTable({

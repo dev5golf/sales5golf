@@ -27,7 +27,7 @@ interface GolfOnSiteTableProps {
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
     exchangeRate?: number; // 환율 추가
-    regionType?: 'basic' | 'japan';
+    regionType?: 'basic' | 'japan' | 'jeju';
     calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 

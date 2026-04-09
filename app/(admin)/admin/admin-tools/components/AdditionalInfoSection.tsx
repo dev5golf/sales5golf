@@ -10,7 +10,7 @@ interface AdditionalInfoSectionProps {
     onAdditionalOptionsChange: (value: string) => void;
     golfSchedules: any[];
     golfOnSiteSchedules: any[];
-    regionType?: 'basic' | 'japan';
+    regionType?: 'basic' | 'japan' | 'jeju';
 }
 
 export default function AdditionalInfoSection({

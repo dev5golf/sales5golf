@@ -6,7 +6,7 @@ import { ko } from 'date-fns/locale';
 import { Button } from '../../../../../components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
-import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_RETURN_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
+import { RENTAL_CAR_PICKUP_LOCATIONS, RENTAL_CAR_TYPES, RENTAL_CAR_PICKUP_TIMES, RENTAL_CAR_RETURN_TIMES } from '../../../../../constants/quotationConstants';
 import { createAddClickHandler } from '@/lib/utils/tableUtils';
 import { createMultiFieldDirectInputToggleHandler } from '@/lib/utils/tableHandlers';
 import { createTotalChangeHandler } from '@/lib/utils/tableHandlers';
@@ -22,6 +22,7 @@ interface RentalCarTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
+    regionType?: 'basic' | 'japan' | 'jeju';
 }
 
 export default function RentalCarTable({
@@ -31,7 +32,8 @@ export default function RentalCarTable({
     onRemove,
     numberOfPeople,
     isFormValid,
-    calculatePrepayment
+    calculatePrepayment,
+    regionType = 'basic'
 }: RentalCarTableProps) {
     // 마지막 선택한 날짜 범위를 기억하는 상태
     const [lastSelectedDateRange, setLastSelectedDateRange] = useState<[Date | null, Date | null]>([null, null]);
@@ -45,6 +47,7 @@ export default function RentalCarTable({
 
     // 직접입력 모드 토글 핸들러
     const handleDirectInputToggle = createMultiFieldDirectInputToggleHandler(directInputMode, setDirectInputMode, onUpdate);
+    const locationOptions = regionType === 'jeju' ? ['제주공항'] : [...RENTAL_CAR_PICKUP_LOCATIONS];
 
     // schedules가 변경될 때 체크박스 상태 복원
     useEffect(() => {
@@ -208,7 +211,7 @@ export default function RentalCarTable({
                                                 className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
                                             >
                                                 <option value="">선택하세요</option>
-                                                {RENTAL_CAR_PICKUP_LOCATIONS.map((location) => (
+                                                {locationOptions.map((location) => (
                                                     <option key={location} value={location}>{location}</option>
                                                 ))}
                                             </select>
@@ -259,7 +262,7 @@ export default function RentalCarTable({
                                                 className={`w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
                                             >
                                                 <option value="">선택하세요</option>
-                                                {RENTAL_CAR_RETURN_LOCATIONS.map((location) => (
+                                                {locationOptions.map((location) => (
                                                     <option key={location} value={location}>{location}</option>
                                                 ))}
                                             </select>

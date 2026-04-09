@@ -25,7 +25,7 @@ interface GolfScheduleTableProps {
     numberOfPeople: string;
     isFormValid: boolean;
     calculatePrepayment: (total: string, numberOfPeople: number) => string;
-    regionType?: 'basic' | 'japan';
+    regionType?: 'basic' | 'japan' | 'jeju';
     calculateTotalFromPerPerson?: (perPersonAmount: string, numberOfPeople: number) => string;
 }
 

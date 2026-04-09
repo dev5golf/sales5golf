@@ -22,6 +22,7 @@ import FeeSection from './components/FeeSection';
 import PreviewModal from './components/PreviewModal';
 import QuotationListModal from './components/QuotationListModal';
 import { log } from 'console';
+import type { RegionType } from './types';
 
 export default function AdminTools() {
     const { user, loading } = useAuth();
@@ -33,7 +34,7 @@ export default function AdminTools() {
     const storage = useQuotationStorage(user?.id);
 
     // 기본/일본 선택 상태
-    const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
+    const [regionType, setRegionType] = useState<RegionType>('basic');
 
     // 환율 상태 (1엔 = ?원)
     const [exchangeRate, setExchangeRate] = useState<number>(9);
@@ -61,7 +62,7 @@ export default function AdminTools() {
     const quotationRef = useRef(quotation);
     quotationRef.current = quotation;
 
-    const regionTypeRef = useRef<'basic' | 'japan'>('basic');
+    const regionTypeRef = useRef<RegionType>('basic');
     regionTypeRef.current = regionType;
 
     const isPackageQuotationRef = useRef<boolean>(false);
@@ -257,10 +258,11 @@ export default function AdminTools() {
                             <label className="text-sm font-medium text-gray-700">지역:</label>
                             <select
                                 value={regionType}
-                                onChange={(e) => setRegionType(e.target.value as 'basic' | 'japan')}
+                                onChange={(e) => setRegionType(e.target.value as RegionType)}
                                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="basic">기본</option>
+                                <option value="jeju">제주도</option>
                                 <option value="japan">일본</option>
                             </select>
 
@@ -387,32 +389,32 @@ export default function AdminTools() {
                     regionType={regionType}
                 />
 
-                {/* 렌트카 일정 테이블들 - 일본 선택 시에만 표시 */}
-                {regionType === 'japan' && (
-                    <>
-                        {/* 렌트카(사전결제) 일정 테이블 */}
-                        <RentalCarTable
-                            schedules={quotation.rentalCarSchedules}
-                            onAdd={quotation.addRentalCarSchedule}
-                            onUpdate={quotation.updateRentalCarSchedule}
-                            onRemove={quotation.removeRentalCarSchedule}
-                            numberOfPeople={quotation.quotationData.numberOfPeople}
-                            isFormValid={quotation.isFormValid()}
-                            calculatePrepayment={quotation.calculatePrepayment}
-                        />
+                {/* 렌트카(사전결제): 일본/제주도에서 표시 */}
+                {(regionType === 'japan' || regionType === 'jeju') && (
+                    <RentalCarTable
+                        schedules={quotation.rentalCarSchedules}
+                        onAdd={quotation.addRentalCarSchedule}
+                        onUpdate={quotation.updateRentalCarSchedule}
+                        onRemove={quotation.removeRentalCarSchedule}
+                        numberOfPeople={quotation.quotationData.numberOfPeople}
+                        isFormValid={quotation.isFormValid()}
+                        calculatePrepayment={quotation.calculatePrepayment}
+                        regionType={regionType}
+                    />
+                )}
 
-                        {/* 렌트카(현장결제) 일정 테이블 */}
-                        <RentalCarOnsiteTable
-                            schedules={quotation.rentalCarOnSiteSchedules}
-                            onAdd={quotation.addRentalCarOnSiteSchedule}
-                            onUpdate={quotation.updateRentalCarOnSiteSchedule}
-                            onRemove={quotation.removeRentalCarOnSiteSchedule}
-                            numberOfPeople={quotation.quotationData.numberOfPeople}
-                            isFormValid={quotation.isFormValid()}
-                            calculatePrepayment={quotation.calculatePrepayment}
-                            exchangeRate={exchangeRate}
-                        />
-                    </>
+                {/* 렌트카(현장결제): 일본 선택 시에만 표시 */}
+                {regionType === 'japan' && (
+                    <RentalCarOnsiteTable
+                        schedules={quotation.rentalCarOnSiteSchedules}
+                        onAdd={quotation.addRentalCarOnSiteSchedule}
+                        onUpdate={quotation.updateRentalCarOnSiteSchedule}
+                        onRemove={quotation.removeRentalCarOnSiteSchedule}
+                        numberOfPeople={quotation.quotationData.numberOfPeople}
+                        isFormValid={quotation.isFormValid()}
+                        calculatePrepayment={quotation.calculatePrepayment}
+                        exchangeRate={exchangeRate}
+                    />
                 )}
 
                 {/* 오분골프 수수료 */}

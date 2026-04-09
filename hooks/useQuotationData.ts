@@ -8,6 +8,7 @@ import {
     PickupSchedule,
     PaymentInfo
 } from '@/app/(admin)/admin/admin-tools/types';
+import type { RegionType } from '@/app/(admin)/admin/admin-tools/types';
 
 // Export types for use in other files
 export type {
@@ -44,7 +45,7 @@ export const useQuotationData = () => {
     });
 
     const [additionalOptions, setAdditionalOptions] = useState('');
-    const [regionType, setRegionType] = useState<'basic' | 'japan'>('basic');
+    const [regionType, setRegionType] = useState<RegionType>('basic');
     const [isPackageQuotation, setIsPackageQuotation] = useState<boolean>(false);
 
     const updateQuotationData = (field: keyof QuotationData, value: string) => {
@@ -353,6 +354,7 @@ export const useQuotationData = () => {
     // 오분골프 수수료 계산
     const calculateFee = () => {
         const people = parseInt(quotationData.numberOfPeople) || 0;
+        const isJeju = regionType === 'jeju';
 
         // 골프 수수료 계산 (1인당 1회 1만원 × 골프 행 수)
         // 기본 지역의 경우 골프수수료는 무료(0원)로 적용
@@ -362,14 +364,14 @@ export const useQuotationData = () => {
 
         // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
         const accommodationFeePerRoom = 10000;
-        const totalAccommodationFee = isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
+        const totalAccommodationFee = isJeju || isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
             const rooms = parseInt(schedule.rooms) || 0;
             return total + (rooms * accommodationFeePerRoom);
         }, 0);
 
         // 렌트카 수수료 계산 (1대당 1만원 × 렌트카 행 수)
         const rentalCarFeePerCar = 10000;
-        const totalRentalCarFee = isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
+        const totalRentalCarFee = isJeju || isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
 
         // 항공 수수료 계산 (첫 번째 항공 행의 인원수 × 1만원)
         const flightFeePerPerson = 10000;
@@ -381,9 +383,10 @@ export const useQuotationData = () => {
         const discountRate = isDiscountEligible ? 0.3 : 0;
         const golfDiscountAmount = totalGolfFee * discountRate;
         const finalGolfFee = totalGolfFee - golfDiscountAmount;
+        const effectiveGolfFee = isJeju ? 0 : finalGolfFee;
 
         // 총 수수료 (할인 적용된 골프 수수료 + 숙박 수수료 + 렌트카 수수료 + 항공 수수료)
-        const finalFee = finalGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
+        const finalFee = effectiveGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
         return finalFee;
     };
 

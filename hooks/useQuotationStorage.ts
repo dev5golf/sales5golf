@@ -19,6 +19,7 @@ import {
     PaymentInfo
 } from '@/app/(admin)/admin/admin-tools/types';
 import { FlightSchedule, RentalCarSchedule } from '@/app/(admin)/admin/admin-tools/types';
+import type { RegionType } from '@/app/(admin)/admin/admin-tools/types';
 
 export const useQuotationStorage = (currentUserId?: string) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +39,7 @@ export const useQuotationStorage = (currentUserId?: string) => {
         rentalCarOnSiteSchedules: RentalCarSchedule[],
         paymentInfo: PaymentInfo,
         additionalOptions: string,
-        regionType: 'basic' | 'japan' = 'basic', // 지역 타입만 저장
+        regionType: RegionType = 'basic', // 지역 타입만 저장
         isPackageQuotation: boolean = false, // 패키지견적 여부
         title?: string
     ): Promise<string> => {

@@ -9,13 +9,15 @@ interface FeeSectionProps {
     rentalCarSchedules: any[];
     rentalCarOnSiteSchedules: any[];
     flightSchedules: any[];
-    regionType?: 'basic' | 'japan';
+    regionType?: 'basic' | 'japan' | 'jeju';
     isPackageQuotation?: boolean;
 }
 
 export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSchedules, accommodationSchedules, rentalCarSchedules, rentalCarOnSiteSchedules, flightSchedules, regionType = 'basic', isPackageQuotation = false }: FeeSectionProps) {
     // 인원수
     const people = parseInt(numberOfPeople) || 0;
+
+    const isJeju = regionType === 'jeju';
 
     // 골프 수수료 계산 (1인당 1회 1만원 × 골프 행 수)
     // 기본 지역의 경우 골프수수료는 무료(0원)로 적용
@@ -25,14 +27,14 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
 
     // 숙박 수수료 계산 (숙박 테이블 행의 객실수 × 1만원)
     const accommodationFeePerRoom = 10000;
-    const totalAccommodationFee = isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
+    const totalAccommodationFee = isJeju || isPackageQuotation ? 0 : accommodationSchedules.reduce((total, schedule) => {
         const rooms = parseInt(schedule.rooms) || 0;
         return total + (rooms * accommodationFeePerRoom);
     }, 0);
 
     // 렌트카 수수료 계산 (1대당 1만원 × 렌트카 행 수)
     const rentalCarFeePerCar = 10000;
-    const totalRentalCarFee = isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
+    const totalRentalCarFee = isJeju || isPackageQuotation ? 0 : (rentalCarSchedules.length + rentalCarOnSiteSchedules.length) * rentalCarFeePerCar;
 
     // 항공 수수료 계산 (첫 번째 항공 행의 인원수 × 1만원)
     const flightFeePerPerson = 10000;
@@ -45,8 +47,10 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
     const golfDiscountAmount = totalGolfFee * discountRate;
     const finalGolfFee = totalGolfFee - golfDiscountAmount;
 
+    const effectiveGolfFee = isJeju ? 0 : finalGolfFee;
+
     // 총 수수료 (할인 적용된 골프 수수료 + 숙박 수수료 + 렌트카 수수료 + 항공 수수료)
-    const finalFee = finalGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
+    const finalFee = effectiveGolfFee + totalAccommodationFee + totalRentalCarFee + totalFlightFee;
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -58,7 +62,7 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
             <div className="bg-white rounded-lg shadow-sm">
                 <div className="flex items-center gap-4">
                     {/* 골프 수수료 */}
-                    {(golfSchedules.length > 0 || golfOnSiteSchedules.length > 0) && (regionType === 'basic' || finalGolfFee > 0) && (
+                    {!isJeju && (golfSchedules.length > 0 || golfOnSiteSchedules.length > 0) && (regionType === 'basic' || finalGolfFee > 0) && (
                         <div className="flex items-center gap-2">
                             <span className="text-gray-800 font-medium text-xl">골프</span>
                             {regionType === 'basic' && finalGolfFee === 0 ? (
@@ -75,7 +79,7 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
                     )}
 
                     {/* 숙박 수수료 */}
-                    {totalAccommodationFee > 0 && (
+                    {!isJeju && totalAccommodationFee > 0 && (
                         <div className="flex items-center gap-2">
                             <span className="text-gray-800 font-medium text-xl">숙박</span>
                             <span className="text-gray-900 font-bold text-xl">₩{totalAccommodationFee.toLocaleString()}</span>
@@ -83,7 +87,7 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
                     )}
 
                     {/* 렌트카 수수료 */}
-                    {totalRentalCarFee > 0 && (
+                    {!isJeju && totalRentalCarFee > 0 && (
                         <div className="flex items-center gap-2">
                             <span className="text-gray-800 font-medium text-xl">렌트카</span>
                             <span className="text-gray-900 font-bold text-xl">₩{totalRentalCarFee.toLocaleString()}</span>
@@ -116,7 +120,9 @@ export default function FeeSection({ numberOfPeople, golfSchedules, golfOnSiteSc
                         <div className="text-yellow-800">
                             <p className="font-medium text-lg mb-1">수수료 안내</p>
                             <p className="text-lg">
-                                골프 1인×1회 1만원(8인 이상 시 골프 수수료 30% 할인) / 숙박 1객실 1만원 / 렌트카 1대 1만원 / 항공 1인 1만원
+                                {isJeju
+                                    ? '항공 1인 1만원'
+                                    : '골프 1인×1회 1만원(8인 이상 시 골프 수수료 30% 할인) / 숙박 1객실 1만원 / 렌트카 1대 1만원 / 항공 1인 1만원'}
                             </p>
                         </div>
                     </div>
